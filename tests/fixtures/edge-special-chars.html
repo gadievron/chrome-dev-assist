@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edge Test - Special Characters</title>
+  <meta name="test-id" content="edge-special-001">
+</head>
+<body>
+  <h1>Special Characters Test</h1>
+  <p data-test-type="special-chars">This page logs special characters</p>
+
+  <script>
+    // Test identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID: edge-special-001');
+    console.log('Test Name: Special Characters');
+    console.log('Extension: Chrome Dev Assist');
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Log special characters
+    console.log('Special chars: <>&"\'`\n\t\r\0');
+    console.log('Unicode: 你好🌍💻');
+    console.log('Emoji: 🔥💯✅❌⚠️');
+
+    console.log('After special chars');
+  </script>
+</body>
+</html>

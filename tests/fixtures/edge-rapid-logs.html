@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edge Test - Rapid Logs</title>
+  <meta name="test-id" content="edge-rapid-001">
+</head>
+<body>
+  <h1>Rapid Console Logs Test</h1>
+  <p data-test-type="rapid-logs">This page generates many console logs quickly</p>
+
+  <script>
+    // Test identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID: edge-rapid-001');
+    console.log('Test Name: Rapid Console Logs');
+    console.log('Extension: Chrome Dev Assist');
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Generate 100 rapid logs
+    for (let i = 0; i < 100; i++) {
+      console.log(`Rapid log ${i}`);
+    }
+
+    console.log('Rapid logs complete');
+  </script>
+</body>
+</html>

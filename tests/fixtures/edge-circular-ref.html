@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edge Test - Circular Reference</title>
+  <meta name="test-id" content="edge-circular-001">
+</head>
+<body>
+  <h1>Circular Reference Test</h1>
+  <p data-test-type="circular-ref">This page logs an object with circular references</p>
+
+  <script>
+    // Test identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID: edge-circular-001');
+    console.log('Test Name: Circular Reference');
+    console.log('Extension: Chrome Dev Assist');
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Create object with circular reference
+    const obj = { name: 'parent' };
+    obj.self = obj;
+    obj.child = { parent: obj };
+
+    console.log('Before circular');
+    console.log(obj);
+    console.log('After circular');
+  </script>
+</body>
+</html>

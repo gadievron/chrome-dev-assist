@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basic Test Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-info {
+      background: white;
+      border: 2px solid #4CAF50;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .test-id {
+      font-family: 'Courier New', monospace;
+      background: #e8f5e9;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #2e7d32;
+      font-weight: bold;
+    }
+    .extension-name {
+      color: #1976d2;
+      font-weight: bold;
+    }
+    .status {
+      display: inline-block;
+      background: #4CAF50;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body
+  data-test-id="basic-test-001"
+  data-test-name="Basic Test Page"
+  data-extension-name="Chrome Dev Assist"
+  data-test-status="ready">
+
+  <div class="test-info">
+    <h1>🧪 Test Page Loaded Successfully</h1>
+
+    <p><strong>Test ID:</strong> <span class="test-id">basic-test-001</span></p>
+    <p><strong>Test Name:</strong> Basic Test Page</p>
+    <p><strong>Extension:</strong> <span class="extension-name">Chrome Dev Assist</span></p>
+    <p><strong>Status:</strong> <span class="status">READY</span></p>
+
+    <hr>
+
+    <h2>Test Purpose</h2>
+    <p>This is a basic test page for validating Chrome Dev Assist functionality:</p>
+    <ul>
+      <li>✅ Page loads successfully</li>
+      <li>✅ Test metadata available in DOM (data-* attributes)</li>
+      <li>✅ Test identification visible to user</li>
+      <li>✅ Console logging with test identification</li>
+    </ul>
+  </div>
+
+  <script>
+    // CONSOLE LOGGING AT THE BEGINNING - Test Identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('🧪 TEST PAGE LOADED');
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID:       basic-test-001');
+    console.log('Test Name:     Basic Test Page');
+    console.log('Extension:     Chrome Dev Assist');
+    console.log('Status:        READY');
+    console.log('Timestamp:     ' + new Date().toISOString());
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Make test metadata easily accessible
+    window.testMetadata = {
+      id: 'basic-test-001',
+      name: 'Basic Test Page',
+      extension: 'Chrome Dev Assist',
+      status: 'ready',
+      loadedAt: new Date().toISOString()
+    };
+
+    // Signal test page is ready
+    document.body.setAttribute('data-test-status', 'loaded');
+    console.log('✅ Test page initialized successfully');
+  </script>
+</body>
+</html>

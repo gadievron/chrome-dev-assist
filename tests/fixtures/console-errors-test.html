@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Console Errors Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-info {
+      background: white;
+      border: 2px solid #f44336;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .test-id {
+      font-family: 'Courier New', monospace;
+      background: #ffebee;
+      padding: 4px 8px;
+      border-radius: 4px;
+      color: #c62828;
+      font-weight: bold;
+    }
+    .extension-name {
+      color: #1976d2;
+      font-weight: bold;
+    }
+    .status {
+      display: inline-block;
+      background: #f44336;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .error-list {
+      background: #ffebee;
+      padding: 15px;
+      border-radius: 4px;
+      border-left: 4px solid #f44336;
+    }
+  </style>
+</head>
+<body
+  data-test-id="console-errors-001"
+  data-test-name="Console Errors Test"
+  data-extension-name="Chrome Dev Assist"
+  data-test-status="ready"
+  data-expected-errors="3">
+
+  <div class="test-info">
+    <h1>❌ Test Page with Console Errors</h1>
+
+    <p><strong>Test ID:</strong> <span class="test-id">console-errors-001</span></p>
+    <p><strong>Test Name:</strong> Console Errors Test</p>
+    <p><strong>Extension:</strong> <span class="extension-name">Chrome Dev Assist</span></p>
+    <p><strong>Status:</strong> <span class="status">GENERATING ERRORS</span></p>
+
+    <hr>
+
+    <h2>Test Purpose</h2>
+    <p>This page intentionally generates console errors for testing capture functionality:</p>
+
+    <div class="error-list">
+      <h3>Expected Errors (3 total):</h3>
+      <ol>
+        <li>Reference Error: undefined variable</li>
+        <li>Type Error: null property access</li>
+        <li>Custom Error: test error message</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // CONSOLE LOGGING AT THE BEGINNING - Test Identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('❌ TEST PAGE WITH ERRORS LOADED');
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID:       console-errors-001');
+    console.log('Test Name:     Console Errors Test');
+    console.log('Extension:     Chrome Dev Assist');
+    console.log('Expected:      3 console errors');
+    console.log('Status:        READY TO GENERATE ERRORS');
+    console.log('Timestamp:     ' + new Date().toISOString());
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Make test metadata easily accessible
+    window.testMetadata = {
+      id: 'console-errors-001',
+      name: 'Console Errors Test',
+      extension: 'Chrome Dev Assist',
+      status: 'ready',
+      expectedErrors: 3,
+      loadedAt: new Date().toISOString()
+    };
+
+    // Generate errors after short delay
+    setTimeout(() => {
+      console.log('▶ Generating test errors...');
+
+      // Error 1: Reference Error
+      try {
+        console.log('▶ Error 1/3: Reference Error');
+        undefinedVariable.someProperty; // ReferenceError
+      } catch (err) {
+        console.error('Error 1: ReferenceError -', err.message);
+      }
+
+      // Error 2: Type Error
+      try {
+        console.log('▶ Error 2/3: Type Error');
+        const obj = null;
+        obj.property; // TypeError
+      } catch (err) {
+        console.error('Error 2: TypeError -', err.message);
+      }
+
+      // Error 3: Custom Error
+      try {
+        console.log('▶ Error 3/3: Custom Error');
+        throw new Error('This is a test error for Chrome Dev Assist validation');
+      } catch (err) {
+        console.error('Error 3: Custom Error -', err.message);
+      }
+
+      console.log('✅ All test errors generated');
+      document.body.setAttribute('data-test-status', 'errors-generated');
+    }, 100);
+  </script>
+</body>
+</html>

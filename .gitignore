@@ -1,0 +1,6 @@
+.claude-state/
+.auth-token
+.server-pid
+node_modules/
+npm-debug.log*
+.DS_Store

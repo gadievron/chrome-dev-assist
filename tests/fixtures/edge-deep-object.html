@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edge Test - Deep Object</title>
+  <meta name="test-id" content="edge-deep-001">
+</head>
+<body>
+  <h1>Deep Object Test</h1>
+  <p data-test-type="deep-object">This page logs a deeply nested object</p>
+
+  <script>
+    // Test identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID: edge-deep-001');
+    console.log('Test Name: Deep Object Nesting');
+    console.log('Extension: Chrome Dev Assist');
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Create deeply nested object
+    let obj = { level: 0 };
+    let current = obj;
+    for (let i = 1; i < 100; i++) {
+      current.nested = { level: i };
+      current = current.nested;
+    }
+
+    console.log('Before deep object');
+    console.log(obj);
+    console.log('After deep object');
+  </script>
+</body>
+</html>

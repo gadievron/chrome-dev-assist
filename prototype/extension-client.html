@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Prototype: Extension Client</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .log { margin: 5px 0; padding: 5px; background: #f0f0f0; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h2>Prototype: Extension Client</h2>
+  <p>Simulates Chrome extension connecting to WebSocket server</p>
+  <div id="logs"></div>
+
+  <script>
+    const logsEl = document.getElementById('logs');
+
+    function log(message, isError = false) {
+      const div = document.createElement('div');
+      div.className = 'log ' + (isError ? 'error' : 'success');
+      div.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+      logsEl.appendChild(div);
+      console.log(message);
+    }
+
+    // Connect to WebSocket server
+    const ws = new WebSocket('ws://localhost:9876');
+
+    ws.onopen = () => {
+      log('✓ Connected to server');
+
+      // Register as extension
+      ws.send(JSON.stringify({
+        type: 'register',
+        client: 'extension'
+      }));
+      log('✓ Sent registration');
+    };
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      log('✓ Received command: ' + JSON.stringify(msg));
+
+      // Simulate command execution
+      setTimeout(() => {
+        // Send response back
+        ws.send(JSON.stringify({
+          type: 'response',
+          id: msg.id,
+          data: {
+            success: true,
+            message: 'Command executed successfully',
+            timestamp: new Date().toISOString()
+          }
+        }));
+        log('✓ Sent response for command ' + msg.id);
+      }, 500);
+    };
+
+    ws.onerror = (err) => {
+      log('✗ WebSocket error: ' + err.message, true);
+    };
+
+    ws.onclose = () => {
+      log('✗ Disconnected from server', true);
+    };
+  </script>
+</body>
+</html>

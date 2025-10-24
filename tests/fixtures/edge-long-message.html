@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edge Test - Long Message</title>
+  <meta name="test-id" content="edge-long-001">
+</head>
+<body>
+  <h1>Long Message Test</h1>
+  <p data-test-type="long-message">This page logs a 15,000 character message</p>
+
+  <script>
+    // Test identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID: edge-long-001');
+    console.log('Test Name: Long Message (15,000 chars)');
+    console.log('Extension: Chrome Dev Assist');
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Generate 15,000 character message (should be truncated to 10,000)
+    const longMessage = 'A'.repeat(15000);
+    console.log(longMessage);
+
+    console.log('After long message');
+  </script>
+</body>
+</html>

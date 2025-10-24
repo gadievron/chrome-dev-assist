@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edge Test - Undefined and Null</title>
+  <meta name="test-id" content="edge-undefined-001">
+</head>
+<body>
+  <h1>Undefined and Null Test</h1>
+  <p data-test-type="undefined-null">This page logs undefined and null values</p>
+
+  <script>
+    // Test identification
+    console.log('═══════════════════════════════════════════════════════');
+    console.log('Test ID: edge-undefined-001');
+    console.log('Test Name: Undefined and Null Values');
+    console.log('Extension: Chrome Dev Assist');
+    console.log('═══════════════════════════════════════════════════════');
+
+    // Log undefined and null
+    console.log('Before undefined/null');
+    console.log(undefined);
+    console.log(null);
+    console.log('After undefined/null');
+
+    // Log variables that are undefined
+    let x;
+    console.log('Undefined variable:', x);
+  </script>
+</body>
+</html>

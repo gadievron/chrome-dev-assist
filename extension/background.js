@@ -1,0 +1,786 @@
+/**
+ * Chrome Dev Assist - Background Service Worker
+ * Handles native messaging and extension testing operations
+ */
+
+// State - command-specific capture to avoid race conditions
+// Map<commandId, {logs: Array, active: boolean, timeout: number, endTime: number, tabId: number|null}>
+const captureState = new Map();
+
+// Index for fast O(1) lookup by tabId to prevent race conditions in high-concurrency scenarios
+// Map<tabId, Set<commandId>> - tracks which command IDs are capturing for each tab
+const capturesByTab = new Map();
+
+// Memory leak prevention
+const MAX_LOGS_PER_CAPTURE = 10000; // Maximum logs per command to prevent memory exhaustion
+const CLEANUP_INTERVAL_MS = 60000;   // Run cleanup every 60 seconds
+const MAX_CAPTURE_AGE_MS = 300000;   // Keep captures for max 5 minutes after completion
+
+console.log('[ChromeDevAssist] Background service worker started');
+
+// Periodic cleanup of old captures to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  let cleanedCount = 0;
+
+  for (const [commandId, state] of captureState.entries()) {
+    // Clean up inactive captures older than MAX_CAPTURE_AGE_MS
+    if (!state.active && state.endTime && (now - state.endTime) > MAX_CAPTURE_AGE_MS) {
+      cleanupCapture(commandId); // Use consolidated cleanup helper
+      cleanedCount++;
+    }
+  }
+
+  if (cleanedCount > 0) {
+    console.log(`[ChromeDevAssist] Cleaned up ${cleanedCount} old capture(s). Active captures: ${captureState.size}`);
+  }
+}, CLEANUP_INTERVAL_MS);
+
+// Register console capture script to run in MAIN world at document_start
+// This ensures it runs BEFORE page scripts and can intercept console.log
+//
+// IMPORTANT: Check if already registered to prevent "Duplicate script ID" errors
+// Chrome service workers can restart, causing re-registration attempts
+async function registerConsoleCaptureScript() {
+  try {
+    // Check if script is already registered
+    const registered = await chrome.scripting.getRegisteredContentScripts();
+    const alreadyExists = registered.some(script => script.id === 'console-capture');
+
+    if (alreadyExists) {
+      console.log('[ChromeDevAssist] Console capture script already registered, skipping');
+      return;
+    }
+
+    // Register the script
+    await chrome.scripting.registerContentScripts([{
+      id: 'console-capture',
+      matches: ['<all_urls>'],
+      js: ['inject-console-capture.js'],
+      runAt: 'document_start',
+      world: 'MAIN',
+      allFrames: true
+    }]);
+    console.log('[ChromeDevAssist] Console capture script registered in MAIN world');
+  } catch (err) {
+    // If duplicate error despite our check, unregister and retry
+    if (err.message && err.message.includes('Duplicate')) {
+      console.log('[ChromeDevAssist] Duplicate detected, unregistering and retrying...');
+      await chrome.scripting.unregisterContentScripts({ ids: ['console-capture'] });
+      await chrome.scripting.registerContentScripts([{
+        id: 'console-capture',
+        matches: ['<all_urls>'],
+        js: ['inject-console-capture.js'],
+        runAt: 'document_start',
+        world: 'MAIN',
+        allFrames: true
+      }]);
+      console.log('[ChromeDevAssist] Console capture script re-registered successfully');
+    } else {
+      console.error('[ChromeDevAssist] Failed to register console capture script:', err);
+    }
+  }
+}
+
+// Call registration function (only in Chrome extension context)
+if (typeof chrome !== 'undefined' && chrome.scripting) {
+  registerConsoleCaptureScript();
+}
+
+// WebSocket connection to server
+let ws = null;
+
+function connectToServer() {
+  ws = new WebSocket('ws://localhost:9876');
+
+  ws.onopen = () => {
+    console.log('[ChromeDevAssist] Connected to server');
+
+    // Register as extension
+    ws.send(JSON.stringify({
+      type: 'register',
+      client: 'extension',
+      extensionId: chrome.runtime.id
+    }));
+  };
+
+  ws.onmessage = async (event) => {
+    const message = JSON.parse(event.data);
+
+    // Only process commands
+    if (message.type !== 'command') {
+      return;
+    }
+
+    console.log('[ChromeDevAssist] Received command:', message.command?.type);
+
+    try {
+      // Validate command
+      if (!message.command || !message.command.type) {
+        throw new Error('Invalid command: missing type');
+      }
+
+      let result;
+
+      // Process command based on type
+      switch (message.command.type) {
+        case 'reload':
+          result = await handleReloadCommand(message.id, message.command.params);
+          break;
+
+        case 'capture':
+          result = await handleCaptureCommand(message.id, message.command.params);
+          break;
+
+        case 'getAllExtensions':
+          result = await handleGetAllExtensionsCommand(message.id, message.command.params);
+          break;
+
+        case 'getExtensionInfo':
+          result = await handleGetExtensionInfoCommand(message.id, message.command.params);
+          break;
+
+        case 'openUrl':
+          result = await handleOpenUrlCommand(message.id, message.command.params);
+          break;
+
+        case 'reloadTab':
+          result = await handleReloadTabCommand(message.id, message.command.params);
+          break;
+
+        case 'closeTab':
+          result = await handleCloseTabCommand(message.id, message.command.params);
+          break;
+
+        default:
+          throw new Error(`Unknown command type: ${message.command.type}`);
+      }
+
+      // Send success response
+      ws.send(JSON.stringify({
+        type: 'response',
+        id: message.id,
+        data: result
+      }));
+
+    } catch (error) {
+      console.error('[ChromeDevAssist] Command failed:', error);
+
+      // Clean up any capture state on error using consolidated helper
+      if (message.id && captureState.has(message.id)) {
+        cleanupCapture(message.id);
+      }
+
+      // Send error response
+      ws.send(JSON.stringify({
+        type: 'error',
+        id: message.id,
+        error: {
+          message: error.message,
+          code: error.code || 'EXTENSION_ERROR'
+        }
+      }));
+    }
+  };
+
+  ws.onerror = (err) => {
+    console.error('[ChromeDevAssist] WebSocket error:', err);
+  };
+
+  ws.onclose = () => {
+    console.log('[ChromeDevAssist] Disconnected from server, reconnecting in 1s...');
+    ws = null;
+    setTimeout(connectToServer, 1000);
+  };
+}
+
+// Connect on startup (only in Chrome extension context)
+if (typeof chrome !== 'undefined' && typeof WebSocket !== 'undefined') {
+  connectToServer();
+}
+
+/**
+ * Handle reload command
+ * Disables and re-enables the target extension, optionally capturing console logs
+ */
+async function handleReloadCommand(commandId, params) {
+  const { extensionId, captureConsole = false, duration = 5000 } = params;
+
+  if (!extensionId) {
+    throw new Error('extensionId is required');
+  }
+
+  console.log('[ChromeDevAssist] Reloading extension:', extensionId);
+
+  // Get extension info first
+  let extension;
+  try {
+    extension = await chrome.management.get(extensionId);
+  } catch (err) {
+    throw new Error(`Extension not found: ${extensionId}`);
+  }
+
+  if (!extension) {
+    throw new Error(`Extension not found: ${extensionId}`);
+  }
+
+  // Check if we can manage this extension
+  if (extension.id === chrome.runtime.id) {
+    throw new Error('Cannot reload self');
+  }
+
+  // Disable extension
+  try {
+    await chrome.management.setEnabled(extensionId, false);
+  } catch (err) {
+    throw new Error(`Failed to disable extension: ${err.message}`);
+  }
+
+  // Wait a bit for clean disable
+  await sleep(100);
+
+  // Re-enable extension
+  try {
+    await chrome.management.setEnabled(extensionId, true);
+  } catch (err) {
+    throw new Error(`Failed to enable extension: ${err.message}`);
+  }
+
+  console.log('[ChromeDevAssist] Extension reloaded:', extension.name);
+
+  // Start console capture if requested (captures from ALL tabs since extension reload affects all)
+  if (captureConsole) {
+    await startConsoleCapture(commandId, duration, null);
+  }
+
+  // Get command-specific logs
+  const logs = captureConsole ? getCommandLogs(commandId) : [];
+
+  return {
+    extensionId,
+    extensionName: extension.name,
+    reloadSuccess: true,
+    consoleLogs: logs
+  };
+}
+
+/**
+ * Handle capture-only command
+ * Captures console logs without reloading any extension
+ */
+async function handleCaptureCommand(commandId, params) {
+  const { duration = 5000 } = params;
+
+  console.log('[ChromeDevAssist] Capturing console logs for', duration, 'ms');
+
+  // Capture from ALL tabs (tabId = null means no filter)
+  await startConsoleCapture(commandId, duration, null);
+
+  // Get command-specific logs
+  const logs = getCommandLogs(commandId);
+
+  return {
+    consoleLogs: logs
+  };
+}
+
+/**
+ * Handle getAllExtensions command
+ * Returns list of all installed extensions (excluding self and apps)
+ */
+async function handleGetAllExtensionsCommand(commandId, params) {
+  console.log('[ChromeDevAssist] Getting all extensions');
+
+  const extensions = await chrome.management.getAll();
+
+  // Filter out self and apps (only return extensions)
+  const filtered = extensions
+    .filter(ext => ext.type === 'extension' && ext.id !== chrome.runtime.id)
+    .map(ext => ({
+      id: ext.id,
+      name: ext.name,
+      version: ext.version,
+      enabled: ext.enabled,
+      description: ext.description,
+      installType: ext.installType
+    }));
+
+  return {
+    extensions: filtered,
+    count: filtered.length
+  };
+}
+
+/**
+ * Handle getExtensionInfo command
+ * Returns detailed information for a specific extension
+ */
+async function handleGetExtensionInfoCommand(commandId, params) {
+  const { extensionId } = params;
+
+  if (!extensionId) {
+    throw new Error('extensionId is required');
+  }
+
+  console.log('[ChromeDevAssist] Getting info for extension:', extensionId);
+
+  let extension;
+  try {
+    extension = await chrome.management.get(extensionId);
+  } catch (err) {
+    throw new Error(`Extension not found: ${extensionId}`);
+  }
+
+  return {
+    id: extension.id,
+    name: extension.name,
+    version: extension.version,
+    enabled: extension.enabled,
+    description: extension.description,
+    permissions: extension.permissions,
+    hostPermissions: extension.hostPermissions,
+    installType: extension.installType,
+    mayDisable: extension.mayDisable
+  };
+}
+
+/**
+ * Handle openUrl command
+ * Opens a URL in a new tab, optionally capturing console logs
+ *
+ * NEW: Supports autoClose option to automatically close tab after capture
+ * This prevents tab leaks in automated testing scenarios
+ */
+async function handleOpenUrlCommand(commandId, params) {
+  // Safe JSON stringify (handles circular references)
+  const safeStringify = (obj) => {
+    try {
+      const seen = new WeakSet();
+      return JSON.stringify(obj, (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular]';
+          }
+          seen.add(value);
+        }
+        return value;
+      }, 2);
+    } catch (err) {
+      return '[Unable to stringify]';
+    }
+  };
+
+  console.log('[ChromeDevAssist] handleOpenUrlCommand called with params:', safeStringify(params));
+
+  const {
+    url,
+    active = true,
+    captureConsole = false,
+    duration = 5000,
+    autoClose = false  // NEW: Automatic tab cleanup (default: false for backward compatibility)
+  } = params;
+
+  console.log('[ChromeDevAssist] Extracted parameters:', {
+    url: url ? url.substring(0, 100) : url,  // Truncate long URLs in logs
+    active,
+    captureConsole,
+    duration,
+    autoClose
+  });
+
+  // Security: Validate URL parameter
+  if (!url || url === '' || url === null || url === undefined) {
+    throw new Error('url is required');
+  }
+
+  // Security: Block dangerous URL protocols
+  const urlLower = url.toLowerCase().trim();
+  const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:'];
+  if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
+    throw new Error(`Dangerous URL protocol not allowed: ${urlLower.split(':')[0]}`);
+  }
+
+  // Security: Validate duration parameter
+  if (typeof duration !== 'number') {
+    throw new Error(`Invalid duration type: expected number, got ${typeof duration}`);
+  }
+
+  if (!isFinite(duration)) {
+    throw new Error('Invalid duration: must be finite');
+  }
+
+  if (duration < 0) {
+    throw new Error('Invalid duration: must be non-negative');
+  }
+
+  if (isNaN(duration)) {
+    throw new Error('Invalid duration: NaN not allowed');
+  }
+
+  // Security: Reject durations exceeding reasonable maximum (10 minutes)
+  const MAX_DURATION = 600000; // 10 minutes
+  if (duration > MAX_DURATION) {
+    throw new Error(`Invalid duration: exceeds maximum allowed (${MAX_DURATION}ms)`);
+  }
+
+  const safeDuration = duration;
+
+  console.log('[ChromeDevAssist] Opening URL:', url.substring(0, 100), autoClose ? '(will auto-close)' : '');
+
+  // Create new tab (returns immediately with tab.id, page hasn't loaded yet)
+  const tab = await chrome.tabs.create({
+    url: url,
+    active: active
+  });
+
+  let logs = [];
+  let tabClosed = false;
+
+  try {
+    // Start console capture for this specific tab (if requested)
+    // Tab is created but page is still loading, so we'll catch all console logs
+    if (captureConsole) {
+      await startConsoleCapture(commandId, duration, tab.id);
+
+      // Wait for capture duration
+      await sleep(duration);
+    }
+
+    // Get captured logs
+    logs = captureConsole ? getCommandLogs(commandId) : [];
+
+  } finally {
+    // IMPORTANT: Cleanup happens in finally block to ensure it runs even on errors
+    console.log('[ChromeDevAssist] Entering finally block, autoClose =', autoClose);
+
+    if (autoClose) {
+      console.log('[ChromeDevAssist] Attempting to close tab:', tab.id);
+
+      try {
+        // Check if tab still exists before attempting to close
+        const tabExists = await chrome.tabs.get(tab.id).catch(() => null);
+        console.log('[ChromeDevAssist] Tab exists check:', tabExists ? 'YES' : 'NO');
+
+        if (!tabExists) {
+          console.warn('[ChromeDevAssist] Tab already closed:', tab.id);
+          tabClosed = false;
+        } else {
+          // Attempt to remove the tab
+          const removeResult = chrome.tabs.remove(tab.id);
+          console.log('[ChromeDevAssist] chrome.tabs.remove returned:', typeof removeResult);
+          console.log('[ChromeDevAssist] Is Promise?:', removeResult instanceof Promise);
+
+          if (removeResult && typeof removeResult.then === 'function') {
+            await removeResult;
+            console.log('[ChromeDevAssist] Tab removal awaited successfully');
+          } else {
+            console.warn('[ChromeDevAssist] chrome.tabs.remove did NOT return Promise!');
+          }
+
+          tabClosed = true;
+          console.log('[ChromeDevAssist] ✅ Successfully closed tab:', tab.id);
+        }
+      } catch (err) {
+        // Don't silently ignore - log with more detail
+        console.error('[ChromeDevAssist] ⚠️ TAB CLEANUP FAILED ⚠️');
+        console.error('[ChromeDevAssist] Tab ID:', tab.id);
+        console.error('[ChromeDevAssist] Error type:', err.constructor.name);
+        console.error('[ChromeDevAssist] Error message:', err.message);
+        console.error('[ChromeDevAssist] Error code:', err.code);
+        console.error('[ChromeDevAssist] Stack:', err.stack);
+
+        // Keep tabClosed as false to indicate failure
+        tabClosed = false;
+      }
+    } else {
+      console.log('[ChromeDevAssist] autoClose=false, skipping tab cleanup');
+    }
+  }
+
+  // Return after cleanup completes
+  return {
+    tabId: tab.id,
+    url: tab.url,
+    consoleLogs: logs,
+    tabClosed: tabClosed
+  };
+}
+
+/**
+ * Handle reloadTab command
+ * Reloads a specific tab, optionally with cache bypass (hard reload)
+ */
+async function handleReloadTabCommand(commandId, params) {
+  const { tabId, bypassCache = false, captureConsole = false, duration = 5000 } = params;
+
+  if (tabId === undefined) {
+    throw new Error('tabId is required');
+  }
+
+  console.log('[ChromeDevAssist] Reloading tab:', tabId, bypassCache ? '(hard reload)' : '');
+
+  // Start console capture for this specific tab (if requested)
+  if (captureConsole) {
+    await startConsoleCapture(commandId, duration, tabId);
+  }
+
+  // Reload tab (console capture script will be auto-injected at document_start)
+  await chrome.tabs.reload(tabId, { bypassCache: bypassCache });
+
+  // Wait for capture duration if capturing
+  if (captureConsole) {
+    await sleep(duration);
+  }
+
+  // Get captured logs
+  const logs = captureConsole ? getCommandLogs(commandId) : [];
+
+  return {
+    tabId: tabId,
+    bypassCache: bypassCache,
+    consoleLogs: logs
+  };
+}
+
+/**
+ * Handle closeTab command
+ * Closes a specific tab
+ */
+async function handleCloseTabCommand(commandId, params) {
+  const { tabId } = params;
+
+  if (tabId === undefined) {
+    throw new Error('tabId is required');
+  }
+
+  console.log('[ChromeDevAssist] Closing tab:', tabId);
+
+  await chrome.tabs.remove(tabId);
+
+  return {
+    tabId: tabId,
+    closed: true
+  };
+}
+
+/**
+ * Start capturing console logs for specified duration
+ * Each command gets its own isolated log collection
+ * Returns immediately - capture runs in background
+ *
+ * @param {string} commandId - Unique command identifier
+ * @param {number} duration - Capture duration in milliseconds
+ * @param {number|null} tabId - Tab ID to filter logs (null = capture all tabs)
+ */
+function startConsoleCapture(commandId, duration, tabId = null) {
+  // Initialize command-specific capture state
+  captureState.set(commandId, {
+    logs: [],
+    active: true,
+    timeout: null,
+    tabId: tabId  // null = capture all tabs, number = specific tab only
+  });
+
+  // Add to tab-specific index for O(1) lookup (prevents race conditions)
+  if (tabId !== null) {
+    if (!capturesByTab.has(tabId)) {
+      capturesByTab.set(tabId, new Set());
+    }
+    capturesByTab.get(tabId).add(commandId);
+  }
+
+  console.log(`[ChromeDevAssist] Console capture started for command ${commandId}${tabId ? ` (tab ${tabId})` : ' (all tabs)'}`);
+
+  // Set timeout to stop capture
+  const timeout = setTimeout(() => {
+    const state = captureState.get(commandId);
+    if (state) {
+      state.active = false;
+      state.endTime = Date.now(); // Track when capture ended for cleanup
+      console.log(`[ChromeDevAssist] Console capture complete for command ${commandId}:`, state.logs.length, 'logs');
+    }
+  }, duration);
+
+  // Store timeout reference for cleanup
+  captureState.get(commandId).timeout = timeout;
+
+  // Return immediately (don't wait for duration)
+  return Promise.resolve();
+}
+
+/**
+ * CLEANUP HELPER: Remove capture state and maintain index integrity
+ * Architectural purpose: Ensures captureState and capturesByTab stay synchronized
+ * Used by: periodic cleanup, error handlers, normal completion
+ */
+function cleanupCapture(commandId) {
+  const state = captureState.get(commandId);
+  if (!state) {
+    return; // Already cleaned up
+  }
+
+  // Clear timeout if exists
+  if (state.timeout) {
+    clearTimeout(state.timeout);
+  }
+
+  // Remove from tab-specific index (prevents orphaned entries)
+  if (state.tabId !== null) {
+    const tabSet = capturesByTab.get(state.tabId);
+    if (tabSet) {
+      tabSet.delete(commandId);
+      // Clean up empty sets to prevent memory leaks
+      if (tabSet.size === 0) {
+        capturesByTab.delete(state.tabId);
+      }
+    }
+  }
+
+  // Remove from main state
+  captureState.delete(commandId);
+}
+
+/**
+ * Get logs for a specific command
+ * Returns logs and cleans up completed captures
+ */
+function getCommandLogs(commandId) {
+  const state = captureState.get(commandId);
+  if (!state) {
+    return [];
+  }
+
+  const logs = [...state.logs]; // Copy logs
+
+  // Clean up using consolidated helper
+  cleanupCapture(commandId);
+
+  return logs;
+}
+
+/**
+ * Receive console logs from content scripts
+ * Content scripts intercept console methods and send logs here
+ * Logs are distributed to ALL active captures
+ *
+ * Only runs in Chrome extension context (not in tests)
+ */
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Only process console messages
+  if (message.type === 'console') {
+    // Validate sender - must be from a content script in a tab
+    if (!sender.tab) {
+      console.warn('[ChromeDevAssist] Rejected console message from non-tab source');
+      sendResponse({ received: false });
+      return true;
+    }
+
+    // Validate message structure - must have required fields
+    if (!message.level || !message.message || !message.timestamp) {
+      console.warn('[ChromeDevAssist] Rejected malformed console message (missing required fields)');
+      sendResponse({ received: false });
+      return true;
+    }
+
+    // Truncate very long messages to prevent memory exhaustion
+    const MAX_MESSAGE_LENGTH = 10000;
+    let truncatedMessage = message.message;
+    if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_LENGTH) {
+      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) + '... [truncated]';
+    }
+
+    const logEntry = {
+      level: message.level,
+      message: truncatedMessage,
+      timestamp: message.timestamp,
+      source: message.source || 'unknown',
+      url: sender.url || 'unknown',
+      tabId: sender.tab.id,
+      frameId: sender.frameId
+    };
+
+    // Add log to active captures that match this tab (with limit enforcement)
+    // Uses O(1) direct lookup instead of O(n) iteration to prevent race conditions
+    let addedToAny = false;
+    const tabId = sender.tab.id;
+    const relevantCommandIds = new Set();
+
+    // 1. Get tab-specific captures via O(1) lookup
+    if (capturesByTab.has(tabId)) {
+      for (const cmdId of capturesByTab.get(tabId)) {
+        relevantCommandIds.add(cmdId);
+      }
+    }
+
+    // 2. Get global captures (tabId === null) via iteration
+    for (const [commandId, state] of captureState.entries()) {
+      if (state.active && state.tabId === null) {
+        relevantCommandIds.add(commandId);
+      }
+    }
+
+    // 3. Add log to all relevant captures
+    for (const commandId of relevantCommandIds) {
+      const state = captureState.get(commandId);
+      if (state && state.active) {
+        // Enforce max logs limit to prevent memory exhaustion
+        if (state.logs.length < MAX_LOGS_PER_CAPTURE) {
+          state.logs.push(logEntry);
+          addedToAny = true;
+        } else if (state.logs.length === MAX_LOGS_PER_CAPTURE) {
+          // Add warning message once when limit is reached
+          state.logs.push({
+            level: 'warn',
+            message: `[ChromeDevAssist] Log limit reached (${MAX_LOGS_PER_CAPTURE}). Further logs will be dropped.`,
+            timestamp: new Date().toISOString(),
+            source: 'chrome-dev-assist',
+            url: 'internal',
+            tabId: logEntry.tabId,
+            frameId: 0
+          });
+          addedToAny = true;
+        }
+        // else: silently drop logs exceeding limit
+      }
+    }
+
+    sendResponse({ received: addedToAny });
+  }
+
+  return true; // Keep message channel open for async response
+  });
+}
+
+/**
+ * Utility: sleep
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Set extension status (only in Chrome extension context)
+ */
+if (typeof chrome !== 'undefined' && chrome.storage) {
+  chrome.storage.local.set({
+    status: {
+      running: true,
+      version: '1.0.0',
+      lastUpdate: new Date().toISOString()
+    }
+  });
+  console.log('[ChromeDevAssist] Ready for commands');
+}
+
+/**
+ * Export functions for testing (only in Node.js context)
+ */
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    handleOpenUrlCommand,
+    handleReloadTabCommand,
+    registerConsoleCaptureScript,
+    sleep
+  };
+}
