@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Capture Test Fixture</title>
+</head>
+<body>
+    <h1>Console Capture Test Fixture</h1>
+    <p>This page outputs various console messages for testing ConsoleCapture class integration.</p>
+
+    <div id="output"></div>
+
+    <script>
+        console.log('=== Console Capture Test Fixture Started ===');
+
+        // Test 1: 100 console.log messages
+        console.log('TEST 1: Outputting 100 console.log messages...');
+        for (let i = 0; i < 100; i++) {
+            console.log(`Message ${i}: Test log entry`);
+        }
+
+        // Test 2: Different console levels
+        console.log('TEST 2: Different console levels...');
+        console.log('[LOG] This is a log message');
+        console.warn('[WARN] This is a warning message');
+        console.error('[ERROR] This is an error message');
+        console.info('[INFO] This is an info message');
+        console.debug('[DEBUG] This is a debug message');
+
+        // Test 3: Very long message (>10K characters)
+        console.log('TEST 3: Outputting very long message (>10K chars)...');
+        const longMessage = 'A'.repeat(11000);  // 11,000 characters
+        console.log(`[LONG-MESSAGE] ${longMessage}`);
+
+        // Test 4: Structured data
+        console.log('TEST 4: Structured data...');
+        console.log('[OBJECT]', { name: 'Test', value: 123, nested: { a: 1, b: 2 } });
+        console.log('[ARRAY]', [1, 2, 3, 4, 5]);
+
+        // Test 5: Special characters
+        console.log('TEST 5: Special characters...');
+        console.log('[SPECIAL] Unicode: \u{1F600} \u{1F602} \u{1F44D}');
+        console.log('[SPECIAL] Newlines: Line1\nLine2\nLine3');
+        console.log('[SPECIAL] Tabs: Col1\tCol2\tCol3');
+
+        // Test 6: Null and undefined
+        console.log('TEST 6: Null and undefined...');
+        console.log('[NULL]', null);
+        console.log('[UNDEFINED]', undefined);
+
+        // Test 7: Numbers and booleans
+        console.log('TEST 7: Numbers and booleans...');
+        console.log('[NUMBER]', 42);
+        console.log('[FLOAT]', 3.14159);
+        console.log('[BOOLEAN-TRUE]', true);
+        console.log('[BOOLEAN-FALSE]', false);
+
+        // Test 8: Empty messages
+        console.log('TEST 8: Empty messages...');
+        console.log('[EMPTY-STRING]', '');
+        console.log('[EMPTY-ARRAY]', []);
+        console.log('[EMPTY-OBJECT]', {});
+
+        // Test 9: Errors
+        console.log('TEST 9: Error objects...');
+        try {
+            throw new Error('Test error message');
+        } catch (e) {
+            console.error('[CAUGHT-ERROR]', e);
+        }
+
+        // Test 10: Timing test
+        console.log('TEST 10: Timing test (outputs every 100ms for 1 second)...');
+        let count = 0;
+        const interval = setInterval(() => {
+            console.log(`[TIMING] Interval message ${count}`);
+            count++;
+            if (count >= 10) {
+                clearInterval(interval);
+                console.log('=== All Console Tests Complete ===');
+            }
+        }, 100);
+
+        // Update page
+        document.getElementById('output').innerHTML = `
+            <h2>Test Complete</h2>
+            <p>Check console capture results</p>
+            <ul>
+                <li>100 log messages</li>
+                <li>Different levels (log, warn, error, info, debug)</li>
+                <li>Long message (11,000 chars)</li>
+                <li>Structured data (objects, arrays)</li>
+                <li>Special characters</li>
+                <li>Null/undefined</li>
+                <li>Numbers/booleans</li>
+                <li>Empty values</li>
+                <li>Error objects</li>
+                <li>Timing test (10 intervals)</li>
+            </ul>
+        `;
+    </script>
+</body>
+</html>

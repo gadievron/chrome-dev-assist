@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fixture - Full Metadata</title>
+</head>
+<body
+    data-test-id="fixture-001"
+    data-test-name="Full Metadata Test"
+    data-extension-name="Chrome Dev Assist"
+    data-test-status="ready">
+
+    <h1>Test Fixture - Full Metadata</h1>
+    <p>This page contains full metadata for testing getPageMetadata() API.</p>
+
+    <div id="test-content">
+        <p>Test content area</p>
+    </div>
+
+    <script>
+        // Set up window.testMetadata for testing
+        window.testMetadata = {
+            version: "1.0.0",
+            author: "Test Suite",
+            created: "2025-10-27",
+            type: "integration-test",
+            features: ["dom-inspection", "metadata-extraction"],
+            config: {
+                timeout: 5000,
+                retries: 3
+            }
+        };
+
+        // Mark page as ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[Test Fixture] Full metadata loaded');
+            window.testReady = true;
+        });
+    </script>
+</body>
+</html>

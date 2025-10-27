@@ -171,6 +171,14 @@ function connectToServer() {
           result = await handleCloseTabCommand(message.id, message.command.params);
           break;
 
+        case 'getPageMetadata':
+          result = await handleGetPageMetadataCommand(message.id, message.command.params);
+          break;
+
+        case 'captureScreenshot':
+          result = await handleCaptureScreenshotCommand(message.id, message.command.params);
+          break;
+
         default:
           throw new Error(`Unknown command type: ${message.command.type}`);
       }
@@ -636,6 +644,124 @@ async function handleCloseTabCommand(commandId, params) {
     tabId: tabId,
     closed: true
   };
+}
+
+/**
+ * Handle getPageMetadata command
+ * Extracts DOM metadata from a tab including:
+ * - data-* attributes from body element
+ * - window.testMetadata object
+ * - Basic document properties (title, readyState, URL)
+ */
+async function handleGetPageMetadataCommand(commandId, params) {
+  const { tabId } = params;
+
+  if (tabId === undefined) {
+    throw new Error('tabId is required');
+  }
+
+  console.log('[ChromeDevAssist] Extracting page metadata from tab:', tabId);
+
+  // Get tab info for URL
+  const tab = await chrome.tabs.get(tabId);
+
+  // Execute script to extract metadata from page
+  const results = await chrome.scripting.executeScript({
+    target: { tabId: tabId },
+    func: () => {
+      // Extract data-* attributes from body element
+      const bodyAttributes = {};
+      if (document.body) {
+        for (const attr of document.body.attributes) {
+          if (attr.name.startsWith('data-')) {
+            // Convert data-test-id to testId
+            const key = attr.name.slice(5).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+            bodyAttributes[key] = attr.value;
+          }
+        }
+      }
+
+      // Extract window.testMetadata if present
+      const customMetadata = typeof window.testMetadata === 'object' ? window.testMetadata : undefined;
+
+      // Combine all metadata
+      const metadata = {
+        ...bodyAttributes,
+        title: document.title,
+        readyState: document.readyState,
+        url: document.URL
+      };
+
+      // Add custom metadata if present
+      if (customMetadata) {
+        metadata.custom = customMetadata;
+      }
+
+      return metadata;
+    }
+  });
+
+  // Get first result (we only execute in main frame)
+  const metadata = results && results[0] && results[0].result ? results[0].result : {};
+
+  return {
+    tabId: tabId,
+    url: tab.url,
+    metadata: metadata
+  };
+}
+
+/**
+ * Handle captureScreenshot command
+ * Captures a screenshot of the visible area of a tab
+ * @param {string} commandId - Command ID
+ * @param {Object} params - { tabId, format, quality }
+ * @returns {Promise<Object>} { tabId, dataUrl, format, quality, timestamp }
+ */
+async function handleCaptureScreenshotCommand(commandId, params) {
+  const { tabId, format, quality } = params;
+
+  if (tabId === undefined) {
+    throw new Error('tabId is required');
+  }
+
+  console.log('[ChromeDevAssist] Capturing screenshot of tab:', tabId, `format: ${format || 'png'}`);
+
+  // Get tab to ensure it exists and get window ID
+  const tab = await chrome.tabs.get(tabId);
+
+  if (!tab) {
+    throw new Error(`Tab not found: ${tabId}`);
+  }
+
+  // Capture visible tab using chrome.tabs.captureVisibleTab
+  // This captures the visible area of the specified tab
+  const captureOptions = {
+    format: format || 'png'
+  };
+
+  // Add quality for JPEG
+  if (format === 'jpeg' && quality !== undefined) {
+    captureOptions.quality = quality;
+  }
+
+  // Capture the screenshot
+  const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, captureOptions);
+
+  // Build response
+  const response = {
+    tabId: tabId,
+    dataUrl: dataUrl,
+    format: format || 'png',
+    timestamp: Date.now()
+  };
+
+  // Include quality in response for JPEG
+  if (format === 'jpeg') {
+    response.quality = quality !== undefined ? quality : 90;
+  }
+
+  return response;
 }
 
 /**

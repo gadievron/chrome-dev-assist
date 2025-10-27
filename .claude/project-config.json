@@ -1,0 +1,38 @@
+{
+  "projectName": "chrome-dev-assist",
+  "projectType": "chrome-extension",
+  "description": "Automated Chrome extension testing tool for Node.js - reload extensions and capture console logs",
+  "autoRead": [
+    "README.md",
+    "extension/manifest.json",
+    "extension/background.js",
+    "claude-code/index.js"
+  ],
+  "mainDirectories": [
+    "extension/",
+    "claude-code/",
+    "server/",
+    "tests/"
+  ],
+  "entryPoints": {
+    "extension": "extension/background.js",
+    "api": "claude-code/index.js",
+    "server": "server/websocket-server.js",
+    "tests": "tests/"
+  },
+  "keyFeatures": [
+    "WebSocket-based architecture",
+    "Auto-start server",
+    "Auto-reconnect",
+    "Console log capture",
+    "Extension reload",
+    "Tab management"
+  ],
+  "contextNotes": [
+    "Extension runs in Chrome as service worker",
+    "Server runs on localhost:9876",
+    "API used from Node.js test scripts",
+    "MVP: 3 core functions (reload, reloadAndCapture, captureLogs)",
+    "Phase 1.3: Adding DOM inspection and screenshot APIs"
+  ]
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tab Console Capture Test</title>
+</head>
+<body>
+    <h1>Multi-Tab Console Capture Test</h1>
+    <p>This page opens multiple tabs and outputs unique console messages from each.</p>
+
+    <button id="openTabs">Open 3 Test Tabs</button>
+    <div id="status"></div>
+
+    <script>
+        console.log('[MAIN-TAB] Multi-tab test fixture loaded');
+
+        // Output main tab messages
+        setInterval(() => {
+            console.log(`[MAIN-TAB] Message from main tab at ${new Date().toISOString()}`);
+        }, 1000);
+
+        document.getElementById('openTabs').addEventListener('click', () => {
+            console.log('[MAIN-TAB] Opening 3 child tabs...');
+
+            // Tab 1: Fast logger
+            const tab1 = window.open('', 'tab1', 'width=400,height=300');
+            tab1.document.write(`
+                <html>
+                <head><title>Tab 1 - Fast Logger</title></head>
+                <body>
+                    <h2>Tab 1: Fast Logger</h2>
+                    <p>Outputs 10 messages per second</p>
+                    <script>
+                        let count1 = 0;
+                        setInterval(() => {
+                            console.log('[TAB1-FAST] Message ' + count1);
+                            count1++;
+                        }, 100);  // 10 per second
+                    <\/script>
+                </body>
+                </html>
+            `);
+
+            // Tab 2: Slow logger
+            const tab2 = window.open('', 'tab2', 'width=400,height=300');
+            tab2.document.write(`
+                <html>
+                <head><title>Tab 2 - Slow Logger</title></head>
+                <body>
+                    <h2>Tab 2: Slow Logger</h2>
+                    <p>Outputs 1 message every 2 seconds</p>
+                    <script>
+                        let count2 = 0;
+                        setInterval(() => {
+                            console.log('[TAB2-SLOW] Message ' + count2);
+                            count2++;
+                        }, 2000);  // 1 every 2 seconds
+                    <\/script>
+                </body>
+                </html>
+            `);
+
+            // Tab 3: Error logger
+            const tab3 = window.open('', 'tab3', 'width=400,height=300');
+            tab3.document.write(`
+                <html>
+                <head><title>Tab 3 - Error Logger</title></head>
+                <body>
+                    <h2>Tab 3: Error Logger</h2>
+                    <p>Outputs errors and warnings</p>
+                    <script>
+                        let count3 = 0;
+                        setInterval(() => {
+                            if (count3 % 2 === 0) {
+                                console.error('[TAB3-ERROR] Error message ' + count3);
+                            } else {
+                                console.warn('[TAB3-WARN] Warning message ' + count3);
+                            }
+                            count3++;
+                        }, 500);  // 2 per second
+                    <\/script>
+                </body>
+                </html>
+            `);
+
+            document.getElementById('status').innerHTML = `
+                <h3>Status: 3 tabs opened</h3>
+                <ul>
+                    <li>Tab 1: Fast logger (10 msg/sec)</li>
+                    <li>Tab 2: Slow logger (1 msg/2sec)</li>
+                    <li>Tab 3: Error logger (2 msg/sec)</li>
+                    <li>Main tab: Heartbeat (1 msg/sec)</li>
+                </ul>
+                <p><strong>Use this to test tab-specific vs global captures</strong></p>
+            `;
+
+            console.log('[MAIN-TAB] All 3 tabs opened');
+        });
+    </script>
+</body>
+</html>

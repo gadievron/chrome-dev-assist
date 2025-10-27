@@ -205,6 +205,101 @@ async function closeTab(tabId) {
 }
 
 /**
+ * Get page metadata from a tab
+ * Extracts DOM metadata including data-* attributes, window.testMetadata, and document properties
+ * @param {number} tabId - Tab ID to extract metadata from
+ * @returns {Promise<Object>} Result with { tabId, url, metadata }
+ */
+async function getPageMetadata(tabId) {
+  // Validation: tabId is required
+  if (tabId === undefined || tabId === null) {
+    throw new Error('tabId is required');
+  }
+
+  // Validation: tabId must be a number
+  if (typeof tabId !== 'number') {
+    throw new Error('tabId must be a number');
+  }
+
+  // Validation: tabId must not be NaN
+  if (Number.isNaN(tabId)) {
+    throw new Error('tabId must be a number');
+  }
+
+  // Validation: tabId must be finite
+  if (!Number.isFinite(tabId)) {
+    throw new Error('tabId must be a finite number');
+  }
+
+  // Validation: tabId must be an integer
+  if (!Number.isInteger(tabId)) {
+    throw new Error('tabId must be an integer');
+  }
+
+  // Validation: tabId must be positive
+  if (tabId <= 0) {
+    throw new Error('tabId must be a positive integer');
+  }
+
+  // Validation: tabId must be within safe integer range
+  if (tabId > Number.MAX_SAFE_INTEGER) {
+    throw new Error('tabId exceeds safe integer range');
+  }
+
+  const command = {
+    id: generateCommandId(),
+    type: 'getPageMetadata',
+    params: { tabId }
+  };
+
+  return await sendCommand(command);
+}
+
+/**
+ * Capture screenshot of a tab
+ * @param {number} tabId - Tab ID to capture
+ * @param {Object} options - Options
+ * @param {string} options.format - Image format: 'png' or 'jpeg' (default: 'png')
+ * @param {number} options.quality - JPEG quality 0-100 (default: 90, ignored for PNG)
+ * @returns {Promise<Object>} Result with { tabId, dataUrl, format, quality, timestamp }
+ */
+async function captureScreenshot(tabId, options = {}) {
+  // Validation: tabId must be a number
+  if (typeof tabId !== 'number') {
+    throw new Error('Tab ID must be a number');
+  }
+
+  // Validation: tabId must be positive
+  if (tabId <= 0) {
+    throw new Error('Tab ID must be a positive number');
+  }
+
+  // Validation: format must be 'png' or 'jpeg'
+  const format = options.format || 'png';
+  if (format !== 'png' && format !== 'jpeg') {
+    throw new Error('Format must be "png" or "jpeg"');
+  }
+
+  // Validation: quality must be 0-100 (for JPEG)
+  const quality = options.quality !== undefined ? options.quality : 90;
+  if (format === 'jpeg' && (quality < 0 || quality > 100)) {
+    throw new Error('Quality must be between 0 and 100');
+  }
+
+  const command = {
+    id: generateCommandId(),
+    type: 'captureScreenshot',
+    params: {
+      tabId,
+      format,
+      quality: format === 'jpeg' ? quality : undefined
+    }
+  };
+
+  return await sendCommand(command);
+}
+
+/**
  * Send command to extension via WebSocket server
  * Automatically starts server if not running
  * @private
@@ -346,5 +441,7 @@ module.exports = {
   getExtensionInfo,
   openUrl,
   reloadTab,
-  closeTab
+  closeTab,
+  getPageMetadata,
+  captureScreenshot
 };

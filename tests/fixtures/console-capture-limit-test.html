@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Capture Limit Test (11K messages)</title>
+</head>
+<body>
+    <h1>Console Capture Limit Test</h1>
+    <p>This page outputs 11,000 console messages to test the 10K log limit enforcement.</p>
+
+    <div id="output">
+        <p>Starting test...</p>
+    </div>
+
+    <script>
+        console.log('=== Console Limit Test Started ===');
+        console.log('Target: 11,000 messages (exceeds 10K limit)');
+
+        const startTime = Date.now();
+
+        // Output 11,000 console messages
+        for (let i = 0; i < 11000; i++) {
+            console.log(`[LIMIT-TEST] Message ${i} of 11000`);
+
+            // Add variety every 100 messages
+            if (i % 100 === 0) {
+                console.warn(`[PROGRESS] ${i}/11000 messages sent (${((i/11000)*100).toFixed(1)}%)`);
+            }
+        }
+
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+
+        console.log('=== Console Limit Test Complete ===');
+        console.log(`Total messages sent: 11,000`);
+        console.log(`Duration: ${duration}ms`);
+        console.log(`Expected captured: 10,001 (10,000 + 1 warning)`);
+        console.log(`Expected dropped: 1,000 messages`);
+
+        // Update page
+        document.getElementById('output').innerHTML = `
+            <h2>Test Complete</h2>
+            <table border="1" cellpadding="10">
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Total messages sent</td>
+                    <td>11,000</td>
+                </tr>
+                <tr>
+                    <td>Duration</td>
+                    <td>${duration}ms</td>
+                </tr>
+                <tr>
+                    <td>Expected captured</td>
+                    <td>10,001 (10,000 + 1 warning)</td>
+                </tr>
+                <tr>
+                    <td>Expected dropped</td>
+                    <td>1,000 messages</td>
+                </tr>
+            </table>
+
+            <h3>Validation Checklist:</h3>
+            <ul>
+                <li>✅ Capture should have exactly 10,001 logs</li>
+                <li>✅ Should include warning: "Log limit reached"</li>
+                <li>✅ Messages 10,001-11,000 should be dropped</li>
+                <li>✅ No memory leak (capture size stays at 10K)</li>
+            </ul>
+
+            <h3>Test Variants:</h3>
+            <button onclick="testSlowOutput()">Slow Output (1 msg/10ms)</button>
+            <button onclick="testBurstOutput()">Burst Output (5K + 5K + 1K)</button>
+            <button onclick="testContinuousOutput()">Continuous Output (100 msg/sec for 2 min)</button>
+        `;
+
+        // Test variants
+        function testSlowOutput() {
+            console.log('=== SLOW OUTPUT TEST ===');
+            let i = 0;
+            const interval = setInterval(() => {
+                console.log(`[SLOW] Message ${i}`);
+                i++;
+                if (i >= 11000) {
+                    clearInterval(interval);
+                    console.log('=== SLOW OUTPUT TEST COMPLETE ===');
+                }
+            }, 10);  // 1 message every 10ms
+        }
+
+        function testBurstOutput() {
+            console.log('=== BURST OUTPUT TEST ===');
+
+            // Burst 1: 5K messages
+            for (let i = 0; i < 5000; i++) {
+                console.log(`[BURST1] Message ${i}`);
+            }
+
+            setTimeout(() => {
+                // Burst 2: 5K messages
+                for (let i = 0; i < 5000; i++) {
+                    console.log(`[BURST2] Message ${i}`);
+                }
+
+                setTimeout(() => {
+                    // Burst 3: 1K messages (should all be dropped)
+                    for (let i = 0; i < 1000; i++) {
+                        console.log(`[BURST3-SHOULD-DROP] Message ${i}`);
+                    }
+                    console.log('=== BURST OUTPUT TEST COMPLETE ===');
+                }, 100);
+            }, 100);
+        }
+
+        function testContinuousOutput() {
+            console.log('=== CONTINUOUS OUTPUT TEST ===');
+            console.log('Outputting 100 msg/sec for 2 minutes (total: 12,000)');
+
+            let i = 0;
+            const interval = setInterval(() => {
+                for (let j = 0; j < 10; j++) {
+                    console.log(`[CONTINUOUS] Message ${i}`);
+                    i++;
+                }
+                if (i >= 12000) {
+                    clearInterval(interval);
+                    console.log('=== CONTINUOUS OUTPUT TEST COMPLETE ===');
+                }
+            }, 100);  // 100 messages per second
+        }
+    </script>
+</body>
+</html>

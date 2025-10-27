@@ -74,7 +74,7 @@ The Chrome Dev Assist extension includes **automatic self-healing** to recover f
 
 ---
 
-## API Functions (8 Total)
+## API Functions (10 Total)
 
 ### Extension Management (2 functions)
 
@@ -354,6 +354,152 @@ Close a tab
 await chromeDevAssist.closeTab(123);
 console.log('Tab closed');
 ```
+
+---
+
+### DOM Inspection & Screenshot (2 functions) ✨ NEW
+
+#### `getPageMetadata(tabId)`
+Extract DOM metadata from a tab
+
+Extracts metadata including data-* attributes from body element, window.testMetadata object, and basic document properties (title, readyState, URL).
+
+**Parameters**:
+- `tabId` (number, required): Tab ID to extract metadata from
+
+**Returns**: `Promise<Object>`
+```javascript
+{
+  tabId: 123,
+  url: 'http://example.com',
+  metadata: {
+    // Data-* attributes from <body> element (converted to camelCase)
+    testId: 'fixture-001',
+    testName: 'Full Metadata Test',
+    extensionName: 'Chrome Dev Assist',
+    testStatus: 'ready',
+
+    // Basic document properties
+    title: 'Test Page',
+    readyState: 'complete',
+    url: 'http://example.com',
+
+    // Custom metadata from window.testMetadata (if present)
+    custom: {
+      version: '1.0.0',
+      author: 'Test Suite',
+      tags: ['dom-inspection', 'metadata-extraction']
+    }
+  }
+}
+```
+
+**Example**:
+```javascript
+// Extract metadata from a test page
+const result = await chromeDevAssist.getPageMetadata(tabId);
+
+console.log('Page Title:', result.metadata.title);
+console.log('Test ID:', result.metadata.testId);
+console.log('Test Status:', result.metadata.testStatus);
+
+// Check if page has custom metadata
+if (result.metadata.custom) {
+  console.log('Custom Metadata:', result.metadata.custom);
+}
+
+// Check document ready state
+if (result.metadata.readyState === 'complete') {
+  console.log('✅ Page fully loaded');
+}
+```
+
+**Input Validation**:
+- `tabId` must be a positive integer
+- `tabId` must be within safe integer range (`Number.MAX_SAFE_INTEGER`)
+- Throws detailed error messages for invalid inputs
+
+**Edge Cases**:
+- Returns basic document properties (title, readyState, url) even if no test metadata present
+- Handles pages with no data-* attributes gracefully
+- Handles pages with no window.testMetadata gracefully
+- Automatically converts data-* attribute names to camelCase (data-test-id → testId)
+
+**Test Coverage**:
+- 12 validation tests (all passing)
+- 10 integration tests (require extension loaded)
+- See `tests/unit/page-metadata.test.js` for complete test suite
+
+---
+
+#### `captureScreenshot(tabId, options)`
+Capture screenshot of visible area in a tab
+
+**Parameters**:
+- `tabId` (number, required): Tab ID to capture
+- `options` (Object, optional):
+  - `format` (string): Image format - 'png' or 'jpeg' (default: 'png')
+  - `quality` (number): JPEG quality 0-100 (default: 90, ignored for PNG)
+
+**Returns**: `Promise<Object>`
+```javascript
+{
+  tabId: 123,
+  dataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...',  // Base64 image data
+  format: 'png',
+  quality: 90,      // Only present for JPEG
+  timestamp: 1730000000000
+}
+```
+
+**Example**:
+```javascript
+// Capture PNG screenshot (default)
+const screenshot = await chromeDevAssist.captureScreenshot(tabId);
+console.log('Screenshot captured:', screenshot.dataUrl.substring(0, 50) + '...');
+
+// Save to file (Node.js)
+const fs = require('fs');
+const base64Data = screenshot.dataUrl.split(',')[1];
+fs.writeFileSync('screenshot.png', Buffer.from(base64Data, 'base64'));
+
+// Capture JPEG with custom quality
+const jpegScreenshot = await chromeDevAssist.captureScreenshot(tabId, {
+  format: 'jpeg',
+  quality: 80
+});
+console.log(`JPEG screenshot (quality ${jpegScreenshot.quality})`);
+
+// Multiple screenshots for comparison
+const before = await chromeDevAssist.captureScreenshot(tabId);
+// ... make changes to page ...
+const after = await chromeDevAssist.captureScreenshot(tabId);
+console.log('Before:', before.timestamp);
+console.log('After:', after.timestamp);
+```
+
+**Input Validation**:
+- `tabId` must be a number
+- `tabId` must be positive
+- `format` must be 'png' or 'jpeg'
+- `quality` must be 0-100 (for JPEG only)
+
+**Format Details**:
+- **PNG**: Lossless, larger file size, no quality parameter
+- **JPEG**: Lossy compression, smaller file size, quality parameter controls compression level
+  - Quality 0 = maximum compression (smallest file, lowest quality)
+  - Quality 100 = minimum compression (largest file, highest quality)
+  - Default 90 = good balance between quality and size
+
+**Performance**:
+- Typical capture time: < 500ms
+- Captures visible area only (not full page scroll)
+- Maximum size depends on tab viewport size
+
+**Test Coverage**:
+- 18 validation tests (all passing)
+- Additional integration tests (require extension loaded)
+- See `tests/unit/screenshot-validation.test.js` and `tests/unit/screenshot.test.js`
 
 ---
 

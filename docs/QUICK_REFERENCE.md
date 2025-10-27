@@ -8,33 +8,31 @@
 
 ## 🚨 Phantom APIs Warning
 
-**⚠️ IMPORTANT:** During a comprehensive audit (8 rounds of user challenges), **16 phantom APIs** were discovered - functions that have extensive test coverage but are NOT implemented in the codebase.
+**⚠️ IMPORTANT:** During a comprehensive audit (8 rounds of user challenges), **14 phantom APIs** were discovered - functions that have extensive test coverage but are NOT implemented in the codebase.
 
 **DO NOT USE these functions** - they will fail with "function not found" errors:
 
 <details>
-<summary><strong>Click to see all 16 phantom APIs</strong></summary>
+<parameter name="summary"><strong>Click to see all 14 phantom APIs</strong></summary>
 
 1. startTest(testId, options)
 2. endTest(testId)
 3. abortTest(testId, reason)
 4. getTestStatus()
-5. getPageMetadata(tabId) - has 60+ security test cases!
-6. captureScreenshot(tabId, options)
-7. captureServiceWorkerLogs()
-8. getServiceWorkerStatus()
-9. wakeServiceWorker()
-10. enableExtension(extensionId)
-11. disableExtension(extensionId)
-12. toggleExtension(extensionId)
-13. enableExternalLogging()
-14. disableExternalLogging()
-15. getExternalLoggingStatus()
-16. verifyCleanup()
+5. captureServiceWorkerLogs()
+6. getServiceWorkerStatus()
+7. wakeServiceWorker()
+8. enableExtension(extensionId)
+9. disableExtension(extensionId)
+10. toggleExtension(extensionId)
+11. enableExternalLogging()
+12. disableExternalLogging()
+13. getExternalLoggingStatus()
+14. verifyCleanup()
 
 </details>
 
-**Actually Implemented Functions (8):**
+**Actually Implemented Functions (10):**
 - getAllExtensions()
 - getExtensionInfo(extensionId)
 - reload(extensionId)
@@ -43,6 +41,8 @@
 - openUrl(url, options)
 - reloadTab(tabId, options)
 - closeTab(tabId)
+- **getPageMetadata(tabId)** ✨ NEW (Phase 1.3)
+- **captureScreenshot(tabId, options)** ✨ NEW (Phase 1.3)
 
 **See detailed analysis:** `PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md`
 
