@@ -10,8 +10,8 @@ const consoleCapture = new ConsoleCapture();
 
 // Memory leak prevention
 const MAX_LOGS_PER_CAPTURE = 10000; // Maximum logs per command to prevent memory exhaustion
-const CLEANUP_INTERVAL_MS = 60000;   // Run cleanup every 60 seconds
-const MAX_CAPTURE_AGE_MS = 300000;   // Keep captures for max 5 minutes after completion
+const CLEANUP_INTERVAL_MS = 60000; // Run cleanup every 60 seconds
+const MAX_CAPTURE_AGE_MS = 300000; // Keep captures for max 5 minutes after completion
 
 console.log('[ChromeDevAssist] Background service worker started');
 
@@ -21,7 +21,9 @@ setInterval(() => {
 
   if (cleanedCount > 0) {
     const totalCaptures = consoleCapture.getTotalCount();
-    console.log(`[ChromeDevAssist] Cleaned up ${cleanedCount} old capture(s). Active captures: ${totalCaptures}`);
+    console.log(
+      `[ChromeDevAssist] Cleaned up ${cleanedCount} old capture(s). Active captures: ${totalCaptures}`
+    );
   }
 }, CLEANUP_INTERVAL_MS);
 
@@ -42,28 +44,32 @@ async function registerConsoleCaptureScript() {
     }
 
     // Register the script
-    await chrome.scripting.registerContentScripts([{
-      id: 'console-capture',
-      matches: ['<all_urls>'],
-      js: ['inject-console-capture.js'],
-      runAt: 'document_start',
-      world: 'MAIN',
-      allFrames: true
-    }]);
+    await chrome.scripting.registerContentScripts([
+      {
+        id: 'console-capture',
+        matches: ['<all_urls>'],
+        js: ['inject-console-capture.js'],
+        runAt: 'document_start',
+        world: 'MAIN',
+        allFrames: true,
+      },
+    ]);
     console.log('[ChromeDevAssist] Console capture script registered in MAIN world');
   } catch (err) {
     // If duplicate error despite our check, unregister and retry
     if (err.message && err.message.includes('Duplicate')) {
       console.log('[ChromeDevAssist] Duplicate detected, unregistering and retrying...');
       await chrome.scripting.unregisterContentScripts({ ids: ['console-capture'] });
-      await chrome.scripting.registerContentScripts([{
-        id: 'console-capture',
-        matches: ['<all_urls>'],
-        js: ['inject-console-capture.js'],
-        runAt: 'document_start',
-        world: 'MAIN',
-        allFrames: true
-      }]);
+      await chrome.scripting.registerContentScripts([
+        {
+          id: 'console-capture',
+          matches: ['<all_urls>'],
+          js: ['inject-console-capture.js'],
+          runAt: 'document_start',
+          world: 'MAIN',
+          allFrames: true,
+        },
+      ]);
       console.log('[ChromeDevAssist] Console capture script re-registered successfully');
     } else {
       console.error('[ChromeDevAssist] Failed to register console capture script:', err);
@@ -86,7 +92,9 @@ const MAX_SELF_HEAL_ATTEMPTS = 3; // Maximum number of self-heal reloads before 
 
 // Validate SELF_HEAL_TIMEOUT_MS (must be at least 5 seconds to prevent immediate reload loops)
 if (SELF_HEAL_TIMEOUT_MS < 5000) {
-  throw new Error(`SELF_HEAL_TIMEOUT_MS must be at least 5000ms (5 seconds), got ${SELF_HEAL_TIMEOUT_MS}ms`);
+  throw new Error(
+    `SELF_HEAL_TIMEOUT_MS must be at least 5000ms (5 seconds), got ${SELF_HEAL_TIMEOUT_MS}ms`
+  );
 }
 
 let selfHealTimer = null;
@@ -116,14 +124,16 @@ function connectToServer() {
     selfHealAttempts = 0;
 
     // Register as extension
-    ws.send(JSON.stringify({
-      type: 'register',
-      client: 'extension',
-      extensionId: chrome.runtime.id
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'register',
+        client: 'extension',
+        extensionId: chrome.runtime.id,
+      })
+    );
   };
 
-  ws.onmessage = async (event) => {
+  ws.onmessage = async event => {
     const message = JSON.parse(event.data);
 
     // Only process commands
@@ -184,12 +194,13 @@ function connectToServer() {
       }
 
       // Send success response
-      ws.send(JSON.stringify({
-        type: 'response',
-        id: message.id,
-        data: result
-      }));
-
+      ws.send(
+        JSON.stringify({
+          type: 'response',
+          id: message.id,
+          data: result,
+        })
+      );
     } catch (error) {
       console.error('[ChromeDevAssist] Command failed:', error);
 
@@ -201,21 +212,23 @@ function connectToServer() {
       // Send error response ONLY if WebSocket is open
       // (Prevents second error if WebSocket closed during command execution)
       if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          type: 'error',
-          id: message.id,
-          error: {
-            message: error.message,
-            code: error.code || 'EXTENSION_ERROR'
-          }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'error',
+            id: message.id,
+            error: {
+              message: error.message,
+              code: error.code || 'EXTENSION_ERROR',
+            },
+          })
+        );
       } else {
         console.error('[ChromeDevAssist] Cannot send error response: WebSocket not open');
       }
     }
   };
 
-  ws.onerror = (err) => {
+  ws.onerror = err => {
     console.error('[ChromeDevAssist] WebSocket error:', err);
   };
 
@@ -229,20 +242,26 @@ function connectToServer() {
       selfHealTimer = setTimeout(() => {
         // Check if we've exceeded max reload attempts
         if (selfHealAttempts >= MAX_SELF_HEAL_ATTEMPTS) {
-          console.error(`[ChromeDevAssist] Self-healing disabled: Exceeded ${MAX_SELF_HEAL_ATTEMPTS} reload attempts. Server may be permanently down.`);
+          console.error(
+            `[ChromeDevAssist] Self-healing disabled: Exceeded ${MAX_SELF_HEAL_ATTEMPTS} reload attempts. Server may be permanently down.`
+          );
           selfHealTimer = null;
           // Stop trying to reconnect (give up)
           return;
         }
 
         selfHealAttempts++;
-        console.warn(`[ChromeDevAssist] Self-healing: No reconnection after 60s, reloading extension (attempt ${selfHealAttempts}/${MAX_SELF_HEAL_ATTEMPTS})...`);
+        console.warn(
+          `[ChromeDevAssist] Self-healing: No reconnection after 60s, reloading extension (attempt ${selfHealAttempts}/${MAX_SELF_HEAL_ATTEMPTS})...`
+        );
 
         // Check if chrome.runtime.reload is available
         if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.reload) {
           chrome.runtime.reload();
         } else {
-          console.error('[ChromeDevAssist] Self-healing failed: chrome.runtime.reload not available');
+          console.error(
+            '[ChromeDevAssist] Self-healing failed: chrome.runtime.reload not available'
+          );
         }
       }, SELF_HEAL_TIMEOUT_MS);
 
@@ -285,7 +304,9 @@ async function handleReloadCommand(commandId, params) {
 
   // Special handling for self-reload
   if (extension.id === chrome.runtime.id) {
-    console.log('[ChromeDevAssist] Self-reload requested via command, using chrome.runtime.reload()');
+    console.log(
+      '[ChromeDevAssist] Self-reload requested via command, using chrome.runtime.reload()'
+    );
 
     // Use chrome.runtime.reload() for self (works correctly)
     // Note: This returns immediately but extension reloads shortly after
@@ -305,7 +326,7 @@ async function handleReloadCommand(commandId, params) {
         extensionName: extension.name,
         reloadSuccess: true,
         reloadMethod: 'chrome.runtime.reload',
-        consoleLogs: []
+        consoleLogs: [],
       };
     } else {
       throw new Error('chrome.runtime.reload not available');
@@ -343,7 +364,7 @@ async function handleReloadCommand(commandId, params) {
     extensionId,
     extensionName: extension.name,
     reloadSuccess: true,
-    consoleLogs: logs
+    consoleLogs: logs,
   };
 }
 
@@ -363,7 +384,7 @@ async function handleCaptureCommand(commandId, params) {
   const logs = getCommandLogs(commandId);
 
   return {
-    consoleLogs: logs
+    consoleLogs: logs,
   };
 }
 
@@ -385,12 +406,12 @@ async function handleGetAllExtensionsCommand(commandId, params) {
       version: ext.version,
       enabled: ext.enabled,
       description: ext.description,
-      installType: ext.installType
+      installType: ext.installType,
     }));
 
   return {
     extensions: filtered,
-    count: filtered.length
+    count: filtered.length,
   };
 }
 
@@ -423,7 +444,7 @@ async function handleGetExtensionInfoCommand(commandId, params) {
     permissions: extension.permissions,
     hostPermissions: extension.hostPermissions,
     installType: extension.installType,
-    mayDisable: extension.mayDisable
+    mayDisable: extension.mayDisable,
   };
 }
 
@@ -436,18 +457,22 @@ async function handleGetExtensionInfoCommand(commandId, params) {
  */
 async function handleOpenUrlCommand(commandId, params) {
   // Safe JSON stringify (handles circular references)
-  const safeStringify = (obj) => {
+  const safeStringify = obj => {
     try {
       const seen = new WeakSet();
-      return JSON.stringify(obj, (key, value) => {
-        if (typeof value === 'object' && value !== null) {
-          if (seen.has(value)) {
-            return '[Circular]';
+      return JSON.stringify(
+        obj,
+        (key, value) => {
+          if (typeof value === 'object' && value !== null) {
+            if (seen.has(value)) {
+              return '[Circular]';
+            }
+            seen.add(value);
           }
-          seen.add(value);
-        }
-        return value;
-      }, 2);
+          return value;
+        },
+        2
+      );
     } catch (err) {
       return '[Unable to stringify]';
     }
@@ -460,15 +485,15 @@ async function handleOpenUrlCommand(commandId, params) {
     active = true,
     captureConsole = false,
     duration = 5000,
-    autoClose = false  // NEW: Automatic tab cleanup (default: false for backward compatibility)
+    autoClose = false, // NEW: Automatic tab cleanup (default: false for backward compatibility)
   } = params;
 
   console.log('[ChromeDevAssist] Extracted parameters:', {
-    url: url ? url.substring(0, 100) : url,  // Truncate long URLs in logs
+    url: url ? url.substring(0, 100) : url, // Truncate long URLs in logs
     active,
     captureConsole,
     duration,
-    autoClose
+    autoClose,
   });
 
   // Security: Validate URL parameter
@@ -508,12 +533,16 @@ async function handleOpenUrlCommand(commandId, params) {
 
   const safeDuration = duration;
 
-  console.log('[ChromeDevAssist] Opening URL:', url.substring(0, 100), autoClose ? '(will auto-close)' : '');
+  console.log(
+    '[ChromeDevAssist] Opening URL:',
+    url.substring(0, 100),
+    autoClose ? '(will auto-close)' : ''
+  );
 
   // Create new tab (returns immediately with tab.id, page hasn't loaded yet)
   const tab = await chrome.tabs.create({
     url: url,
-    active: active
+    active: active,
   });
 
   let logs = [];
@@ -531,7 +560,6 @@ async function handleOpenUrlCommand(commandId, params) {
 
     // Get captured logs
     logs = captureConsole ? getCommandLogs(commandId) : [];
-
   } finally {
     // IMPORTANT: Cleanup happens in finally block to ensure it runs even on errors
     console.log('[ChromeDevAssist] Entering finally block, autoClose =', autoClose);
@@ -585,7 +613,7 @@ async function handleOpenUrlCommand(commandId, params) {
     tabId: tab.id,
     url: tab.url,
     consoleLogs: logs,
-    tabClosed: tabClosed
+    tabClosed: tabClosed,
   };
 }
 
@@ -621,7 +649,7 @@ async function handleReloadTabCommand(commandId, params) {
   return {
     tabId: tabId,
     bypassCache: bypassCache,
-    consoleLogs: logs
+    consoleLogs: logs,
   };
 }
 
@@ -642,7 +670,7 @@ async function handleCloseTabCommand(commandId, params) {
 
   return {
     tabId: tabId,
-    closed: true
+    closed: true,
   };
 }
 
@@ -675,21 +703,24 @@ async function handleGetPageMetadataCommand(commandId, params) {
         for (const attr of document.body.attributes) {
           if (attr.name.startsWith('data-')) {
             // Convert data-test-id to testId
-            const key = attr.name.slice(5).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+            const key = attr.name
+              .slice(5)
+              .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
             bodyAttributes[key] = attr.value;
           }
         }
       }
 
       // Extract window.testMetadata if present
-      const customMetadata = typeof window.testMetadata === 'object' ? window.testMetadata : undefined;
+      const customMetadata =
+        typeof window.testMetadata === 'object' ? window.testMetadata : undefined;
 
       // Combine all metadata
       const metadata = {
         ...bodyAttributes,
         title: document.title,
         readyState: document.readyState,
-        url: document.URL
+        url: document.URL,
       };
 
       // Add custom metadata if present
@@ -698,7 +729,7 @@ async function handleGetPageMetadataCommand(commandId, params) {
       }
 
       return metadata;
-    }
+    },
   });
 
   // Get first result (we only execute in main frame)
@@ -707,7 +738,7 @@ async function handleGetPageMetadataCommand(commandId, params) {
   return {
     tabId: tabId,
     url: tab.url,
-    metadata: metadata
+    metadata: metadata,
   };
 }
 
@@ -725,7 +756,11 @@ async function handleCaptureScreenshotCommand(commandId, params) {
     throw new Error('tabId is required');
   }
 
-  console.log('[ChromeDevAssist] Capturing screenshot of tab:', tabId, `format: ${format || 'png'}`);
+  console.log(
+    '[ChromeDevAssist] Capturing screenshot of tab:',
+    tabId,
+    `format: ${format || 'png'}`
+  );
 
   // Get tab to ensure it exists and get window ID
   const tab = await chrome.tabs.get(tabId);
@@ -737,7 +772,7 @@ async function handleCaptureScreenshotCommand(commandId, params) {
   // Capture visible tab using chrome.tabs.captureVisibleTab
   // This captures the visible area of the specified tab
   const captureOptions = {
-    format: format || 'png'
+    format: format || 'png',
   };
 
   // Add quality for JPEG
@@ -753,7 +788,7 @@ async function handleCaptureScreenshotCommand(commandId, params) {
     tabId: tabId,
     dataUrl: dataUrl,
     format: format || 'png',
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 
   // Include quality in response for JPEG
@@ -782,10 +817,12 @@ function startConsoleCapture(commandId, duration, tabId = null) {
   consoleCapture.start(commandId, {
     tabId: tabId,
     maxLogs: MAX_LOGS_PER_CAPTURE,
-    duration: duration
+    duration: duration,
   });
 
-  console.log(`[ChromeDevAssist] Console capture started for command ${commandId}${tabId ? ` (tab ${tabId})` : ' (all tabs)'}`);
+  console.log(
+    `[ChromeDevAssist] Console capture started for command ${commandId}${tabId ? ` (tab ${tabId})` : ' (all tabs)'}`
+  );
 
   // Note: Completion logging removed to prevent dangling timeout
   // Logs can be retrieved explicitly via getCommandLogs(commandId)
@@ -815,51 +852,53 @@ function getCommandLogs(commandId) {
  */
 if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Only process console messages
-  if (message.type === 'console') {
-    // Validate sender - must be from a content script in a tab
-    if (!sender.tab) {
-      console.warn('[ChromeDevAssist] Rejected console message from non-tab source');
-      sendResponse({ received: false });
-      return true;
+    // Only process console messages
+    if (message.type === 'console') {
+      // Validate sender - must be from a content script in a tab
+      if (!sender.tab) {
+        console.warn('[ChromeDevAssist] Rejected console message from non-tab source');
+        sendResponse({ received: false });
+        return true;
+      }
+
+      // Validate message structure - must have required fields
+      if (!message.level || !message.message || !message.timestamp) {
+        console.warn(
+          '[ChromeDevAssist] Rejected malformed console message (missing required fields)'
+        );
+        sendResponse({ received: false });
+        return true;
+      }
+
+      // Truncate very long messages to prevent memory exhaustion
+      const MAX_MESSAGE_LENGTH = 10000;
+      let truncatedMessage = message.message;
+      if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_LENGTH) {
+        truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) + '... [truncated]';
+      }
+
+      const logEntry = {
+        level: message.level,
+        message: truncatedMessage,
+        timestamp: message.timestamp,
+        source: message.source || 'unknown',
+        url: sender.url || 'unknown',
+        tabId: sender.tab.id,
+        frameId: sender.frameId,
+      };
+
+      // Delegate to ConsoleCapture class which handles:
+      // - O(1) tab-specific lookup via capturesByTab index
+      // - Global capture routing (tabId === null)
+      // - Limit enforcement (MAX_LOGS_PER_CAPTURE)
+      // - Limit warning message generation
+      const tabId = sender.tab.id;
+      consoleCapture.addLog(tabId, logEntry);
+
+      sendResponse({ received: true });
     }
 
-    // Validate message structure - must have required fields
-    if (!message.level || !message.message || !message.timestamp) {
-      console.warn('[ChromeDevAssist] Rejected malformed console message (missing required fields)');
-      sendResponse({ received: false });
-      return true;
-    }
-
-    // Truncate very long messages to prevent memory exhaustion
-    const MAX_MESSAGE_LENGTH = 10000;
-    let truncatedMessage = message.message;
-    if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_LENGTH) {
-      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) + '... [truncated]';
-    }
-
-    const logEntry = {
-      level: message.level,
-      message: truncatedMessage,
-      timestamp: message.timestamp,
-      source: message.source || 'unknown',
-      url: sender.url || 'unknown',
-      tabId: sender.tab.id,
-      frameId: sender.frameId
-    };
-
-    // Delegate to ConsoleCapture class which handles:
-    // - O(1) tab-specific lookup via capturesByTab index
-    // - Global capture routing (tabId === null)
-    // - Limit enforcement (MAX_LOGS_PER_CAPTURE)
-    // - Limit warning message generation
-    const tabId = sender.tab.id;
-    consoleCapture.addLog(tabId, logEntry);
-
-    sendResponse({ received: true });
-  }
-
-  return true; // Keep message channel open for async response
+    return true; // Keep message channel open for async response
   });
 }
 
@@ -878,8 +917,8 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
     status: {
       running: true,
       version: '1.0.0',
-      lastUpdate: new Date().toISOString()
-    }
+      lastUpdate: new Date().toISOString(),
+    },
   });
   console.log('[ChromeDevAssist] Ready for commands');
 }
@@ -892,6 +931,6 @@ if (typeof module !== 'undefined' && module.exports) {
     handleOpenUrlCommand,
     handleReloadTabCommand,
     registerConsoleCaptureScript,
-    sleep
+    sleep,
   };
 }

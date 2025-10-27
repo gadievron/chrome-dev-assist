@@ -45,9 +45,9 @@ class HealthManager extends EventEmitter {
       healthy: null,
       extension: {
         connected: null,
-        readyState: null
+        readyState: null,
       },
-      issues: []
+      issues: [],
     };
   }
 
@@ -138,9 +138,9 @@ class HealthManager extends EventEmitter {
       healthy,
       extension: {
         connected: extensionConnected,
-        readyState: extensionReadyState
+        readyState: extensionReadyState,
       },
-      issues
+      issues,
     };
 
     // Detect and emit state changes
@@ -151,9 +151,9 @@ class HealthManager extends EventEmitter {
       healthy: currentState.healthy,
       extension: {
         connected: currentState.extension.connected,
-        readyState: currentState.extension.readyState
+        readyState: currentState.extension.readyState,
       },
-      issues: [...currentState.issues] // Deep copy
+      issues: [...currentState.issues], // Deep copy
     };
 
     return currentState;
@@ -171,7 +171,8 @@ class HealthManager extends EventEmitter {
       let errorMessage;
 
       if (!this.extensionSocket) {
-        errorMessage = 'Extension not connected. Please ensure Chrome Dev Assist extension is loaded and running.';
+        errorMessage =
+          'Extension not connected. Please ensure Chrome Dev Assist extension is loaded and running.';
       } else {
         const state = this.extensionSocket.readyState;
         const stateName = this.getReadyStateName(state);
@@ -190,11 +191,16 @@ class HealthManager extends EventEmitter {
    */
   getReadyStateName(readyState) {
     switch (readyState) {
-      case WebSocket.CONNECTING: return 'CONNECTING';
-      case WebSocket.OPEN: return 'OPEN';
-      case WebSocket.CLOSING: return 'CLOSING';
-      case WebSocket.CLOSED: return 'CLOSED';
-      default: return `UNKNOWN(${readyState})`;
+      case WebSocket.CONNECTING:
+        return 'CONNECTING';
+      case WebSocket.OPEN:
+        return 'OPEN';
+      case WebSocket.CLOSING:
+        return 'CLOSING';
+      case WebSocket.CLOSED:
+        return 'CLOSED';
+      default:
+        return `UNKNOWN(${readyState})`;
     }
   }
 
@@ -222,14 +228,14 @@ class HealthManager extends EventEmitter {
         previous: {
           healthy: prev.healthy,
           extension: { ...prev.extension },
-          issues: [...prev.issues]
+          issues: [...prev.issues],
         },
         current: {
           healthy: curr.healthy,
           extension: { ...curr.extension },
-          issues: [...curr.issues]
+          issues: [...curr.issues],
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     }
 
@@ -243,13 +249,13 @@ class HealthManager extends EventEmitter {
         connection: 'extension',
         previous: {
           connected: prev.extension.connected,
-          readyState: prev.extension.readyState
+          readyState: prev.extension.readyState,
         },
         current: {
           connected: curr.extension.connected,
-          readyState: curr.extension.readyState
+          readyState: curr.extension.readyState,
         },
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     }
 
@@ -260,7 +266,7 @@ class HealthManager extends EventEmitter {
       this.emit('issues-updated', {
         previous: [...prev.issues],
         current: [...curr.issues],
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
     }
   }

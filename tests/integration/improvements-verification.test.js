@@ -12,14 +12,8 @@ describe('Verification: Improvements 6, 7, 8 Implementation', () => {
   let serverJs;
 
   beforeAll(() => {
-    backgroundJs = fs.readFileSync(
-      path.join(__dirname, '../../extension/background.js'),
-      'utf8'
-    );
-    serverJs = fs.readFileSync(
-      path.join(__dirname, '../../server/websocket-server.js'),
-      'utf8'
-    );
+    backgroundJs = fs.readFileSync(path.join(__dirname, '../../extension/background.js'), 'utf8');
+    serverJs = fs.readFileSync(path.join(__dirname, '../../server/websocket-server.js'), 'utf8');
   });
 
   describe('Improvement 8: Timeout Wrapper (P0 CRITICAL)', () => {
@@ -29,11 +23,15 @@ describe('Verification: Improvements 6, 7, 8 Implementation', () => {
     });
 
     it('should have timer cleanup on success', () => {
-      expect(backgroundJs).toContain('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success');
+      expect(backgroundJs).toContain(
+        'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success'
+      );
     });
 
     it('should have timer cleanup on error', () => {
-      expect(backgroundJs).toContain('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error');
+      expect(backgroundJs).toContain(
+        'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error'
+      );
     });
 
     it('should have timeout error message format', () => {
@@ -127,10 +125,14 @@ describe('Verification: Improvements 6, 7, 8 Implementation', () => {
   describe('Bug Fixes Verification', () => {
     it('should have all Improvement 8 bug fixes', () => {
       // Timer cleanup on success
-      expect(backgroundJs).toContain('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success');
+      expect(backgroundJs).toContain(
+        'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success'
+      );
 
       // Timer cleanup on error
-      expect(backgroundJs).toContain('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error');
+      expect(backgroundJs).toContain(
+        'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error'
+      );
     });
 
     it('should have all Improvement 7 bug fixes', () => {

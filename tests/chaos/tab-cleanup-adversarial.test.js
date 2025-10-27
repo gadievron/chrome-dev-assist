@@ -18,11 +18,11 @@ describe('Adversarial: Type Confusion Attacks', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -33,23 +33,26 @@ describe('Adversarial: Type Confusion Attacks', () => {
   });
 
   test('params is an array instead of object', async () => {
-    const result = await handleOpenUrlCommand('cmd-1', ['https://example.com'])
-      .catch(err => ({ error: err.message }));
+    const result = await handleOpenUrlCommand('cmd-1', ['https://example.com']).catch(err => ({
+      error: err.message,
+    }));
 
     // Should handle or reject gracefully
     expect(result).toBeDefined();
   });
 
   test('params is a string instead of object', async () => {
-    const result = await handleOpenUrlCommand('cmd-1', 'https://example.com')
-      .catch(err => ({ error: err.message }));
+    const result = await handleOpenUrlCommand('cmd-1', 'https://example.com').catch(err => ({
+      error: err.message,
+    }));
 
     expect(result).toBeDefined();
   });
 
   test('params is a function', async () => {
-    const result = await handleOpenUrlCommand('cmd-1', () => ({ url: 'https://example.com' }))
-      .catch(err => ({ error: err.message }));
+    const result = await handleOpenUrlCommand('cmd-1', () => ({
+      url: 'https://example.com',
+    })).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
   });
@@ -57,49 +60,62 @@ describe('Adversarial: Type Confusion Attacks', () => {
   test('URL is an object with toString() that returns evil script', async () => {
     const evilUrl = {
       toString: () => 'javascript:alert(1)',
-      toLowerCase: function() { return this.toString().toLowerCase(); },
-      trim: function() { return this; }
+      toLowerCase: function () {
+        return this.toString().toLowerCase();
+      },
+      trim: function () {
+        return this;
+      },
     };
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: evilUrl,
-      autoClose: true
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: evilUrl,
+        autoClose: true,
+      })
+    ).rejects.toThrow();
   });
 
   test('URL is a Proxy that changes value on access', async () => {
     let accessCount = 0;
-    const proxyUrl = new Proxy({}, {
-      get: () => {
-        accessCount++;
-        return accessCount === 1 ? 'https://example.com' : 'javascript:alert(1)';
+    const proxyUrl = new Proxy(
+      {},
+      {
+        get: () => {
+          accessCount++;
+          return accessCount === 1 ? 'https://example.com' : 'javascript:alert(1)';
+        },
       }
-    });
+    );
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: proxyUrl,
-      autoClose: true
+      autoClose: true,
     }).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
   });
 
   test('duration is NaN masquerading as number', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: NaN
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: NaN,
+      })
+    ).rejects.toThrow();
   });
 
   test('duration is object with valueOf() returning huge number', async () => {
     const evilDuration = {
-      valueOf: () => Number.MAX_SAFE_INTEGER
+      valueOf: () => Number.MAX_SAFE_INTEGER,
     };
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: evilDuration
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: evilDuration,
+      })
+    ).rejects.toThrow();
   });
 });
 
@@ -113,11 +129,11 @@ describe('Adversarial: Race Conditions', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -131,12 +147,12 @@ describe('Adversarial: Race Conditions', () => {
     const operations = [
       handleOpenUrlCommand('cmd-1', {
         url: 'https://example.com',
-        autoClose: true
+        autoClose: true,
       }),
       handleOpenUrlCommand('cmd-2', {
         url: 'https://example.com',
-        autoClose: true
-      })
+        autoClose: true,
+      }),
     ];
 
     const results = await Promise.allSettled(operations);
@@ -148,13 +164,15 @@ describe('Adversarial: Race Conditions', () => {
   });
 
   test('1000 concurrent operations', async () => {
-    const operations = Array(1000).fill().map((_, i) =>
-      handleOpenUrlCommand(`cmd-${i}`, {
-        url: `https://example.com/${i}`,
-        autoClose: true,
-        captureConsole: false
-      })
-    );
+    const operations = Array(1000)
+      .fill()
+      .map((_, i) =>
+        handleOpenUrlCommand(`cmd-${i}`, {
+          url: `https://example.com/${i}`,
+          autoClose: true,
+          captureConsole: false,
+        })
+      );
 
     const results = await Promise.allSettled(operations);
 
@@ -165,13 +183,12 @@ describe('Adversarial: Race Conditions', () => {
 
   test('tab deleted during operation', async () => {
     // Simulate tab being deleted mid-operation
-    mockChrome.tabs.get.mockResolvedValueOnce({ id: 123 })
-                        .mockResolvedValueOnce(null);  // Tab gone!
+    mockChrome.tabs.get.mockResolvedValueOnce({ id: 123 }).mockResolvedValueOnce(null); // Tab gone!
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     }).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
@@ -182,7 +199,7 @@ describe('Adversarial: Race Conditions', () => {
     const promise = handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Delete chrome object
@@ -208,11 +225,11 @@ describe('Adversarial: Memory and Resource Exhaustion', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -226,17 +243,18 @@ describe('Adversarial: Memory and Resource Exhaustion', () => {
     const hugeParams = {
       url: 'https://example.com',
       autoClose: true,
-      extraData: 'x'.repeat(10 * 1024 * 1024)  // 10MB string
+      extraData: 'x'.repeat(10 * 1024 * 1024), // 10MB string
     };
 
-    const result = await handleOpenUrlCommand('cmd-1', hugeParams)
-      .catch(err => ({ error: err.message }));
+    const result = await handleOpenUrlCommand('cmd-1', hugeParams).catch(err => ({
+      error: err.message,
+    }));
 
     expect(result).toBeDefined();
   });
 
   test('deeply nested object (10000 levels)', async () => {
-    let obj = { url: 'https://example.com', autoClose: true };
+    const obj = { url: 'https://example.com', autoClose: true };
     let current = obj;
 
     for (let i = 0; i < 10000; i++) {
@@ -244,8 +262,7 @@ describe('Adversarial: Memory and Resource Exhaustion', () => {
       current = current.nested;
     }
 
-    const result = await handleOpenUrlCommand('cmd-1', obj)
-      .catch(err => ({ error: err.message }));
+    const result = await handleOpenUrlCommand('cmd-1', obj).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
   });
@@ -257,8 +274,9 @@ describe('Adversarial: Memory and Resource Exhaustion', () => {
       params[`prop${i}`] = `value${i}`;
     }
 
-    const result = await handleOpenUrlCommand('cmd-1', params)
-      .catch(err => ({ error: err.message }));
+    const result = await handleOpenUrlCommand('cmd-1', params).catch(err => ({
+      error: err.message,
+    }));
 
     expect(result).toBeDefined();
   });
@@ -277,11 +295,12 @@ describe('Adversarial: Memory and Resource Exhaustion', () => {
     const params = {
       url: 'https://example.com',
       autoClose: true,
-      data: nodes[0]
+      data: nodes[0],
     };
 
-    const result = await handleOpenUrlCommand('cmd-1', params)
-      .catch(err => ({ error: err.message }));
+    const result = await handleOpenUrlCommand('cmd-1', params).catch(err => ({
+      error: err.message,
+    }));
 
     expect(result).toBeDefined();
   });
@@ -297,11 +316,11 @@ describe('Adversarial: Prototype Pollution Advanced', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -321,7 +340,7 @@ describe('Adversarial: Prototype Pollution Advanced', () => {
 
     await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      ...maliciousJson
+      ...maliciousJson,
     });
 
     expect(Object.prototype.polluted).toBeUndefined();
@@ -330,11 +349,11 @@ describe('Adversarial: Prototype Pollution Advanced', () => {
   test('attempt to pollute via constructor.prototype', async () => {
     await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      'constructor': {
-        'prototype': {
-          'isAdmin': true
-        }
-      }
+      constructor: {
+        prototype: {
+          isAdmin: true,
+        },
+      },
     });
 
     expect(Object.prototype.isAdmin).toBeUndefined();
@@ -345,9 +364,9 @@ describe('Adversarial: Prototype Pollution Advanced', () => {
 
     await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      '__proto__': {
-        toString: () => 'HACKED'
-      }
+      __proto__: {
+        toString: () => 'HACKED',
+      },
     });
 
     expect(Object.prototype.toString).toBe(originalToString);
@@ -364,11 +383,11 @@ describe('Adversarial: Malicious URL Schemes', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -381,16 +400,18 @@ describe('Adversarial: Malicious URL Schemes', () => {
   test('javascript: with unicode encoding', async () => {
     const evilUrl = 'java\u0073cript:alert(1)';
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: evilUrl
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: evilUrl,
+      })
+    ).rejects.toThrow();
   });
 
   test('javascript: with URL encoding', async () => {
     const evilUrl = 'jav%61script:alert(1)';
 
     const result = await handleOpenUrlCommand('cmd-1', {
-      url: evilUrl
+      url: evilUrl,
     }).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
@@ -399,26 +420,32 @@ describe('Adversarial: Malicious URL Schemes', () => {
   test('data: with base64 encoded HTML/JS', async () => {
     const evilUrl = 'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==';
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: evilUrl
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: evilUrl,
+      })
+    ).rejects.toThrow();
   });
 
   test('vbscript: protocol', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'vbscript:msgbox("XSS")'
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'vbscript:msgbox("XSS")',
+      })
+    ).rejects.toThrow();
   });
 
   test('file: protocol to access local files', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'file:///etc/passwd'
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'file:///etc/passwd',
+      })
+    ).rejects.toThrow();
   });
 
   test('chrome-extension: protocol hijacking', async () => {
     const result = await handleOpenUrlCommand('cmd-1', {
-      url: 'chrome-extension://fake-id/evil.html'
+      url: 'chrome-extension://fake-id/evil.html',
     }).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
@@ -428,7 +455,7 @@ describe('Adversarial: Malicious URL Schemes', () => {
     const evilUrl = 'https://example.com\r\nSet-Cookie: evil=true';
 
     const result = await handleOpenUrlCommand('cmd-1', {
-      url: evilUrl
+      url: evilUrl,
     }).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
@@ -436,9 +463,9 @@ describe('Adversarial: Malicious URL Schemes', () => {
 
   test('URL with homograph attack (punycode)', async () => {
     const result = await handleOpenUrlCommand('cmd-1', {
-      url: 'https://xn--pple-43d.com',  // аpple.com (Cyrillic 'а')
+      url: 'https://xn--pple-43d.com', // аpple.com (Cyrillic 'а')
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Should work (legitimate use case), but worth testing
@@ -456,11 +483,11 @@ describe('Adversarial: Error Cascade Scenarios', () => {
       tabs: {
         create: jest.fn(),
         remove: jest.fn(),
-        get: jest.fn()
+        get: jest.fn(),
       },
       scripting: {
-        executeScript: jest.fn()
-      }
+        executeScript: jest.fn(),
+      },
     };
 
     global.chrome = mockChrome;
@@ -471,11 +498,11 @@ describe('Adversarial: Error Cascade Scenarios', () => {
   });
 
   test('tab create succeeds but returns malformed tab object', async () => {
-    mockChrome.tabs.create.mockResolvedValue({});  // No id!
+    mockChrome.tabs.create.mockResolvedValue({}); // No id!
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      autoClose: true
+      autoClose: true,
     }).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
@@ -484,9 +511,11 @@ describe('Adversarial: Error Cascade Scenarios', () => {
   test('tab create returns null', async () => {
     mockChrome.tabs.create.mockResolvedValue(null);
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com'
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+      })
+    ).rejects.toThrow();
   });
 
   test('tab create throws after delay', async () => {
@@ -496,18 +525,20 @@ describe('Adversarial: Error Cascade Scenarios', () => {
       });
     });
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com'
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+      })
+    ).rejects.toThrow();
   });
 
   test('tab.get returns different tab ID', async () => {
     mockChrome.tabs.create.mockResolvedValue({ id: 123 });
-    mockChrome.tabs.get.mockResolvedValue({ id: 999 });  // Different!
+    mockChrome.tabs.get.mockResolvedValue({ id: 999 }); // Different!
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      autoClose: true
+      autoClose: true,
     }).catch(err => ({ error: err.message }));
 
     expect(result).toBeDefined();
@@ -516,11 +547,11 @@ describe('Adversarial: Error Cascade Scenarios', () => {
   test('remove throws error, get still returns tab', async () => {
     mockChrome.tabs.create.mockResolvedValue({ id: 123 });
     mockChrome.tabs.remove.mockRejectedValue(new Error('Cannot remove'));
-    mockChrome.tabs.get.mockResolvedValue({ id: 123 });  // Still exists!
+    mockChrome.tabs.get.mockResolvedValue({ id: 123 }); // Still exists!
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      autoClose: true
+      autoClose: true,
     });
 
     expect(result.tabClosed).toBe(false);
@@ -537,11 +568,11 @@ describe('Adversarial: Timing Attacks', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -557,7 +588,7 @@ describe('Adversarial: Timing Attacks', () => {
     await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       duration: 0,
-      autoClose: true
+      autoClose: true,
     });
 
     const elapsed = Date.now() - start;
@@ -567,20 +598,22 @@ describe('Adversarial: Timing Attacks', () => {
   });
 
   test('operations with random delays', async () => {
-    const operations = Array(50).fill().map((_, i) => {
-      const randomDelay = Math.random() * 100;
-      mockChrome.tabs.create.mockResolvedValueOnce(
-        new Promise(resolve => setTimeout(() =>
-          resolve({ id: i, url: 'https://example.com' }), randomDelay
-        ))
-      );
+    const operations = Array(50)
+      .fill()
+      .map((_, i) => {
+        const randomDelay = Math.random() * 100;
+        mockChrome.tabs.create.mockResolvedValueOnce(
+          new Promise(resolve =>
+            setTimeout(() => resolve({ id: i, url: 'https://example.com' }), randomDelay)
+          )
+        );
 
-      return handleOpenUrlCommand(`cmd-${i}`, {
-        url: 'https://example.com',
-        autoClose: true,
-        captureConsole: false
+        return handleOpenUrlCommand(`cmd-${i}`, {
+          url: 'https://example.com',
+          autoClose: true,
+          captureConsole: false,
+        });
       });
-    });
 
     const results = await Promise.allSettled(operations);
 
@@ -599,11 +632,11 @@ describe('Adversarial: State Corruption', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -616,7 +649,7 @@ describe('Adversarial: State Corruption', () => {
   test('mutate params object during operation', async () => {
     const params = {
       url: 'https://example.com',
-      autoClose: true
+      autoClose: true,
     };
 
     const promise = handleOpenUrlCommand('cmd-1', params);
@@ -634,7 +667,7 @@ describe('Adversarial: State Corruption', () => {
   test('freeze params object', async () => {
     const params = Object.freeze({
       url: 'https://example.com',
-      autoClose: true
+      autoClose: true,
     });
 
     const result = await handleOpenUrlCommand('cmd-1', params);
@@ -648,7 +681,7 @@ describe('Adversarial: State Corruption', () => {
         callCount++;
         return 'https://example.com';
       },
-      autoClose: true
+      autoClose: true,
     };
 
     await handleOpenUrlCommand('cmd-1', params);

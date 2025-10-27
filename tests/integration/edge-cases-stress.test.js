@@ -16,7 +16,7 @@ const path = require('path');
 const AUTH_TOKEN = fs.readFileSync(path.join(__dirname, '../../.auth-token'), 'utf8').trim();
 
 describe('Edge Cases and Stress Tests', () => {
-  let testTabs = [];
+  const testTabs = [];
 
   afterAll(async () => {
     // Cleanup all tabs
@@ -97,7 +97,9 @@ describe('Edge Cases and Stress Tests', () => {
       console.log(`✅ Mixed log levels: ${uniqueLevels.join(', ')}`);
 
       // 5. Take screenshot to verify page loaded
-      const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, { format: 'png' });
+      const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
+        format: 'png',
+      });
       expect(screenshot.dataUrl).toMatch(/^data:image\/png;base64,/);
       console.log(`✅ Screenshot captured: ${screenshot.size} bytes`);
 
@@ -135,7 +137,7 @@ describe('Edge Cases and Stress Tests', () => {
       // 3. Capture screenshot of viewport (very tall page)
       console.log('📸 Capturing screenshot (PNG, high quality)...');
       const screenshot1 = await chromeDevAssist.captureScreenshot(openResult.tabId, {
-        format: 'png'
+        format: 'png',
       });
 
       expect(screenshot1.dataUrl).toMatch(/^data:image\/png;base64,/);
@@ -146,7 +148,7 @@ describe('Edge Cases and Stress Tests', () => {
       console.log('📸 Capturing screenshot (JPEG, quality 60)...');
       const screenshot2 = await chromeDevAssist.captureScreenshot(openResult.tabId, {
         format: 'jpeg',
-        quality: 60
+        quality: 60,
       });
 
       expect(screenshot2.dataUrl).toMatch(/^data:image\/jpeg;base64,/);
@@ -154,7 +156,9 @@ describe('Edge Cases and Stress Tests', () => {
 
       // 5. JPEG should be smaller than PNG for same content
       expect(screenshot2.size).toBeLessThan(screenshot1.size);
-      console.log(`✅ JPEG compression verified (${((1 - screenshot2.size/screenshot1.size) * 100).toFixed(0)}% smaller)`);
+      console.log(
+        `✅ JPEG compression verified (${((1 - screenshot2.size / screenshot1.size) * 100).toFixed(0)}% smaller)`
+      );
 
       // 6. Save screenshots
       const screenshotDir = path.join(__dirname, '../.screenshots');
@@ -165,8 +169,16 @@ describe('Edge Cases and Stress Tests', () => {
       const pngPath = path.join(screenshotDir, 'edge-screenshots-png.png');
       const jpegPath = path.join(screenshotDir, 'edge-screenshots-jpeg.jpg');
 
-      fs.writeFileSync(pngPath, screenshot1.dataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
-      fs.writeFileSync(jpegPath, screenshot2.dataUrl.replace(/^data:image\/jpeg;base64,/, ''), 'base64');
+      fs.writeFileSync(
+        pngPath,
+        screenshot1.dataUrl.replace(/^data:image\/png;base64,/, ''),
+        'base64'
+      );
+      fs.writeFileSync(
+        jpegPath,
+        screenshot2.dataUrl.replace(/^data:image\/jpeg;base64,/, ''),
+        'base64'
+      );
 
       console.log(`✅ Screenshots saved: ${pngPath}, ${jpegPath}`);
 
@@ -187,9 +199,11 @@ describe('Edge Cases and Stress Tests', () => {
       console.log('\n📊 Screenshot Edge Cases Summary:');
       console.log(`   ✅ PNG size: ${screenshot1.size} bytes`);
       console.log(`   ✅ JPEG size: ${screenshot2.size} bytes`);
-      console.log(`   ✅ Compression: ${((1 - screenshot2.size/screenshot1.size) * 100).toFixed(0)}%`);
+      console.log(
+        `   ✅ Compression: ${((1 - screenshot2.size / screenshot1.size) * 100).toFixed(0)}%`
+      );
       console.log(`   ✅ Console logs: ${logsResult.consoleLogs.length}`);
-      console.log(`   ✅ Metadata extracted`);
+      console.log('   ✅ Metadata extracted');
     }, 30000);
   });
 
@@ -271,19 +285,25 @@ describe('Edge Cases and Stress Tests', () => {
       console.log(`✅ Console logs captured: ${logsResult.consoleLogs.length}`);
 
       // 5. Take screenshot
-      const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, { format: 'png' });
+      const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
+        format: 'png',
+      });
       expect(screenshot.dataUrl).toMatch(/^data:image\/png;base64,/);
 
       const screenshotPath = path.join(__dirname, '../.screenshots/edge-metadata.png');
-      fs.writeFileSync(screenshotPath, screenshot.dataUrl.replace(/^data:image\/png;base64,/, ''), 'base64');
+      fs.writeFileSync(
+        screenshotPath,
+        screenshot.dataUrl.replace(/^data:image\/png;base64,/, ''),
+        'base64'
+      );
       console.log(`✅ Screenshot saved: ${screenshotPath}`);
 
       console.log('\n📊 Metadata Edge Cases Summary:');
       console.log(`   ✅ Total attributes: ${Object.keys(metadata.metadata).length}`);
-      console.log(`   ✅ Special chars: handled`);
-      console.log(`   ✅ Unicode: handled`);
-      console.log(`   ✅ Empty values: handled`);
-      console.log(`   ✅ Different formats: handled`);
+      console.log('   ✅ Special chars: handled');
+      console.log('   ✅ Unicode: handled');
+      console.log('   ✅ Empty values: handled');
+      console.log('   ✅ Different formats: handled');
       console.log(`   ✅ Screenshot: ${screenshot.size} bytes`);
     }, 30000);
   });
@@ -343,19 +363,26 @@ describe('Edge Cases and Stress Tests', () => {
       console.log('✅ Log structure verified');
 
       // 6. Take screenshot
-      const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, { format: 'jpeg', quality: 75 });
+      const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
+        format: 'jpeg',
+        quality: 75,
+      });
       expect(screenshot.dataUrl).toMatch(/^data:image\/jpeg;base64,/);
 
       const screenshotPath = path.join(__dirname, '../.screenshots/stress-high-volume.jpg');
-      fs.writeFileSync(screenshotPath, screenshot.dataUrl.replace(/^data:image\/jpeg;base64,/, ''), 'base64');
+      fs.writeFileSync(
+        screenshotPath,
+        screenshot.dataUrl.replace(/^data:image\/jpeg;base64,/, ''),
+        'base64'
+      );
       console.log(`✅ Screenshot saved: ${screenshotPath}`);
 
       console.log('\n📊 High Volume Stress Test Summary:');
       console.log(`   ✅ Total logs captured: ${logsResult.consoleLogs.length}`);
       console.log(`   ✅ Unique levels: ${Object.keys(levelCounts).length}`);
-      console.log(`   ✅ Log structure: valid`);
+      console.log('   ✅ Log structure: valid');
       console.log(`   ✅ Screenshot: ${screenshot.size} bytes`);
-      console.log(`   ✅ No crashes or errors`);
+      console.log('   ✅ No crashes or errors');
     }, 30000);
   });
 

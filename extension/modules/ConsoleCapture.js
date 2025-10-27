@@ -28,7 +28,7 @@ class ConsoleCapture {
     // Default configuration (POC uses simple defaults)
     this.config = {
       defaultDuration: 5000,
-      defaultMaxLogs: 10000
+      defaultMaxLogs: 10000,
     };
   }
 
@@ -56,7 +56,7 @@ class ConsoleCapture {
     const {
       tabId = null,
       duration = this.config.defaultDuration,
-      maxLogs = this.config.defaultMaxLogs
+      maxLogs = this.config.defaultMaxLogs,
     } = options;
 
     // Create capture state
@@ -67,7 +67,7 @@ class ConsoleCapture {
       maxLogs,
       startTime: Date.now(),
       endTime: null,
-      timeout: null
+      timeout: null,
     };
 
     // Set auto-stop timeout
@@ -105,7 +105,9 @@ class ConsoleCapture {
    */
   stop(captureId) {
     const state = this.captures.get(captureId);
-    if (!state) return;  // Idempotent - safe to call multiple times
+    if (!state) {
+      return;
+    } // Idempotent - safe to call multiple times
 
     state.active = false;
     state.endTime = Date.now();
@@ -143,7 +145,9 @@ class ConsoleCapture {
     for (const captureId of relevantCaptures) {
       const state = this.captures.get(captureId);
 
-      if (!state || !state.active) continue;
+      if (!state || !state.active) {
+        continue;
+      }
 
       // Enforce maxLogs limit
       if (state.logs.length < state.maxLogs) {
@@ -155,7 +159,7 @@ class ConsoleCapture {
           message: `[ChromeDevAssist] Log limit reached (${state.maxLogs}). Further logs will be dropped.`,
           timestamp: new Date().toISOString(),
           source: 'chrome-dev-assist',
-          tabId: logEntry.tabId
+          tabId: logEntry.tabId,
         });
       }
       // Else: silently drop (already over limit)
@@ -169,7 +173,9 @@ class ConsoleCapture {
    */
   getLogs(captureId) {
     const state = this.captures.get(captureId);
-    if (!state) return [];
+    if (!state) {
+      return [];
+    }
 
     // Return copy to prevent external mutation
     return [...state.logs];
@@ -181,7 +187,9 @@ class ConsoleCapture {
    */
   cleanup(captureId) {
     const state = this.captures.get(captureId);
-    if (!state) return;  // Idempotent
+    if (!state) {
+      return;
+    } // Idempotent
 
     // Clear timeout
     if (state.timeout) {
@@ -221,7 +229,9 @@ class ConsoleCapture {
    */
   getStats(captureId) {
     const state = this.captures.get(captureId);
-    if (!state) return null;
+    if (!state) {
+      return null;
+    }
 
     return {
       captureId,
@@ -230,7 +240,7 @@ class ConsoleCapture {
       maxLogs: state.maxLogs,
       logCount: state.logs.length,
       startTime: state.startTime,
-      endTime: state.endTime
+      endTime: state.endTime,
     };
   }
 
@@ -261,10 +271,12 @@ class ConsoleCapture {
 
     for (const [captureId, state] of this.captures.entries()) {
       // Only clean up inactive captures
-      if (state.active) continue;
+      if (state.active) {
+        continue;
+      }
 
       // Check age
-      if (state.endTime && (now - state.endTime) > thresholdMs) {
+      if (state.endTime && now - state.endTime > thresholdMs) {
         this.cleanup(captureId);
         cleanedCount++;
       }

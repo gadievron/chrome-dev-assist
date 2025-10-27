@@ -21,26 +21,26 @@ const TEST_CASES = [
     fixture: 'screenshot-test-1.html',
     secret: 'ALPHA-7392',
     format: 'png',
-    description: 'Purple gradient background with red secret code'
+    description: 'Purple gradient background with red secret code',
   },
   {
     fixture: 'screenshot-test-2.html',
     secret: 'BETA-4561',
     format: 'jpeg',
     quality: 90,
-    description: 'Pink gradient background with green secret code'
+    description: 'Pink gradient background with green secret code',
   },
   {
     fixture: 'screenshot-test-3.html',
     secret: 'GAMMA-8205',
     format: 'png',
-    description: 'Orange gradient background with dark container'
-  }
+    description: 'Orange gradient background with dark container',
+  },
 ];
 
 describe('Screenshot Visual Verification', () => {
   let testId;
-  let openedTabs = [];
+  const openedTabs = [];
 
   beforeAll(async () => {
     testId = `screenshot-visual-test-${Date.now()}`;
@@ -84,7 +84,7 @@ describe('Screenshot Visual Verification', () => {
       // 3. Capture screenshot
       console.log(`Capturing PNG screenshot of tab ${openResult.tabId}...`);
       const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
-        format: 'png'
+        format: 'png',
       });
 
       // 4. Verify screenshot structure
@@ -144,7 +144,7 @@ describe('Screenshot Visual Verification', () => {
       console.log(`Capturing JPEG screenshot (quality: ${testCase.quality})...`);
       const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
         format: 'jpeg',
-        quality: testCase.quality
+        quality: testCase.quality,
       });
 
       // 4. Verify screenshot structure
@@ -194,9 +194,9 @@ describe('Screenshot Visual Verification', () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // 3. Capture high-resolution PNG
-      console.log(`Capturing high-resolution screenshot...`);
+      console.log('Capturing high-resolution screenshot...');
       const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
-        format: 'png'
+        format: 'png',
       });
 
       // 4. Verify

@@ -82,12 +82,14 @@ describe('Test Reality Check - Verify Tests Test Production Code', () => {
         suspiciousPatterns.forEach(pattern => {
           if (pattern.test(content)) {
             // Check if it's a legitimate helper or mock
-            if (!content.includes('// Test helper') &&
-                !content.includes('// Mock') &&
-                !testFile.includes('__mocks__')) {
+            if (
+              !content.includes('// Test helper') &&
+              !content.includes('// Mock') &&
+              !testFile.includes('__mocks__')
+            ) {
               filesWithLocalMocks.push({
                 file: testFile,
-                pattern: pattern.source
+                pattern: pattern.source,
               });
             }
           }
@@ -195,12 +197,7 @@ describe('Test Reality Check - Verify Tests Test Production Code', () => {
       }
 
       // Critical functions that should have tests
-      const criticalFunctions = [
-        'withTimeout',
-        'safeSend',
-        'connectToServer',
-        'scheduleReconnect'
-      ];
+      const criticalFunctions = ['withTimeout', 'safeSend', 'connectToServer', 'scheduleReconnect'];
 
       const missingTests = [];
 
@@ -261,7 +258,8 @@ describe('Test Reality Check - Verify Tests Test Production Code', () => {
         // Verification test patterns
         const hasFileRead = content.includes('fs.readFileSync');
         const hasToContain = content.includes('.toContain(');
-        const hasVerificationKeyword = content.includes('Verification:') || content.includes('should verify');
+        const hasVerificationKeyword =
+          content.includes('Verification:') || content.includes('should verify');
 
         // Behavior test patterns
         const hasAsync = content.includes('async') || content.includes('await');
@@ -293,9 +291,11 @@ describe('Test Reality Check - Verify Tests Test Production Code', () => {
 
       // ✅ P0 FIX: Fail if too many verification tests
       if (behaviorPercent < 40) {
-        fail(`Behavior test ratio too low: ${behaviorPercent.toFixed(1)}% (goal: >40%)\n` +
-             `Too many verification tests (${verificationPercent.toFixed(1)}%)\n` +
-             `Need more tests that verify code WORKS, not just that code EXISTS`);
+        fail(
+          `Behavior test ratio too low: ${behaviorPercent.toFixed(1)}% (goal: >40%)\n` +
+            `Too many verification tests (${verificationPercent.toFixed(1)}%)\n` +
+            'Need more tests that verify code WORKS, not just that code EXISTS'
+        );
       }
 
       expect(behaviorPercent).toBeGreaterThanOrEqual(40);
@@ -304,7 +304,7 @@ describe('Test Reality Check - Verify Tests Test Production Code', () => {
     it('should warn if verification tests > 60%', () => {
       const testFiles = glob.sync('tests/**/*.test.js');
 
-      let verificationTestFiles = [];
+      const verificationTestFiles = [];
 
       testFiles.forEach(file => {
         const content = fs.readFileSync(file, 'utf8');
@@ -322,7 +322,7 @@ describe('Test Reality Check - Verify Tests Test Production Code', () => {
         if (hasFileRead && hasToContain && testCount > 0) {
           verificationTestFiles.push({
             file: file.replace(path.join(__dirname, '../..'), ''),
-            tests: testCount
+            tests: testCount,
           });
         }
       });

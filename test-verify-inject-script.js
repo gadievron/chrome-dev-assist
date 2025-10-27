@@ -69,25 +69,27 @@ ws.on('open', () => {
 
   const cmdId = 'verify-' + Date.now();
 
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: cmdId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'openUrl',
-      params: {
-        url: testUrl,
-        captureConsole: true,
-        duration: 3000,
-        autoClose: false  // Keep tab open so we can inspect
-      }
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: cmdId,
+      targetExtensionId: EXTENSION_ID,
+      command: {
+        type: 'openUrl',
+        params: {
+          url: testUrl,
+          captureConsole: true,
+          duration: 3000,
+          autoClose: false, // Keep tab open so we can inspect
+        },
+      },
+    })
+  );
 
   console.log('⏳ Waiting for capture to complete (3 seconds)...\n');
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.type === 'response') {
@@ -104,13 +106,18 @@ ws.on('message', (data) => {
     if (consoleLogs && consoleLogs.length > 0) {
       console.log('Captured messages:\n');
       consoleLogs.forEach((log, i) => {
-        const prefix = log.message.includes('[PAGE TEST]') ? '📄' :
-                      log.message.includes('[ChromeDevAssist]') ? '🔧' : '❓';
+        const prefix = log.message.includes('[PAGE TEST]')
+          ? '📄'
+          : log.message.includes('[ChromeDevAssist]')
+            ? '🔧'
+            : '❓';
         console.log(`${i + 1}. ${prefix} [${log.level}] ${log.message}`);
       });
 
       const pageMessages = consoleLogs.filter(log => log.message.includes('[PAGE TEST]'));
-      const extensionMessages = consoleLogs.filter(log => log.message.includes('[ChromeDevAssist]'));
+      const extensionMessages = consoleLogs.filter(log =>
+        log.message.includes('[ChromeDevAssist]')
+      );
 
       console.log('\n═══════════════════════════════════════════════════════════════════');
       console.log('ANALYSIS');
@@ -170,7 +177,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ WebSocket error:', err.message);
   console.error('\nIs the server running? Try: node server.js\n');
   process.exit(1);

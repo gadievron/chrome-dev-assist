@@ -11,7 +11,7 @@ const testFiles = [
   'tests/integration/edge-cases.test.js',
   'tests/integration/dogfooding.test.js',
   'tests/integration/phase-1.1.test.js',
-  'tests/integration/phase-1.1-medium.test.js'
+  'tests/integration/phase-1.1-medium.test.js',
 ];
 
 function addAutoCloseToFile(filePath) {
@@ -43,7 +43,7 @@ function addAutoCloseToFile(filePath) {
     console.log(`  ✓ Added autoClose to ${count} openUrl call(s)`);
     return count;
   } else {
-    console.log(`  - No changes needed`);
+    console.log('  - No changes needed');
     return 0;
   }
 }

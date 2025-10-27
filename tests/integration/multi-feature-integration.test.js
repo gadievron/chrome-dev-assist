@@ -73,7 +73,7 @@ describe('Multi-Feature Integration Tests', () => {
       // 4. Take screenshot
       console.log('📸 Taking screenshot...');
       const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
-        format: 'png'
+        format: 'png',
       });
 
       expect(screenshot.dataUrl).toMatch(/^data:image\/png;base64,/);
@@ -159,7 +159,7 @@ describe('Multi-Feature Integration Tests', () => {
       // 5. Take screenshot showing log counts
       console.log('📸 Taking screenshot of console level display...');
       const screenshot = await chromeDevAssist.captureScreenshot(openResult.tabId, {
-        format: 'png'
+        format: 'png',
       });
 
       expect(screenshot.dataUrl).toMatch(/^data:image\/png;base64,/);
@@ -177,8 +177,8 @@ describe('Multi-Feature Integration Tests', () => {
       console.log('\n📊 Console Levels Test Summary:');
       console.log(`   ✅ Total logs: ${logsResult.consoleLogs.length}`);
       console.log(`   ✅ Unique levels: ${uniqueLevels.join(', ')}`);
-      console.log(`   ✅ Screenshot captured`);
-      console.log(`   ✅ Metadata extracted`);
+      console.log('   ✅ Screenshot captured');
+      console.log('   ✅ Metadata extracted');
     }, 30000);
   });
 
@@ -213,7 +213,10 @@ describe('Multi-Feature Integration Tests', () => {
       expect(logs2.consoleLogs.length).toBeGreaterThan(0);
 
       // 5. Take screenshot
-      const screenshot = await chromeDevAssist.captureScreenshot(tabId, { format: 'jpeg', quality: 85 });
+      const screenshot = await chromeDevAssist.captureScreenshot(tabId, {
+        format: 'jpeg',
+        quality: 85,
+      });
       console.log(`✅ Screenshot: ${screenshot.size} bytes (JPEG q85)`);
 
       // 6. Close tab
@@ -224,8 +227,8 @@ describe('Multi-Feature Integration Tests', () => {
       console.log('✅ Tab closed successfully');
 
       console.log('\n📊 Tab Lifecycle Summary:');
-      console.log(`   ✅ Open → Capture → Reload → Capture → Screenshot → Close`);
-      console.log(`   ✅ All operations successful`);
+      console.log('   ✅ Open → Capture → Reload → Capture → Screenshot → Close');
+      console.log('   ✅ All operations successful');
     }, 30000);
   });
 
@@ -277,7 +280,7 @@ describe('Multi-Feature Integration Tests', () => {
 
       // 6. Verify cleanup
       const cleanup = await chromeDevAssist.verifyCleanup({
-        expectedClosedTabs: [tab1.tabId, tab2.tabId]
+        expectedClosedTabs: [tab1.tabId, tab2.tabId],
       });
 
       expect(cleanup.verified).toBe(true);
@@ -287,9 +290,9 @@ describe('Multi-Feature Integration Tests', () => {
 
       console.log('\n📊 Test Orchestration Summary:');
       console.log(`   ✅ Test ID: ${testId}`);
-      console.log(`   ✅ Tabs tracked: 2`);
-      console.log(`   ✅ Auto-cleanup: successful`);
-      console.log(`   ✅ No orphaned tabs`);
+      console.log('   ✅ Tabs tracked: 2');
+      console.log('   ✅ Auto-cleanup: successful');
+      console.log('   ✅ No orphaned tabs');
     }, 30000);
   });
 

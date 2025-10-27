@@ -29,7 +29,6 @@ function sleep(ms) {
 const TEST_EXTENSION_ID = 'gnojocphflllgichkehjhkojkihcihfn';
 
 describe('ConsoleCapture Integration - Refactored background.js', () => {
-
   // =========================================================================
   // SETUP/TEARDOWN
   // =========================================================================
@@ -56,10 +55,7 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
 
   describe('Capture Functions', () => {
     test('reloadAndCapture() uses ConsoleCapture class', async () => {
-      const result = await chromeDevAssist.reloadAndCapture(
-        TEST_EXTENSION_ID,
-        { duration: 2000 }
-      );
+      const result = await chromeDevAssist.reloadAndCapture(TEST_EXTENSION_ID, { duration: 2000 });
 
       expect(result).toBeDefined();
       expect(result.reloadSuccess).toBe(true);
@@ -89,8 +85,8 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       expect(Array.isArray(result.consoleLogs)).toBe(true);
 
       // Should contain our test message
-      const hasTestLog = result.consoleLogs.some(log =>
-        log.message && log.message.includes('Test from openUrl')
+      const hasTestLog = result.consoleLogs.some(
+        log => log.message && log.message.includes('Test from openUrl')
       );
       expect(hasTestLog).toBe(true);
 
@@ -107,10 +103,10 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       await sleep(500);
 
       // Now reload it with capture
-      const result = await chromeDevAssist.reloadTab(
-        createResult.tabId,
-        { captureConsole: true, duration: 1000 }
-      );
+      const result = await chromeDevAssist.reloadTab(createResult.tabId, {
+        captureConsole: true,
+        duration: 1000,
+      });
 
       expect(result).toBeDefined();
       expect(Array.isArray(result.consoleLogs)).toBe(true);
@@ -145,8 +141,8 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       await sleep(2500);
 
       // Tab 1 logs should NOT contain TAB2-MESSAGE
-      const hasTab2Message = tab1.consoleLogs.some(log =>
-        log.message && log.message.includes('TAB2-MESSAGE')
+      const hasTab2Message = tab1.consoleLogs.some(
+        log => log.message && log.message.includes('TAB2-MESSAGE')
       );
 
       expect(hasTab2Message).toBe(false);
@@ -181,11 +177,11 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       const result = await capturePromise;
 
       // Should contain messages from both tabs
-      const hasTab1 = result.consoleLogs.some(log =>
-        log.message && log.message.includes('GLOBAL-TAB1')
+      const hasTab1 = result.consoleLogs.some(
+        log => log.message && log.message.includes('GLOBAL-TAB1')
       );
-      const hasTab2 = result.consoleLogs.some(log =>
-        log.message && log.message.includes('GLOBAL-TAB2')
+      const hasTab2 = result.consoleLogs.some(
+        log => log.message && log.message.includes('GLOBAL-TAB2')
       );
 
       expect(hasTab1).toBe(true);
@@ -239,14 +235,14 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       );
 
       // Should contain warning message
-      const warningLog = result.consoleLogs.find(log =>
-        log.message && log.message.includes('Log limit reached')
+      const warningLog = result.consoleLogs.find(
+        log => log.message && log.message.includes('Log limit reached')
       );
 
       expect(warningLog).toBeDefined();
       expect(warningLog.level).toBe('warn');
 
-      console.log(`✅ Warning message found at limit`);
+      console.log('✅ Warning message found at limit');
     }, 30000);
 
     test('Logs dropped after limit via class', async () => {
@@ -270,8 +266,8 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
 
       // Should NOT have logs after index 10,000
       // (Warning is at index 10,000, so no logs with i > 9999)
-      const hasDroppedLogs = result.consoleLogs.some(log =>
-        log.message && log.message.includes('Drop test 11000')
+      const hasDroppedLogs = result.consoleLogs.some(
+        log => log.message && log.message.includes('Drop test 11000')
       );
 
       expect(hasDroppedLogs).toBe(false);
@@ -303,7 +299,7 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
         expect(Array.isArray(result.consoleLogs)).toBe(true);
       });
 
-      console.log(`✅ Multiple captures completed (cleanup working)`);
+      console.log('✅ Multiple captures completed (cleanup working)');
     }, 30000);
 
     test('Error cleanup calls consoleCapture.cleanup()', async () => {
@@ -335,7 +331,7 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       expect(result2).toBeDefined();
       expect(result2.consoleLogs).not.toEqual(result.consoleLogs);
 
-      console.log(`✅ Cleanup after getLogs verified`);
+      console.log('✅ Cleanup after getLogs verified');
     }, 30000);
   });
 
@@ -366,7 +362,7 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       // Start 2 concurrent reloadTab captures
       const [reload1, reload2] = await Promise.all([
         chromeDevAssist.reloadTab(tab.tabId, { captureConsole: true, duration: 2000 }),
-        chromeDevAssist.reloadTab(tab.tabId, { captureConsole: true, duration: 2000 })
+        chromeDevAssist.reloadTab(tab.tabId, { captureConsole: true, duration: 2000 }),
       ]);
 
       // Both should have captured logs
@@ -376,7 +372,9 @@ describe('ConsoleCapture Integration - Refactored background.js', () => {
       // Clean up
       await chromeDevAssist.closeTab(tab.tabId);
 
-      console.log(`✅ Multiple concurrent captures: ${reload1.consoleLogs.length}, ${reload2.consoleLogs.length} logs`);
+      console.log(
+        `✅ Multiple concurrent captures: ${reload1.consoleLogs.length}, ${reload2.consoleLogs.length} logs`
+      );
     }, 30000);
   });
 });

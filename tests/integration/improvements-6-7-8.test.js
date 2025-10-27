@@ -20,8 +20,8 @@ describe('Integration: Improvements 6, 7, 8', () => {
     // Get list of extensions to find Chrome Dev Assist
     try {
       const result = await api.listExtensions();
-      const chromeDevAssist = result.extensions.find(ext =>
-        ext.name && ext.name.includes('Chrome Dev Assist')
+      const chromeDevAssist = result.extensions.find(
+        ext => ext.name && ext.name.includes('Chrome Dev Assist')
       );
 
       if (chromeDevAssist) {
@@ -138,7 +138,7 @@ describe('Integration: Improvements 6, 7, 8', () => {
       const results = await Promise.all([
         api.listExtensions(),
         api.listExtensions(),
-        api.listExtensions()
+        api.listExtensions(),
       ]);
 
       const duration = Date.now() - start;
@@ -155,9 +155,9 @@ describe('Integration: Improvements 6, 7, 8', () => {
 
       console.log('✅ End-to-end flow completed successfully');
       console.log(`   - 3 commands in ${duration}ms`);
-      console.log(`   - Registration: working`);
-      console.log(`   - Queuing: working`);
-      console.log(`   - Timeouts: working`);
+      console.log('   - Registration: working');
+      console.log('   - Queuing: working');
+      console.log('   - Timeouts: working');
     }, 15000);
 
     it('should maintain stability over multiple operations', async () => {

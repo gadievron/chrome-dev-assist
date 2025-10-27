@@ -16,11 +16,11 @@ global.chrome = {
   tabs: {
     create: jest.fn(),
     get: jest.fn(),
-    remove: jest.fn()
+    remove: jest.fn(),
   },
   runtime: {
-    getManifest: jest.fn(() => ({ name: 'Test', version: '1.0.0' }))
-  }
+    getManifest: jest.fn(() => ({ name: 'Test', version: '1.0.0' })),
+  },
 };
 
 // Mock captureState and capturesByTab (these would be imported in real code)
@@ -28,7 +28,6 @@ const captureState = new Map();
 const capturesByTab = new Map();
 
 describe('Console Capture Race Condition Fix', () => {
-
   beforeEach(() => {
     // Reset state
     captureState.clear();
@@ -53,15 +52,15 @@ describe('Console Capture Race Condition Fix', () => {
     const immediateMessages = [
       { level: 'log', message: 'HEAD-INLINE-1', tabId: 123, timestamp: new Date().toISOString() },
       { level: 'error', message: 'HEAD-INLINE-2', tabId: 123, timestamp: new Date().toISOString() },
-      { level: 'warn', message: 'HEAD-INLINE-3', tabId: 123, timestamp: new Date().toISOString() }
+      { level: 'warn', message: 'HEAD-INLINE-3', tabId: 123, timestamp: new Date().toISOString() },
     ];
 
     // Mock message arrival during TOCTOU gap
-    let captureRegistered = false;
+    const captureRegistered = false;
     const bufferedMessages = [];
 
     // Simulate message handler that checks if capture exists
-    const simulateMessageArrival = (msg) => {
+    const simulateMessageArrival = msg => {
       if (captureState.has('cmd-1') && captureState.get('cmd-1').active) {
         captureState.get('cmd-1').logs.push(msg);
       } else {
@@ -80,12 +79,12 @@ describe('Console Capture Race Condition Fix', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'data:text/html,<html><head><script>console.log("test")</script></head></html>',
       captureConsole: true,
-      duration: 100
+      duration: 100,
     });
 
     // ASSERTION: All messages should be captured (not dropped)
-    const pageMessages = result.consoleLogs.filter(log =>
-      !log.message.includes('[ChromeDevAssist]')
+    const pageMessages = result.consoleLogs.filter(
+      log => !log.message.includes('[ChromeDevAssist]')
     );
 
     expect(pageMessages.length).toBeGreaterThanOrEqual(3);
@@ -112,7 +111,7 @@ describe('Console Capture Race Condition Fix', () => {
     });
 
     // Track when tab is created
-    chrome.tabs.create.mockImplementation(async (opts) => {
+    chrome.tabs.create.mockImplementation(async opts => {
       tabTimestamps.push(Date.now());
       return { id: 123, url: opts.url };
     });
@@ -120,7 +119,7 @@ describe('Console Capture Race Condition Fix', () => {
     await handleOpenUrlCommand('cmd-1', {
       url: 'http://localhost:9876/test.html',
       captureConsole: true,
-      duration: 100
+      duration: 100,
     });
 
     // ASSERTION: Capture registered BEFORE tab created
@@ -144,14 +143,14 @@ describe('Console Capture Race Condition Fix', () => {
     const earlyMessage = {
       level: 'log',
       message: 'EARLY-MESSAGE',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Start command
     const resultPromise = handleOpenUrlCommand('cmd-1', {
       url: 'http://localhost:9876/test.html',
       captureConsole: true,
-      duration: 200
+      duration: 200,
     });
 
     // Send message after 10ms (before tab.id is known)
@@ -186,7 +185,7 @@ describe('Console Capture Race Condition Fix', () => {
     const resultPromise = handleOpenUrlCommand('cmd-1', {
       url: 'http://localhost:9876/test.html',
       captureConsole: true,
-      duration: 200
+      duration: 200,
     });
 
     // Simulate message from DIFFERENT tab (background tab user has open)
@@ -197,8 +196,8 @@ describe('Console Capture Race Condition Fix', () => {
         const wrongTabMessage = {
           level: 'log',
           message: 'MESSAGE-FROM-GMAIL',
-          tabId: 456,  // Different tab!
-          timestamp: new Date().toISOString()
+          tabId: 456, // Different tab!
+          timestamp: new Date().toISOString(),
         };
 
         // Should NOT be added (wrong tab)
@@ -226,7 +225,7 @@ describe('Console Capture Race Condition Fix', () => {
     const resultPromise = handleOpenUrlCommand('cmd-1', {
       url: 'http://localhost:9876/test.html',
       captureConsole: true,
-      duration: 500
+      duration: 500,
     });
 
     // Simulate service worker restart after 100ms
@@ -255,18 +254,18 @@ describe('Console Capture Race Condition Fix', () => {
       handleOpenUrlCommand('cmd-1', {
         url: 'http://localhost:9876/test1.html',
         captureConsole: true,
-        duration: 200
+        duration: 200,
       }),
       handleOpenUrlCommand('cmd-2', {
         url: 'http://localhost:9876/test2.html',
         captureConsole: true,
-        duration: 200
+        duration: 200,
       }),
       handleOpenUrlCommand('cmd-3', {
         url: 'http://localhost:9876/test3.html',
         captureConsole: true,
-        duration: 200
-      })
+        duration: 200,
+      }),
     ]);
 
     // Each capture should be isolated (verified by tabId)
@@ -284,7 +283,7 @@ describe('Console Capture Race Condition Fix', () => {
    * Local files load in <5ms, maximizing race condition probability.
    */
   it('should capture console from fast-loading local file', async () => {
-    chrome.tabs.create.mockImplementation(async (opts) => {
+    chrome.tabs.create.mockImplementation(async opts => {
       // Simulate IMMEDIATE page load (local file)
       const tab = { id: 123, url: opts.url };
 
@@ -296,7 +295,7 @@ describe('Console Capture Race Condition Fix', () => {
             level: 'log',
             message: 'FAST-LOCAL-MESSAGE',
             tabId: 123,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
 
           // Add to capture if it exists and matches tabId
@@ -312,7 +311,7 @@ describe('Console Capture Race Condition Fix', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'file:///Users/test/fast.html',
       captureConsole: true,
-      duration: 200
+      duration: 200,
     });
 
     // Should capture the fast message

@@ -55,7 +55,7 @@ function ensureSingleInstance() {
 
       // Process exists - kill it
       console.log(`[Server] Detected existing server instance (PID ${oldPid})`);
-      console.log(`[Server] Killing old instance to prevent port conflict...`);
+      console.log('[Server] Killing old instance to prevent port conflict...');
 
       try {
         process.kill(oldPid, 'SIGTERM');
@@ -74,16 +74,16 @@ function ensureSingleInstance() {
         // If still alive, force kill
         try {
           process.kill(oldPid, 0);
-          console.log(`[Server] Forcing kill of old instance...`);
+          console.log('[Server] Forcing kill of old instance...');
           process.kill(oldPid, 'SIGKILL');
         } catch {
           // Already dead
         }
 
-        console.log(`[Server] Old instance terminated successfully`);
+        console.log('[Server] Old instance terminated successfully');
       } catch (err) {
         console.log(`[Server] Could not kill old instance: ${err.message}`);
-        console.log(`[Server] Cleaning up stale PID file`);
+        console.log('[Server] Cleaning up stale PID file');
       }
     } catch {
       // Process doesn't exist - stale PID file
@@ -155,10 +155,11 @@ function handleHttpRequest(req, res) {
   // Security Layer 1: Validate Host header (defense-in-depth)
   // Even though server is bound to 127.0.0.1, validate the Host header
   const host = req.headers.host || '';
-  const isLocalhost = host.startsWith('localhost:') ||
-                      host.startsWith('127.0.0.1:') ||
-                      host === 'localhost' ||
-                      host === '127.0.0.1';
+  const isLocalhost =
+    host.startsWith('localhost:') ||
+    host.startsWith('127.0.0.1:') ||
+    host === 'localhost' ||
+    host === '127.0.0.1';
 
   if (!isLocalhost) {
     logError(`Rejected request from non-localhost Host: ${host}`);
@@ -233,7 +234,7 @@ function handleHttpRequest(req, res) {
         '.js': 'application/javascript',
         '.css': 'text/css',
         '.json': 'application/json',
-        '.txt': 'text/plain'
+        '.txt': 'text/plain',
       };
       const contentType = contentTypes[ext] || 'application/octet-stream';
 
@@ -279,9 +280,10 @@ function handleHttpRequest(req, res) {
   <h1>Chrome Dev Assist - Test Fixtures</h1>
   <p>Available test fixtures:</p>
   <ul>
-    ${files.filter(f => f.endsWith('.html')).map(f =>
-      `<li><a href="/fixtures/${f}">${f}</a></li>`
-    ).join('\n    ')}
+    ${files
+      .filter(f => f.endsWith('.html'))
+      .map(f => `<li><a href="/fixtures/${f}">${f}</a></li>`)
+      .join('\n    ')}
   </ul>
   <hr>
   <p><small>Server: ${HOST}:${PORT}</small></p>
@@ -314,36 +316,40 @@ httpServer.listen(PORT, HOST, () => {
   console.log(`[Server] Test fixtures at http://${HOST}:${PORT}/fixtures/`);
 });
 
-server.on('connection', (socket) => {
+server.on('connection', socket => {
   log('Client connected');
 
-  socket.on('message', (data) => {
+  socket.on('message', data => {
     // REQUIREMENT #1: JSON validation (Persona 6)
     let msg;
     try {
       msg = JSON.parse(data.toString());
     } catch (err) {
       logError('Invalid JSON received:', err.message);
-      socket.send(JSON.stringify({
-        type: 'error',
-        error: {
-          message: 'Invalid JSON',
-          code: 'PARSE_ERROR'
-        }
-      }));
+      socket.send(
+        JSON.stringify({
+          type: 'error',
+          error: {
+            message: 'Invalid JSON',
+            code: 'PARSE_ERROR',
+          },
+        })
+      );
       return;
     }
 
     // Validate message has type field
     if (!msg.type) {
       logError('Message missing type field:', msg);
-      socket.send(JSON.stringify({
-        type: 'error',
-        error: {
-          message: 'Message must have type field',
-          code: 'INVALID_MESSAGE'
-        }
-      }));
+      socket.send(
+        JSON.stringify({
+          type: 'error',
+          error: {
+            message: 'Message must have type field',
+            code: 'INVALID_MESSAGE',
+          },
+        })
+      );
       return;
     }
 
@@ -358,13 +364,15 @@ server.on('connection', (socket) => {
       handleResponse(socket, msg);
     } else {
       logError('Unknown message type:', msg.type);
-      socket.send(JSON.stringify({
-        type: 'error',
-        error: {
-          message: `Unknown message type: ${msg.type}`,
-          code: 'UNKNOWN_MESSAGE_TYPE'
-        }
-      }));
+      socket.send(
+        JSON.stringify({
+          type: 'error',
+          error: {
+            message: `Unknown message type: ${msg.type}`,
+            code: 'UNKNOWN_MESSAGE_TYPE',
+          },
+        })
+      );
     }
   });
 
@@ -385,13 +393,13 @@ server.on('connection', (socket) => {
     }
   });
 
-  socket.on('error', (err) => {
+  socket.on('error', err => {
     logError('Socket error:', err.message);
   });
 });
 
 // REQUIREMENT #3: Port conflict handling (Persona 5)
-httpServer.on('error', (err) => {
+httpServer.on('error', err => {
   if (err.code === 'EADDRINUSE') {
     console.error('');
     console.error('ERROR: Port 9876 is already in use.');
@@ -412,7 +420,7 @@ httpServer.on('error', (err) => {
 });
 
 // WebSocket server error handling
-server.on('error', (err) => {
+server.on('error', err => {
   logError('WebSocket error:', err);
 });
 
@@ -428,13 +436,15 @@ function handleRegister(socket, msg) {
   // REQUIREMENT #2: Duplicate extension registration (Persona 3, 6)
   if (extensionSocket !== null && extensionSocket !== socket) {
     logError('Extension already registered, rejecting duplicate');
-    socket.send(JSON.stringify({
-      type: 'error',
-      error: {
-        message: 'Extension already registered. Only one extension can connect at a time.',
-        code: 'DUPLICATE_REGISTRATION'
-      }
-    }));
+    socket.send(
+      JSON.stringify({
+        type: 'error',
+        error: {
+          message: 'Extension already registered. Only one extension can connect at a time.',
+          code: 'DUPLICATE_REGISTRATION',
+        },
+      })
+    );
     socket.close();
     return;
   }
@@ -451,13 +461,15 @@ function handleCommand(socket, msg) {
   // Validate command has ID
   if (!msg.id) {
     logError('Command missing ID field');
-    socket.send(JSON.stringify({
-      type: 'error',
-      error: {
-        message: 'Command must have id field',
-        code: 'INVALID_COMMAND'
-      }
-    }));
+    socket.send(
+      JSON.stringify({
+        type: 'error',
+        error: {
+          message: 'Command must have id field',
+          code: 'INVALID_COMMAND',
+        },
+      })
+    );
     return;
   }
 
@@ -469,14 +481,18 @@ function handleCommand(socket, msg) {
   if (!healthManager.isExtensionConnected()) {
     logError('Extension not connected, cannot route command');
     const healthStatus = healthManager.getHealthStatus();
-    socket.send(JSON.stringify({
-      type: 'error',
-      id: msg.id,
-      error: {
-        message: healthStatus.issues.join(' ') || 'Extension not connected. Please ensure Chrome Dev Assist extension is loaded and running.',
-        code: 'EXTENSION_NOT_CONNECTED'
-      }
-    }));
+    socket.send(
+      JSON.stringify({
+        type: 'error',
+        id: msg.id,
+        error: {
+          message:
+            healthStatus.issues.join(' ') ||
+            'Extension not connected. Please ensure Chrome Dev Assist extension is loaded and running.',
+          code: 'EXTENSION_NOT_CONNECTED',
+        },
+      })
+    );
     apiSockets.delete(msg.id);
     return;
   }
@@ -486,15 +502,17 @@ function handleCommand(socket, msg) {
   try {
     extensionSocket.send(JSON.stringify(msg));
   } catch (err) {
-    logError(`Failed to send to extension:`, err.message);
-    socket.send(JSON.stringify({
-      type: 'error',
-      id: msg.id,
-      error: {
-        message: 'Failed to send command to extension',
-        code: 'SEND_FAILED'
-      }
-    }));
+    logError('Failed to send to extension:', err.message);
+    socket.send(
+      JSON.stringify({
+        type: 'error',
+        id: msg.id,
+        error: {
+          message: 'Failed to send command to extension',
+          code: 'SEND_FAILED',
+        },
+      })
+    );
     apiSockets.delete(msg.id);
   }
 }
@@ -531,7 +549,7 @@ function handleResponse(socket, msg) {
     apiSocket.send(JSON.stringify(msg));
     apiSockets.delete(msg.id); // Clean up
   } catch (err) {
-    logError(`Failed to send to API:`, err.message);
+    logError('Failed to send to API:', err.message);
     apiSockets.delete(msg.id);
   }
 }

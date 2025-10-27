@@ -17,10 +17,7 @@ describe('Console.error Crash Detection Prevention', () => {
   let backgroundJs;
 
   beforeAll(() => {
-    backgroundJs = fs.readFileSync(
-      path.join(__dirname, '../../extension/background.js'),
-      'utf8'
-    );
+    backgroundJs = fs.readFileSync(path.join(__dirname, '../../extension/background.js'), 'utf8');
   });
 
   describe('Fixed Issues (Should use console.warn)', () => {
@@ -87,7 +84,7 @@ describe('Console.error Crash Detection Prevention', () => {
         backgroundJs.indexOf('Tab already closed'),
         backgroundJs.indexOf('TAB CLEANUP FAILED'),
         backgroundJs.indexOf('Failed to close tab'),
-        backgroundJs.indexOf('Failed to close orphan')
+        backgroundJs.indexOf('Failed to close orphan'),
       ].filter(idx => idx > 0);
 
       for (const idx of tabCleanupSections) {
@@ -96,10 +93,12 @@ describe('Console.error Crash Detection Prevention', () => {
         // If section has console.error, FAIL (tab closure failures are EXPECTED)
         if (section.includes('console.error')) {
           const lineNumber = backgroundJs.substring(0, idx).split('\n').length;
-          throw new Error(`❌ Found console.error in tab cleanup at line ~${lineNumber}. ` +
-                          `Tab closure failures are EXPECTED in testing (tabs may be already closed). ` +
-                          `Should use console.warn instead. ` +
-                          `See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:206-214`);
+          throw new Error(
+            `❌ Found console.error in tab cleanup at line ~${lineNumber}. ` +
+              'Tab closure failures are EXPECTED in testing (tabs may be already closed). ' +
+              'Should use console.warn instead. ' +
+              'See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:206-214'
+          );
         }
       }
     });
@@ -113,10 +112,12 @@ describe('Console.error Crash Detection Prevention', () => {
 
         if (section.includes('console.error')) {
           const lineNumber = backgroundJs.substring(0, queueFullIndex).split('\n').length;
-          throw new Error(`❌ Found console.error for queue overflow at line ~${lineNumber}. ` +
-                          `Queue overflow is EXPECTED under high load (stress/DoS protection). ` +
-                          `Should use console.warn instead. ` +
-                          `See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:225-232`);
+          throw new Error(
+            `❌ Found console.error for queue overflow at line ~${lineNumber}. ` +
+              'Queue overflow is EXPECTED under high load (stress/DoS protection). ' +
+              'Should use console.warn instead. ' +
+              'See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:225-232'
+          );
         }
       }
     });
@@ -130,10 +131,12 @@ describe('Console.error Crash Detection Prevention', () => {
 
         if (section.includes('console.error')) {
           const lineNumber = backgroundJs.substring(0, sendFailedIndex).split('\n').length;
-          throw new Error(`❌ Found console.error for send failures at line ~${lineNumber}. ` +
-                          `Send failures are EXPECTED during disconnection and state transitions. ` +
-                          `Should use console.warn instead. ` +
-                          `See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:216-223`);
+          throw new Error(
+            `❌ Found console.error for send failures at line ~${lineNumber}. ` +
+              'Send failures are EXPECTED during disconnection and state transitions. ' +
+              'Should use console.warn instead. ' +
+              'See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:216-223'
+          );
         }
       }
     });
@@ -141,7 +144,8 @@ describe('Console.error Crash Detection Prevention', () => {
 
   describe('Pattern Detection (Generic Bug Prevention)', () => {
     it('should have "✅ FIX" comment for all fixed console.warn conversions', () => {
-      const fixComments = backgroundJs.match(/✅ FIX.*console\.warn instead of console\.error/g) || [];
+      const fixComments =
+        backgroundJs.match(/✅ FIX.*console\.warn instead of console\.error/g) || [];
 
       console.log(`\n✅ Fixed console.error → console.warn: ${fixComments.length} locations`);
 
@@ -154,9 +158,9 @@ describe('Console.error Crash Detection Prevention', () => {
       // OR are for clear programming bugs (null checks, unknown states)
 
       const knownLegitimateErrors = [
-        'WebSocket is null',       // Programming bug (caller should check)
+        'WebSocket is null', // Programming bug (caller should check)
         'Unknown WebSocket state', // Impossible state (state machine bug)
-        'No main frame result'     // Chrome API bug or permission issue
+        'No main frame result', // Chrome API bug or permission issue
       ];
 
       for (const errorType of knownLegitimateErrors) {
@@ -195,21 +199,29 @@ describe('Console.error Crash Detection Prevention', () => {
       //   console.error(...)
       // We look for 3+ in a row (pattern matches if there are at least 3)
 
-      const rapidErrors = backgroundJs.match(/console\.error[^\n]*\n[^\n]*console\.error[^\n]*\n[^\n]*console\.error/g) || [];
+      const rapidErrors =
+        backgroundJs.match(
+          /console\.error[^\n]*\n[^\n]*console\.error[^\n]*\n[^\n]*console\.error/g
+        ) || [];
 
       if (rapidErrors.length > 0) {
-        const errorDetails = rapidErrors.slice(0, 3).map((match, idx) => {
-          const matchIndex = backgroundJs.indexOf(match);
-          const lineNumber = backgroundJs.substring(0, matchIndex).split('\n').length;
-          const preview = match.substring(0, 100).replace(/\n/g, ' ');
-          return `  ${idx + 1}. Line ~${lineNumber}: ${preview}...`;
-        }).join('\n');
+        const errorDetails = rapidErrors
+          .slice(0, 3)
+          .map((match, idx) => {
+            const matchIndex = backgroundJs.indexOf(match);
+            const lineNumber = backgroundJs.substring(0, matchIndex).split('\n').length;
+            const preview = match.substring(0, 100).replace(/\n/g, ' ');
+            return `  ${idx + 1}. Line ~${lineNumber}: ${preview}...`;
+          })
+          .join('\n');
 
-        throw new Error(`❌ Found ${rapidErrors.length} rapid console.error sequence(s). ` +
-                        `Chrome may interpret this as extension crash. ` +
-                        `Example locations:\n${errorDetails}\n` +
-                        `Recommendation: Consolidate into single console.warn with object. ` +
-                        `See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:459-483`);
+        throw new Error(
+          `❌ Found ${rapidErrors.length} rapid console.error sequence(s). ` +
+            'Chrome may interpret this as extension crash. ' +
+            `Example locations:\n${errorDetails}\n` +
+            'Recommendation: Consolidate into single console.warn with object. ' +
+            'See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:459-483'
+        );
       }
     });
 
@@ -239,7 +251,10 @@ describe('Console.error Crash Detection Prevention', () => {
         // If 4+ console.error in 20-line window, might be error detail splitting
         if (errorCount >= 4) {
           const lineNumber = i + 1;
-          const snippet = lines.slice(i, i + 4).join('\n').substring(0, 150);
+          const snippet = lines
+            .slice(i, i + 4)
+            .join('\n')
+            .substring(0, 150);
           violations.push({ lineNumber, errorCount, snippet });
 
           // Skip ahead to avoid duplicate detections
@@ -248,28 +263,28 @@ describe('Console.error Crash Detection Prevention', () => {
       }
 
       if (violations.length > 0) {
-        const violationDetails = violations.map((v, idx) => {
-          return `  ${idx + 1}. Line ~${v.lineNumber}: ${v.errorCount} console.error calls in 20 lines\n` +
-                 `     ${v.snippet.replace(/\n/g, '\n     ')}...`;
-        }).join('\n');
+        const violationDetails = violations
+          .map((v, idx) => {
+            return (
+              `  ${idx + 1}. Line ~${v.lineNumber}: ${v.errorCount} console.error calls in 20 lines\n` +
+              `     ${v.snippet.replace(/\n/g, '\n     ')}...`
+            );
+          })
+          .join('\n');
 
-        throw new Error(`❌ Found ${violations.length} location(s) with multiple console.error for single error. ` +
-                        `Should consolidate into single console.warn with object:\n` +
-                        `  console.warn('Message', { tabId, errorType, errorMessage, ... });\n\n` +
-                        `Violations:\n${violationDetails}\n\n` +
-                        `See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:459-483`);
+        throw new Error(
+          `❌ Found ${violations.length} location(s) with multiple console.error for single error. ` +
+            'Should consolidate into single console.warn with object:\n' +
+            "  console.warn('Message', { tabId, errorType, errorMessage, ... });\n\n" +
+            `Violations:\n${violationDetails}\n\n` +
+            'See TESTER-GUIDE-CONSOLE-ERROR-CRASH-BUG.md:459-483'
+        );
       }
     });
 
     it('should NOT use console.error in error event handlers', () => {
       // Error event handlers (onerror, catch) should use console.warn for expected errors
-      const errorHandlers = [
-        'ws.onerror',
-        'ws.onclose',
-        '.catch(',
-        'catch (error)',
-        'catch (err)'
-      ];
+      const errorHandlers = ['ws.onerror', 'ws.onclose', '.catch(', 'catch (error)', 'catch (err)'];
 
       for (const handler of errorHandlers) {
         const handlerIndex = backgroundJs.indexOf(handler);
@@ -320,11 +335,11 @@ describe('Console.error Crash Detection Prevention', () => {
       const catchBlocks = (backgroundJs.match(/\} catch \(/g) || []).length;
       const consoleErrors = (backgroundJs.match(/console\.error\(/g) || []).length;
 
-      console.log(`\n📊 Statistics:`);
+      console.log('\n📊 Statistics:');
       console.log(`   Catch blocks: ${catchBlocks}`);
       console.log(`   console.error calls: ${consoleErrors}`);
-      console.log(`   Ratio: ${(consoleErrors / catchBlocks * 100).toFixed(1)}%`);
-      console.log(`   Goal: <30% (most errors should be console.warn)\n`);
+      console.log(`   Ratio: ${((consoleErrors / catchBlocks) * 100).toFixed(1)}%`);
+      console.log('   Goal: <30% (most errors should be console.warn)\n');
 
       // Most catch blocks should use console.warn, not console.error
       // This test documents the current state
@@ -338,7 +353,7 @@ describe('Console.error Crash Detection Prevention', () => {
       const connectionFailurePatterns = [
         /ws\.onerror.*console\.error.*WebSocket/i,
         /timeout.*console\.error.*connection/i,
-        /registration.*console\.error.*timeout/i
+        /registration.*console\.error.*timeout/i,
       ];
 
       for (const pattern of connectionFailurePatterns) {
@@ -366,7 +381,9 @@ describe('Console.error Crash Detection Prevention', () => {
           // Should NOT have console.error for Command failed
           if (hasError) {
             expect(hasError).toBeNull();
-            throw new Error(`Found console.error for command failure (should be console.warn): ${hasError[0].substring(0, 100)}`);
+            throw new Error(
+              `Found console.error for command failure (should be console.warn): ${hasError[0].substring(0, 100)}`
+            );
           }
         }
       }

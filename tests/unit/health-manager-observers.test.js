@@ -12,7 +12,6 @@ const HealthManager = require('../../src/health/health-manager');
 const WebSocket = require('ws');
 
 describe('HealthManager - Observer Pattern Basics', () => {
-
   test('should support on() method for event listeners', () => {
     const health = new HealthManager();
 
@@ -40,12 +39,10 @@ describe('HealthManager - Observer Pattern Basics', () => {
     // Should have removeAllListeners() method
     expect(typeof health.removeAllListeners).toBe('function');
   });
-
 });
 
 describe('HealthManager - health-changed Event', () => {
-
-  test('should emit health-changed when health status changes', (done) => {
+  test('should emit health-changed when health status changes', done => {
     const health = new HealthManager();
 
     // Start unhealthy (no socket)
@@ -55,7 +52,7 @@ describe('HealthManager - health-changed Event', () => {
     let eventReceived = false;
 
     // Listen for health change
-    health.on('health-changed', (event) => {
+    health.on('health-changed', event => {
       eventReceived = true;
 
       // Verify event payload structure
@@ -88,7 +85,7 @@ describe('HealthManager - health-changed Event', () => {
     }, 100);
   });
 
-  test('should NOT emit health-changed if health status unchanged', (done) => {
+  test('should NOT emit health-changed if health status unchanged', done => {
     const health = new HealthManager();
 
     // Start healthy
@@ -115,7 +112,7 @@ describe('HealthManager - health-changed Event', () => {
     }, 100);
   });
 
-  test('should emit health-changed when transitioning healthy → unhealthy', (done) => {
+  test('should emit health-changed when transitioning healthy → unhealthy', done => {
     const health = new HealthManager();
 
     // Start healthy
@@ -124,7 +121,7 @@ describe('HealthManager - health-changed Event', () => {
     health.getHealthStatus(); // Establish initial state
 
     // Listen for health change
-    health.on('health-changed', (event) => {
+    health.on('health-changed', event => {
       // Previous: healthy
       expect(event.previous.healthy).toBe(true);
 
@@ -140,7 +137,7 @@ describe('HealthManager - health-changed Event', () => {
     health.getHealthStatus(); // Trigger change detection
   });
 
-  test('should support multiple listeners for same event', (done) => {
+  test('should support multiple listeners for same event', done => {
     const health = new HealthManager();
 
     health.setExtensionSocket(null);
@@ -170,12 +167,10 @@ describe('HealthManager - health-changed Event', () => {
       done();
     }, 100);
   });
-
 });
 
 describe('HealthManager - connection-state-changed Event', () => {
-
-  test('should emit connection-state-changed when extension state changes', (done) => {
+  test('should emit connection-state-changed when extension state changes', done => {
     const health = new HealthManager();
 
     // Start with no connection
@@ -183,7 +178,7 @@ describe('HealthManager - connection-state-changed Event', () => {
     health.getHealthStatus(); // Establish baseline
 
     // Listen for connection change
-    health.on('connection-state-changed', (event) => {
+    health.on('connection-state-changed', event => {
       expect(event).toHaveProperty('connection'); // 'extension' or 'api'
       expect(event).toHaveProperty('previous');
       expect(event).toHaveProperty('current');
@@ -202,7 +197,7 @@ describe('HealthManager - connection-state-changed Event', () => {
     health.getHealthStatus();
   });
 
-  test('should NOT emit connection-state-changed if connection unchanged', (done) => {
+  test('should NOT emit connection-state-changed if connection unchanged', done => {
     const health = new HealthManager();
 
     const openSocket = { readyState: WebSocket.OPEN };
@@ -225,14 +220,14 @@ describe('HealthManager - connection-state-changed Event', () => {
     }, 100);
   });
 
-  test('should emit when readyState changes within same socket', (done) => {
+  test('should emit when readyState changes within same socket', done => {
     const health = new HealthManager();
 
     const socket = { readyState: WebSocket.OPEN };
     health.setExtensionSocket(socket);
     health.getHealthStatus(); // Establish baseline
 
-    health.on('connection-state-changed', (event) => {
+    health.on('connection-state-changed', event => {
       expect(event.previous.readyState).toBe(WebSocket.OPEN);
       expect(event.current.readyState).toBe(WebSocket.CLOSING);
       done();
@@ -242,19 +237,17 @@ describe('HealthManager - connection-state-changed Event', () => {
     socket.readyState = WebSocket.CLOSING;
     health.getHealthStatus(); // Detect change
   });
-
 });
 
 describe('HealthManager - issues-updated Event', () => {
-
-  test('should emit issues-updated when issues array changes', (done) => {
+  test('should emit issues-updated when issues array changes', done => {
     const health = new HealthManager();
 
     const openSocket = { readyState: WebSocket.OPEN };
     health.setExtensionSocket(openSocket);
     health.getHealthStatus(); // ESTABLISH BASELINE (no issues)
 
-    health.on('issues-updated', (event) => {
+    health.on('issues-updated', event => {
       expect(event).toHaveProperty('previous');
       expect(event).toHaveProperty('current');
 
@@ -271,7 +264,7 @@ describe('HealthManager - issues-updated Event', () => {
     health.getHealthStatus();
   });
 
-  test('should NOT emit issues-updated if issues unchanged', (done) => {
+  test('should NOT emit issues-updated if issues unchanged', done => {
     const health = new HealthManager();
 
     health.setExtensionSocket(null);
@@ -292,12 +285,10 @@ describe('HealthManager - issues-updated Event', () => {
       done();
     }, 100);
   });
-
 });
 
 describe('HealthManager - Observer Management', () => {
-
-  test('should remove listener with off()', (done) => {
+  test('should remove listener with off()', done => {
     const health = new HealthManager();
 
     health.setExtensionSocket(null);
@@ -335,7 +326,7 @@ describe('HealthManager - Observer Management', () => {
     }, 100);
   });
 
-  test('should support once() for one-time listeners', (done) => {
+  test('should support once() for one-time listeners', done => {
     const health = new HealthManager();
 
     health.setExtensionSocket(null);
@@ -368,7 +359,7 @@ describe('HealthManager - Observer Management', () => {
     }, 100);
   });
 
-  test('should remove all listeners with removeAllListeners()', (done) => {
+  test('should remove all listeners with removeAllListeners()', done => {
     const health = new HealthManager();
 
     health.setExtensionSocket(null);
@@ -376,8 +367,12 @@ describe('HealthManager - Observer Management', () => {
     let healthChangedCount = 0;
     let connectionChangedCount = 0;
 
-    health.on('health-changed', () => { healthChangedCount++; });
-    health.on('connection-state-changed', () => { connectionChangedCount++; });
+    health.on('health-changed', () => {
+      healthChangedCount++;
+    });
+    health.on('connection-state-changed', () => {
+      connectionChangedCount++;
+    });
 
     // Remove all listeners
     health.removeAllListeners();
@@ -393,12 +388,10 @@ describe('HealthManager - Observer Management', () => {
       done();
     }, 100);
   });
-
 });
 
 describe('HealthManager - Observer Error Handling', () => {
-
-  test('should not crash if observer throws error', (done) => {
+  test('should not crash if observer throws error', done => {
     const health = new HealthManager();
 
     health.setExtensionSocket(null);
@@ -433,11 +426,9 @@ describe('HealthManager - Observer Error Handling', () => {
       done();
     }, 100);
   });
-
 });
 
 describe('HealthManager - Observer Performance', () => {
-
   test('should add minimal overhead with observers (<1ms)', () => {
     const health = new HealthManager();
 
@@ -489,7 +480,7 @@ describe('HealthManager - Observer Performance', () => {
         WebSocket.OPEN,
         WebSocket.CLOSED,
         WebSocket.CONNECTING,
-        WebSocket.CLOSING
+        WebSocket.CLOSING,
       ][i % 4];
       health.getHealthStatus();
     }
@@ -507,5 +498,4 @@ describe('HealthManager - Observer Performance', () => {
     // Should not leak significant memory
     expect(memDelta).toBeLessThan(5);
   });
-
 });

@@ -21,10 +21,7 @@ describe('Security: WebSocket Client (Extension)', () => {
   let backgroundJs;
 
   beforeAll(() => {
-    backgroundJs = fs.readFileSync(
-      path.join(__dirname, '../../extension/background.js'),
-      'utf8'
-    );
+    backgroundJs = fs.readFileSync(path.join(__dirname, '../../extension/background.js'), 'utf8');
   });
 
   // ============================================================================
@@ -44,7 +41,10 @@ describe('Security: WebSocket Client (Extension)', () => {
     it('should clear registration timeout on valid ACK', () => {
       // Verify clearTimeout is called when ACK received
       const ackHandlerIndex = backgroundJs.indexOf("if (message.type === 'registration-ack')");
-      const clearTimeoutIndex = backgroundJs.indexOf('clearTimeout(registrationTimeout)', ackHandlerIndex);
+      const clearTimeoutIndex = backgroundJs.indexOf(
+        'clearTimeout(registrationTimeout)',
+        ackHandlerIndex
+      );
 
       expect(clearTimeoutIndex).toBeGreaterThan(ackHandlerIndex);
     });
@@ -179,14 +179,20 @@ describe('Security: WebSocket Client (Extension)', () => {
   describe('P1 HIGH: Timer Leak Attack', () => {
     it('should clean up timer on withTimeout success', () => {
       const withTimeoutIndex = backgroundJs.indexOf('async function withTimeout(');
-      const successCleanup = backgroundJs.indexOf('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success', withTimeoutIndex);
+      const successCleanup = backgroundJs.indexOf(
+        'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success',
+        withTimeoutIndex
+      );
 
       expect(successCleanup).toBeGreaterThan(withTimeoutIndex);
     });
 
     it('should clean up timer on withTimeout error', () => {
       const withTimeoutIndex = backgroundJs.indexOf('async function withTimeout(');
-      const errorCleanup = backgroundJs.indexOf('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error', withTimeoutIndex);
+      const errorCleanup = backgroundJs.indexOf(
+        'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error',
+        withTimeoutIndex
+      );
 
       expect(errorCleanup).toBeGreaterThan(withTimeoutIndex);
     });
@@ -382,16 +388,16 @@ describe('Security: WebSocket Client (Extension)', () => {
       const vulnerabilities = {
         'P0 CRITICAL': {
           'Registration ACK Spoofing': 'NOT FIXED',
-          'Queue Overflow (no FIFO)': 'PARTIAL - drops but no eviction'
+          'Queue Overflow (no FIFO)': 'PARTIAL - drops but no eviction',
         },
         'P1 HIGH': {
           'Timer Leaks': 'FIXED - cleanup verified',
           'Race Conditions': 'PARTIAL - flag exists, not tested',
-          'Message Injection': 'NOT FIXED - no validation'
+          'Message Injection': 'NOT FIXED - no validation',
         },
         'P2 MEDIUM': {
-          'Replay Attacks': 'NOT FIXED - no nonces/timestamps'
-        }
+          'Replay Attacks': 'NOT FIXED - no nonces/timestamps',
+        },
       };
 
       console.log('\n═══════════════════════════════════════');
@@ -402,8 +408,7 @@ describe('Security: WebSocket Client (Extension)', () => {
         console.log(`${priority}:`);
         Object.keys(vulnerabilities[priority]).forEach(vuln => {
           const status = vulnerabilities[priority][vuln];
-          const icon = status.includes('FIXED') ? '✅' :
-                      status.includes('PARTIAL') ? '⚠️' : '❌';
+          const icon = status.includes('FIXED') ? '✅' : status.includes('PARTIAL') ? '⚠️' : '❌';
           console.log(`  ${icon} ${vuln}: ${status}`);
         });
         console.log('');
@@ -424,7 +429,7 @@ describe('Security: WebSocket Client (Extension)', () => {
 
       const coverage = (implementedTests / totalTests) * 100;
 
-      console.log(`\nSecurity Test Coverage:`);
+      console.log('\nSecurity Test Coverage:');
       console.log(`  Total tests: ${totalTests}`);
       console.log(`  Implemented: ${implementedTests}`);
       console.log(`  Skipped: ${skippedTests}`);

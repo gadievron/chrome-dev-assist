@@ -42,7 +42,7 @@ if (!USE_FILE_URLS) {
     AUTH_TOKEN = fs.readFileSync(TOKEN_FILE, 'utf8').trim();
   } catch (err) {
     console.warn(`[Test Helper] Warning: Could not read auth token from ${TOKEN_FILE}`);
-    console.warn(`[Test Helper] HTTP requests may fail. Ensure server is running.`);
+    console.warn('[Test Helper] HTTP requests may fail. Ensure server is running.');
   }
 }
 
@@ -86,7 +86,7 @@ function getUrlMode() {
     fixturesPath: FIXTURES_PATH,
     serverUrl: `http://${HTTP_SERVER_HOST}:${HTTP_SERVER_PORT}/fixtures/`,
     currentMode: USE_FILE_URLS ? 'file://' : 'http',
-    requiresManualSetup: USE_FILE_URLS // file:// requires manual permission
+    requiresManualSetup: USE_FILE_URLS, // file:// requires manual permission
   };
 }
 
@@ -109,5 +109,5 @@ module.exports = {
   USE_FILE_URLS,
   HTTP_SERVER_PORT,
   HTTP_SERVER_HOST,
-  FIXTURES_PATH
+  FIXTURES_PATH,
 };

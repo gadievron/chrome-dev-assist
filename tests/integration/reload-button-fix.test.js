@@ -17,10 +17,7 @@ describe('Reload Button Fix Verification', () => {
   let backgroundJs;
 
   beforeAll(() => {
-    backgroundJs = fs.readFileSync(
-      path.join(__dirname, '../../extension/background.js'),
-      'utf8'
-    );
+    backgroundJs = fs.readFileSync(path.join(__dirname, '../../extension/background.js'), 'utf8');
   });
 
   describe('Fix #1: WebSocket onerror Handler', () => {
@@ -215,7 +212,7 @@ describe('Reload Button Fix Verification', () => {
       const connectionRelatedErrors = [
         /console\.error.*connection.*failed/i,
         /console\.error.*ERR_CONNECTION_REFUSED/i,
-        /console\.error.*WebSocket.*error/i
+        /console\.error.*WebSocket.*error/i,
       ];
 
       connectionRelatedErrors.forEach(pattern => {

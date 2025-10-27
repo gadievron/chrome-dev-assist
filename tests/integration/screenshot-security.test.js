@@ -10,7 +10,7 @@
 const chromeDevAssist = require('../../claude-code/index.js');
 
 describe('Screenshot Security Restrictions', () => {
-  let testTabs = [];
+  const testTabs = [];
 
   afterAll(async () => {
     // Cleanup: Close all test tabs
@@ -41,7 +41,7 @@ describe('Screenshot Security Restrictions', () => {
 
       // Should succeed
       const screenshot = await chromeDevAssist.captureScreenshot(tab.tabId, {
-        format: 'png'
+        format: 'png',
       });
 
       expect(screenshot).toBeDefined();
@@ -56,7 +56,7 @@ describe('Screenshot Security Restrictions', () => {
     it('should block screenshots from google.com', async () => {
       // Open external website
       const tab = await chromeDevAssist.openUrl('https://www.google.com', {
-        active: false
+        active: false,
       });
       testTabs.push(tab.tabId);
 
@@ -64,9 +64,9 @@ describe('Screenshot Security Restrictions', () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Should fail with security error
-      await expect(
-        chromeDevAssist.captureScreenshot(tab.tabId, { format: 'png' })
-      ).rejects.toThrow(/Security: Screenshots only allowed from test fixtures/);
+      await expect(chromeDevAssist.captureScreenshot(tab.tabId, { format: 'png' })).rejects.toThrow(
+        /Security: Screenshots only allowed from test fixtures/
+      );
 
       console.log('✅ Screenshot blocked from google.com');
     }, 15000);
@@ -74,7 +74,7 @@ describe('Screenshot Security Restrictions', () => {
     it('should block screenshots from github.com', async () => {
       // Open another external website
       const tab = await chromeDevAssist.openUrl('https://github.com', {
-        active: false
+        active: false,
       });
       testTabs.push(tab.tabId);
 
@@ -82,9 +82,9 @@ describe('Screenshot Security Restrictions', () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Should fail with security error
-      await expect(
-        chromeDevAssist.captureScreenshot(tab.tabId, { format: 'png' })
-      ).rejects.toThrow(/Security: Screenshots only allowed from test fixtures/);
+      await expect(chromeDevAssist.captureScreenshot(tab.tabId, { format: 'png' })).rejects.toThrow(
+        /Security: Screenshots only allowed from test fixtures/
+      );
 
       console.log('✅ Screenshot blocked from github.com');
     }, 15000);
@@ -94,7 +94,7 @@ describe('Screenshot Security Restrictions', () => {
     it('should block screenshots from localhost:3000', async () => {
       // Try a different localhost port
       const tab = await chromeDevAssist.openUrl('http://localhost:3000', {
-        active: false
+        active: false,
       });
       testTabs.push(tab.tabId);
 
@@ -102,9 +102,9 @@ describe('Screenshot Security Restrictions', () => {
       await new Promise(resolve => setTimeout(resolve, 500));
 
       // Should fail - only localhost:9876 allowed
-      await expect(
-        chromeDevAssist.captureScreenshot(tab.tabId, { format: 'png' })
-      ).rejects.toThrow(/Security: Screenshots only allowed from test fixtures/);
+      await expect(chromeDevAssist.captureScreenshot(tab.tabId, { format: 'png' })).rejects.toThrow(
+        /Security: Screenshots only allowed from test fixtures/
+      );
 
       console.log('✅ Screenshot blocked from localhost:3000');
     }, 10000);
@@ -113,7 +113,7 @@ describe('Screenshot Security Restrictions', () => {
   describe('Security Error Messages', () => {
     it('should provide clear error message with allowed origin', async () => {
       const tab = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       testTabs.push(tab.tabId);
 
@@ -140,7 +140,7 @@ describe('Screenshot Security Restrictions', () => {
       console.log('  • Capturing passwords or credentials');
       console.log('  • Capturing personal information');
       console.log('  • Capturing proprietary/confidential content');
-      console.log('  • Capturing user\'s browsing activity');
+      console.log("  • Capturing user's browsing activity");
       console.log('');
       console.log('✅ Screenshots limited to test fixtures only');
       console.log('✅ Principle of least privilege enforced');

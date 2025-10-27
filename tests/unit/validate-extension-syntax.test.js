@@ -54,7 +54,7 @@ function runValidator() {
     return {
       success: false,
       output: err.stdout || err.message,
-      exitCode: err.status || 1
+      exitCode: err.status || 1,
     };
   }
 }
@@ -70,10 +70,13 @@ describe('validate-extension-syntax.js', () => {
 
   describe('Detecting require()', () => {
     test('detects require() calls', () => {
-      createTestFile('bad-require.js', `
+      createTestFile(
+        'bad-require.js',
+        `
         const Foo = require('./foo');
         const bar = require('bar');
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -85,14 +88,17 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('allows conditional require() for Node.js compatibility', () => {
-      createTestFile('conditional-export.js', `
+      createTestFile(
+        'conditional-export.js',
+        `
         class Foo {}
 
         // Conditional export for Node.js tests
         if (typeof module !== 'undefined' && module.exports) {
           module.exports = Foo;
         }
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -102,11 +108,14 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('detects multiple require() calls in same file', () => {
-      createTestFile('multiple-requires.js', `
+      createTestFile(
+        'multiple-requires.js',
+        `
         const a = require('./a');
         const b = require('./b');
         const c = require('./c');
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -119,10 +128,13 @@ describe('validate-extension-syntax.js', () => {
 
   describe('Detecting module.exports', () => {
     test('detects module.exports assignments as WARNING', () => {
-      createTestFile('bad-exports.js', `
+      createTestFile(
+        'bad-exports.js',
+        `
         function foo() {}
         module.exports = foo;
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -135,13 +147,16 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('allows conditional module.exports for Node.js compatibility', () => {
-      createTestFile('conditional-export2.js', `
+      createTestFile(
+        'conditional-export2.js',
+        `
         class Bar {}
 
         if (typeof module !== 'undefined' && module.exports) {
           module.exports = Bar;
         }
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -152,12 +167,15 @@ describe('validate-extension-syntax.js', () => {
 
   describe('Detecting process.env', () => {
     test('detects process.env usage', () => {
-      createTestFile('bad-process-env.js', `
+      createTestFile(
+        'bad-process-env.js',
+        `
         const apiKey = process.env.API_KEY;
         if (process.env.DEBUG) {
           console.log('Debug mode');
         }
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -171,9 +189,12 @@ describe('validate-extension-syntax.js', () => {
 
   describe('Detecting __dirname and __filename', () => {
     test('detects __dirname usage', () => {
-      createTestFile('bad-dirname.js', `
+      createTestFile(
+        'bad-dirname.js',
+        `
         const filePath = __dirname + '/file.txt';
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -184,9 +205,12 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('detects __filename usage', () => {
-      createTestFile('bad-filename.js', `
+      createTestFile(
+        'bad-filename.js',
+        `
         console.log('Current file:', __filename);
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -199,10 +223,13 @@ describe('validate-extension-syntax.js', () => {
 
   describe('Valid Chrome extension code', () => {
     test('passes valid importScripts() usage', () => {
-      createTestFile('good-import.js', `
+      createTestFile(
+        'good-import.js',
+        `
         importScripts('./modules/ConsoleCapture.js');
         const capture = new ConsoleCapture();
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -212,7 +239,9 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('passes standard Chrome extension APIs', () => {
-      createTestFile('good-chrome-apis.js', `
+      createTestFile(
+        'good-chrome-apis.js',
+        `
         chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           console.log('Message received:', msg);
           sendResponse({ success: true });
@@ -221,7 +250,8 @@ describe('validate-extension-syntax.js', () => {
         chrome.tabs.query({}, (tabs) => {
           console.log('Tabs:', tabs);
         });
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -230,7 +260,9 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('passes ES6+ features', () => {
-      createTestFile('good-es6.js', `
+      createTestFile(
+        'good-es6.js',
+        `
         const arrow = () => console.log('arrow');
         const { a, b } = { a: 1, b: 2 };
         const spread = [...array];
@@ -240,7 +272,8 @@ describe('validate-extension-syntax.js', () => {
           const response = await fetch(url);
           return response.json();
         }
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -251,9 +284,9 @@ describe('validate-extension-syntax.js', () => {
 
   describe('Multiple files', () => {
     test('reports issues from multiple files', () => {
-      createTestFile('file1.js', `const a = require('./a');`);
-      createTestFile('file2.js', `const b = process.env.DEBUG;`);
-      createTestFile('file3.js', `const c = __dirname + '/file.txt';`);
+      createTestFile('file1.js', "const a = require('./a');");
+      createTestFile('file2.js', 'const b = process.env.DEBUG;');
+      createTestFile('file3.js', "const c = __dirname + '/file.txt';");
 
       const result = runValidator();
 
@@ -267,9 +300,9 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('passes when all files are valid', () => {
-      createTestFile('file1.js', `importScripts('./foo.js');`);
-      createTestFile('file2.js', `const x = chrome.runtime.id;`);
-      createTestFile('file3.js', `console.log('hello');`);
+      createTestFile('file1.js', "importScripts('./foo.js');");
+      createTestFile('file2.js', 'const x = chrome.runtime.id;');
+      createTestFile('file3.js', "console.log('hello');");
 
       const result = runValidator();
 
@@ -289,11 +322,14 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('handles files with only comments', () => {
-      createTestFile('comments-only.js', `
+      createTestFile(
+        'comments-only.js',
+        `
         // This is a comment
         /* This is a
            multiline comment */
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -302,10 +338,13 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('detects require in comments (by design - simple regex)', () => {
-      createTestFile('require-in-comment.js', `
+      createTestFile(
+        'require-in-comment.js',
+        `
         // Don't use require() in Chrome extensions
         // Use importScripts() instead
-      `);
+      `
+      );
 
       // This will detect require() even in comments
       // That's okay - it's a simple regex-based tool
@@ -317,10 +356,13 @@ describe('validate-extension-syntax.js', () => {
     });
 
     test('handles strings containing forbidden patterns', () => {
-      createTestFile('string-patterns.js', `
+      createTestFile(
+        'string-patterns.js',
+        `
         const message = "Don't use require() here";
         const note = 'process.env is not available';
-      `);
+      `
+      );
 
       // This will detect patterns even in strings
       // That's a limitation of regex-based validation
@@ -332,11 +374,14 @@ describe('validate-extension-syntax.js', () => {
 
   describe('Output format', () => {
     test('includes file path, line number, and column', () => {
-      createTestFile('location-test.js', `
+      createTestFile(
+        'location-test.js',
+        `
 const foo = 'bar';
 const bad = require('./bad');
 const baz = 'qux';
-      `);
+      `
+      );
 
       const result = runValidator();
 
@@ -347,9 +392,12 @@ const baz = 'qux';
     });
 
     test('shows severity level (ERROR or WARNING)', () => {
-      createTestFile('severity-test.js', `
+      createTestFile(
+        'severity-test.js',
+        `
         const x = require('./x');
-      `);
+      `
+      );
 
       const result = runValidator();
 

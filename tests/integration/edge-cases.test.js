@@ -18,445 +18,489 @@ const TEST_TIMEOUT = 30000;
 // Log URL mode at test startup
 console.log(`[Test Config] URL Mode: ${getUrlMode().currentMode}`);
 if (getUrlMode().requiresManualSetup) {
-  console.log('[Test Config] ⚠️  Using file:// URLs - requires "Allow access to file URLs" in chrome://extensions');
+  console.log(
+    '[Test Config] ⚠️  Using file:// URLs - requires "Allow access to file URLs" in chrome://extensions'
+  );
 } else {
   console.log(`[Test Config] Using HTTP server: ${getUrlMode().serverUrl}`);
 }
 
 describe('Edge Cases - Memory & Resource Limits', () => {
-
-  test('enforces 10,000 log limit per capture', async () => {
-    // Use fixture that generates 15,000 logs
-    const result = await chromeDevAssist.openUrl(
-      getFixtureUrl('edge-massive-logs.html'),
-      {
+  test(
+    'enforces 10,000 log limit per capture',
+    async () => {
+      // Use fixture that generates 15,000 logs
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-massive-logs.html'), {
         active: false,
         captureConsole: true,
         duration: 8000, // Long enough to capture all logs
-        autoClose: true // Prevent tab leaks
-      }
-    );
+        autoClose: true, // Prevent tab leaks
+      });
 
-    console.log(`Captured ${result.consoleLogs.length} logs (expected 10,001 with warning)`);
+      console.log(`Captured ${result.consoleLogs.length} logs (expected 10,001 with warning)`);
 
-    // Should have exactly 10,001 logs (10,000 + 1 warning)
-    expect(result.consoleLogs.length).toBe(10001);
+      // Should have exactly 10,001 logs (10,000 + 1 warning)
+      expect(result.consoleLogs.length).toBe(10001);
 
-    // Last log should be the warning about limit reached
-    const lastLog = result.consoleLogs[result.consoleLogs.length - 1];
-    expect(lastLog.level).toBe('warn');
-    expect(lastLog.message).toContain('Log limit reached');
-    expect(lastLog.message).toContain('10000');
+      // Last log should be the warning about limit reached
+      const lastLog = result.consoleLogs[result.consoleLogs.length - 1];
+      expect(lastLog.level).toBe('warn');
+      expect(lastLog.message).toContain('Log limit reached');
+      expect(lastLog.message).toContain('10000');
+    },
+    TEST_TIMEOUT
+  );
 
-  }, TEST_TIMEOUT);
-
-  test('truncates very long messages (>10,000 chars)', async () => {
-    // Use fixture that logs a 15,000 character message
-    const result = await chromeDevAssist.openUrl(
-      getFixtureUrl('edge-long-message.html'),
-      {
+  test(
+    'truncates very long messages (>10,000 chars)',
+    async () => {
+      // Use fixture that logs a 15,000 character message
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-long-message.html'), {
         active: false,
         captureConsole: true,
         duration: 3000,
-        autoClose: true // Prevent tab leaks
-      }
-    );
+        autoClose: true, // Prevent tab leaks
+      });
 
-    console.log(`Captured ${result.consoleLogs.length} logs`);
+      console.log(`Captured ${result.consoleLogs.length} logs`);
 
-    // Find the long message (should be all 'A's)
-    const longLog = result.consoleLogs.find(log =>
-      log.message && (log.message.startsWith('AAA') || log.message.includes('AAAA'))
-    );
-
-    expect(longLog).toBeDefined();
-
-    // Truncation happens in background.js message handler
-    // Should be truncated to ~10,013 chars (10,000 + "... [truncated]")
-    // OR if already under limit, just verify it exists
-    console.log(`Long message length: ${longLog.message.length} chars`);
-
-    if (longLog.message.length > 10000) {
-      // If still long, check it's at least not growing unbounded
-      expect(longLog.message.length).toBeLessThanOrEqual(20000);
-      console.log(`⚠️  Message not truncated (implementation detail)`);
-    } else {
-      // If truncated, verify truncation marker
-      expect(longLog.message).toContain('[truncated]');
-      console.log(`✓ Message truncated correctly to ${longLog.message.length} chars`);
-    }
-
-  }, TEST_TIMEOUT);
-
-  test('handles 10 rapid concurrent captures (cleanup verification)', async () => {
-    const promises = [];
-
-    // Start 10 concurrent captures
-    for (let i = 0; i < 10; i++) {
-      promises.push(
-        chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
-          active: false,
-          captureConsole: true,
-          duration: 2000,
-        autoClose: true // Prevent tab leaks
-      })
+      // Find the long message (should be all 'A's)
+      const longLog = result.consoleLogs.find(
+        log => log.message && (log.message.startsWith('AAA') || log.message.includes('AAAA'))
       );
-    }
 
-    const results = await Promise.all(promises);
+      expect(longLog).toBeDefined();
 
-    // All should complete successfully
-    expect(results.length).toBe(10);
+      // Truncation happens in background.js message handler
+      // Should be truncated to ~10,013 chars (10,000 + "... [truncated]")
+      // OR if already under limit, just verify it exists
+      console.log(`Long message length: ${longLog.message.length} chars`);
 
-    // All should have logs
-    results.forEach(result => {
-      expect(result.consoleLogs.length).toBeGreaterThan(0);
-    });
+      if (longLog.message.length > 10000) {
+        // If still long, check it's at least not growing unbounded
+        expect(longLog.message.length).toBeLessThanOrEqual(20000);
+        console.log('⚠️  Message not truncated (implementation detail)');
+      } else {
+        // If truncated, verify truncation marker
+        expect(longLog.message).toContain('[truncated]');
+        console.log(`✓ Message truncated correctly to ${longLog.message.length} chars`);
+      }
+    },
+    TEST_TIMEOUT
+  );
 
-    console.log(`All 10 concurrent captures completed successfully`);
+  test(
+    'handles 10 rapid concurrent captures (cleanup verification)',
+    async () => {
+      const promises = [];
 
-    // Clean up tabs
-    for (const result of results) {
-    }
-  }, TEST_TIMEOUT);
+      // Start 10 concurrent captures
+      for (let i = 0; i < 10; i++) {
+        promises.push(
+          chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
+            active: false,
+            captureConsole: true,
+            duration: 2000,
+            autoClose: true, // Prevent tab leaks
+          })
+        );
+      }
 
+      const results = await Promise.all(promises);
+
+      // All should complete successfully
+      expect(results.length).toBe(10);
+
+      // All should have logs
+      results.forEach(result => {
+        expect(result.consoleLogs.length).toBeGreaterThan(0);
+      });
+
+      console.log('All 10 concurrent captures completed successfully');
+
+      // Clean up tabs
+      for (const result of results) {
+      }
+    },
+    TEST_TIMEOUT
+  );
 });
 
 describe('Edge Cases - Tab-Specific Filtering', () => {
-
   // BUG #2 FIX: High-concurrency tab isolation race condition
   // Fixed by implementing O(1) tab-indexed lookup (capturesByTab Map)
   // Prevents race conditions during concurrent message handling
-  test('verifies 10 concurrent tab-specific captures with isolation', async () => {
-    const fixtures = [
-      'edge-tab-a.html',
-      'edge-tab-b.html',
-      'edge-rapid-logs.html',
-      'edge-special-chars.html',
-      'edge-undefined-null.html',
-      'edge-deep-object.html',
-      'edge-circular-ref.html',
-      'basic-test.html',
-      'console-errors-test.html',
-      'console-mixed-test.html'
-    ];
+  test(
+    'verifies 10 concurrent tab-specific captures with isolation',
+    async () => {
+      const fixtures = [
+        'edge-tab-a.html',
+        'edge-tab-b.html',
+        'edge-rapid-logs.html',
+        'edge-special-chars.html',
+        'edge-undefined-null.html',
+        'edge-deep-object.html',
+        'edge-circular-ref.html',
+        'basic-test.html',
+        'console-errors-test.html',
+        'console-mixed-test.html',
+      ];
 
-    const promises = [];
+      const promises = [];
 
-    // Open 10 tabs concurrently, each with its own capture
-    for (let i = 0; i < 10; i++) {
-      promises.push(
-        chromeDevAssist.openUrl(getFixtureUrl(fixtures[i]), {
-          active: false,
-          captureConsole: true,
-          duration: 3000,
-        autoClose: true // Prevent tab leaks
-      })
-      );
-    }
-
-    const results = await Promise.all(promises);
-
-    console.log(`Opened ${results.length} tabs concurrently`);
-
-    // Verify each capture has logs and unique tab IDs
-    const tabIds = results.map(r => r.tabId);
-    expect(new Set(tabIds).size).toBe(10); // All unique
-
-    results.forEach((result, i) => {
-      expect(result.consoleLogs.length).toBeGreaterThan(0);
-
-      // Verify logs are primarily from this tab (allow for timing edge cases)
-      const logsFromThisTab = result.consoleLogs.filter(log => log.tabId === result.tabId);
-      const logsFromOtherTabs = result.consoleLogs.filter(log => log.tabId !== result.tabId);
-
-      // At least 90% of logs should be from the correct tab
-      const percentageCorrect = (logsFromThisTab.length / result.consoleLogs.length) * 100;
-      expect(percentageCorrect).toBeGreaterThanOrEqual(90);
-
-      if (logsFromOtherTabs.length > 0) {
-        console.log(`Tab ${i}: ${logsFromThisTab.length} correct, ${logsFromOtherTabs.length} from other tabs (${percentageCorrect.toFixed(1)}%)`);
-      } else {
-        console.log(`Tab ${i}: ${result.consoleLogs.length} logs, all from tab ${result.tabId} ✓`);
+      // Open 10 tabs concurrently, each with its own capture
+      for (let i = 0; i < 10; i++) {
+        promises.push(
+          chromeDevAssist.openUrl(getFixtureUrl(fixtures[i]), {
+            active: false,
+            captureConsole: true,
+            duration: 3000,
+            autoClose: true, // Prevent tab leaks
+          })
+        );
       }
-    });
 
-    // Clean up tabs
-    for (const result of results) {
-    }
-  }, TEST_TIMEOUT);
+      const results = await Promise.all(promises);
 
-  test('verifies openUrl only captures from its own tab', async () => {
-    // Open two tabs
-    const tab1 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-a.html'), {
-      active: false,
-      captureConsole: false
-    });
+      console.log(`Opened ${results.length} tabs concurrently`);
 
-    const tab2 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-b.html'), {
-      active: false,
-      captureConsole: false
-    });
+      // Verify each capture has logs and unique tab IDs
+      const tabIds = results.map(r => r.tabId);
+      expect(new Set(tabIds).size).toBe(10); // All unique
 
-    await sleep(500);
+      results.forEach((result, i) => {
+        expect(result.consoleLogs.length).toBeGreaterThan(0);
 
-    // Reload tab1 with capture - should ONLY capture tab1's logs
-    const result = await chromeDevAssist.reloadTab(tab1.tabId, {
-      captureConsole: true,
-      duration: 2000
-    });
+        // Verify logs are primarily from this tab (allow for timing edge cases)
+        const logsFromThisTab = result.consoleLogs.filter(log => log.tabId === result.tabId);
+        const logsFromOtherTabs = result.consoleLogs.filter(log => log.tabId !== result.tabId);
 
-    console.log(`Captured ${result.consoleLogs.length} logs from tab ${tab1.tabId}`);
+        // At least 90% of logs should be from the correct tab
+        const percentageCorrect = (logsFromThisTab.length / result.consoleLogs.length) * 100;
+        expect(percentageCorrect).toBeGreaterThanOrEqual(90);
 
-    // Should have logs from Tab A
-    const hasTabALogs = result.consoleLogs.some(log =>
-      log.message && log.message.includes('Tab A')
-    );
-
-    // Should NOT have logs from Tab B
-    const hasTabBLogs = result.consoleLogs.some(log =>
-      log.message && log.message.includes('Tab B')
-    );
-
-    expect(hasTabALogs).toBe(true);
-    expect(hasTabBLogs).toBe(false);
-
-    console.log(`✓ Tab isolation verified: has Tab A logs, no Tab B logs`);
-
-  }, TEST_TIMEOUT);
-
-  test('verifies reloadTab only captures from specified tab', async () => {
-    // Open two tabs
-    const tab1 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-a.html'), {
-      active: false
-    });
-
-    const tab2 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-b.html'), {
-      active: false
-    });
-
-    await sleep(500);
-
-    // Reload tab1 with capture
-    const result = await chromeDevAssist.reloadTab(tab1.tabId, {
-      captureConsole: true,
-      duration: 2000
-    });
-
-    // Verify only tab1's logs captured
-    const allFromTab1 = result.consoleLogs.every(log => log.tabId === tab1.tabId);
-    expect(allFromTab1).toBe(true);
-
-    const hasTabBLogs = result.consoleLogs.some(log =>
-      log.message && log.message.includes('Tab B')
-    );
-    expect(hasTabBLogs).toBe(false);
-
-    console.log(`✓ reloadTab filtered correctly: all logs from tab ${tab1.tabId}`);
-
-  }, TEST_TIMEOUT);
-
-  test('verifies consistent tabId in captured logs', async () => {
-    const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
-      active: false,
-      captureConsole: true,
-      duration: 2000,
-        autoClose: true // Prevent tab leaks
+        if (logsFromOtherTabs.length > 0) {
+          console.log(
+            `Tab ${i}: ${logsFromThisTab.length} correct, ${logsFromOtherTabs.length} from other tabs (${percentageCorrect.toFixed(1)}%)`
+          );
+        } else {
+          console.log(
+            `Tab ${i}: ${result.consoleLogs.length} logs, all from tab ${result.tabId} ✓`
+          );
+        }
       });
 
-    // All logs should have the same tabId
-    const tabIds = new Set(result.consoleLogs.map(log => log.tabId));
+      // Clean up tabs
+      for (const result of results) {
+      }
+    },
+    TEST_TIMEOUT
+  );
 
-    expect(tabIds.size).toBe(1);
-    expect(Array.from(tabIds)[0]).toBe(result.tabId);
+  test(
+    'verifies openUrl only captures from its own tab',
+    async () => {
+      // Open two tabs
+      const tab1 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-a.html'), {
+        active: false,
+        captureConsole: false,
+      });
 
-    console.log(`✓ All ${result.consoleLogs.length} logs have consistent tabId: ${result.tabId}`);
+      const tab2 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-b.html'), {
+        active: false,
+        captureConsole: false,
+      });
 
-  }, TEST_TIMEOUT);
+      await sleep(500);
 
+      // Reload tab1 with capture - should ONLY capture tab1's logs
+      const result = await chromeDevAssist.reloadTab(tab1.tabId, {
+        captureConsole: true,
+        duration: 2000,
+      });
+
+      console.log(`Captured ${result.consoleLogs.length} logs from tab ${tab1.tabId}`);
+
+      // Should have logs from Tab A
+      const hasTabALogs = result.consoleLogs.some(
+        log => log.message && log.message.includes('Tab A')
+      );
+
+      // Should NOT have logs from Tab B
+      const hasTabBLogs = result.consoleLogs.some(
+        log => log.message && log.message.includes('Tab B')
+      );
+
+      expect(hasTabALogs).toBe(true);
+      expect(hasTabBLogs).toBe(false);
+
+      console.log('✓ Tab isolation verified: has Tab A logs, no Tab B logs');
+    },
+    TEST_TIMEOUT
+  );
+
+  test(
+    'verifies reloadTab only captures from specified tab',
+    async () => {
+      // Open two tabs
+      const tab1 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-a.html'), {
+        active: false,
+      });
+
+      const tab2 = await chromeDevAssist.openUrl(getFixtureUrl('edge-tab-b.html'), {
+        active: false,
+      });
+
+      await sleep(500);
+
+      // Reload tab1 with capture
+      const result = await chromeDevAssist.reloadTab(tab1.tabId, {
+        captureConsole: true,
+        duration: 2000,
+      });
+
+      // Verify only tab1's logs captured
+      const allFromTab1 = result.consoleLogs.every(log => log.tabId === tab1.tabId);
+      expect(allFromTab1).toBe(true);
+
+      const hasTabBLogs = result.consoleLogs.some(
+        log => log.message && log.message.includes('Tab B')
+      );
+      expect(hasTabBLogs).toBe(false);
+
+      console.log(`✓ reloadTab filtered correctly: all logs from tab ${tab1.tabId}`);
+    },
+    TEST_TIMEOUT
+  );
+
+  test(
+    'verifies consistent tabId in captured logs',
+    async () => {
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
+        active: false,
+        captureConsole: true,
+        duration: 2000,
+        autoClose: true, // Prevent tab leaks
+      });
+
+      // All logs should have the same tabId
+      const tabIds = new Set(result.consoleLogs.map(log => log.tabId));
+
+      expect(tabIds.size).toBe(1);
+      expect(Array.from(tabIds)[0]).toBe(result.tabId);
+
+      console.log(`✓ All ${result.consoleLogs.length} logs have consistent tabId: ${result.tabId}`);
+    },
+    TEST_TIMEOUT
+  );
 });
 
 describe('Edge Cases - Special Data & Error Handling', () => {
-
-  test('handles special characters in console output', async () => {
-    const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-special-chars.html'), {
-      active: false,
-      captureConsole: true,
-      duration: 2000,
-        autoClose: true // Prevent tab leaks
+  test(
+    'handles special characters in console output',
+    async () => {
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-special-chars.html'), {
+        active: false,
+        captureConsole: true,
+        duration: 2000,
+        autoClose: true, // Prevent tab leaks
       });
 
-    expect(result.consoleLogs.length).toBeGreaterThan(0);
+      expect(result.consoleLogs.length).toBeGreaterThan(0);
 
-    // Find log with special characters
-    const specialLog = result.consoleLogs.find(log =>
-      log.message && log.message.includes('Special chars')
-    );
-    expect(specialLog).toBeDefined();
+      // Find log with special characters
+      const specialLog = result.consoleLogs.find(
+        log => log.message && log.message.includes('Special chars')
+      );
+      expect(specialLog).toBeDefined();
 
-    // Find log with unicode
-    const unicodeLog = result.consoleLogs.find(log =>
-      log.message && log.message.includes('Unicode')
-    );
-    expect(unicodeLog).toBeDefined();
+      // Find log with unicode
+      const unicodeLog = result.consoleLogs.find(
+        log => log.message && log.message.includes('Unicode')
+      );
+      expect(unicodeLog).toBeDefined();
 
-    console.log(`✓ Special characters captured correctly`);
+      console.log('✓ Special characters captured correctly');
+    },
+    TEST_TIMEOUT
+  );
 
-  }, TEST_TIMEOUT);
-
-  test('handles undefined and null in console output', async () => {
-    const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-undefined-null.html'), {
-      active: false,
-      captureConsole: true,
-      duration: 2000,
-        autoClose: true // Prevent tab leaks
+  test(
+    'handles undefined and null in console output',
+    async () => {
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-undefined-null.html'), {
+        active: false,
+        captureConsole: true,
+        duration: 2000,
+        autoClose: true, // Prevent tab leaks
       });
 
-    expect(result.consoleLogs.length).toBeGreaterThan(0);
+      expect(result.consoleLogs.length).toBeGreaterThan(0);
 
-    // Should have "After undefined/null" log
-    const afterLog = result.consoleLogs.find(log =>
-      log.message && log.message === 'After undefined/null'
-    );
-    expect(afterLog).toBeDefined();
+      // Should have "After undefined/null" log
+      const afterLog = result.consoleLogs.find(
+        log => log.message && log.message === 'After undefined/null'
+      );
+      expect(afterLog).toBeDefined();
 
-    console.log(`✓ Undefined/null values handled correctly`);
+      console.log('✓ Undefined/null values handled correctly');
+    },
+    TEST_TIMEOUT
+  );
 
-  }, TEST_TIMEOUT);
-
-  test('handles deeply nested objects', async () => {
-    const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-deep-object.html'), {
-      active: false,
-      captureConsole: true,
-      duration: 2000,
-        autoClose: true // Prevent tab leaks
+  test(
+    'handles deeply nested objects',
+    async () => {
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-deep-object.html'), {
+        active: false,
+        captureConsole: true,
+        duration: 2000,
+        autoClose: true, // Prevent tab leaks
       });
 
-    expect(result.consoleLogs.length).toBeGreaterThan(0);
+      expect(result.consoleLogs.length).toBeGreaterThan(0);
 
-    // Should have "After deep object" log
-    const afterLog = result.consoleLogs.find(log =>
-      log.message && log.message === 'After deep object'
-    );
-    expect(afterLog).toBeDefined();
+      // Should have "After deep object" log
+      const afterLog = result.consoleLogs.find(
+        log => log.message && log.message === 'After deep object'
+      );
+      expect(afterLog).toBeDefined();
 
-    console.log(`✓ Deep object handled correctly`);
+      console.log('✓ Deep object handled correctly');
+    },
+    TEST_TIMEOUT
+  );
 
-  }, TEST_TIMEOUT);
-
-  test('handles circular references in objects', async () => {
-    const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-circular-ref.html'), {
-      active: false,
-      captureConsole: true,
-      duration: 2000,
-        autoClose: true // Prevent tab leaks
+  test(
+    'handles circular references in objects',
+    async () => {
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('edge-circular-ref.html'), {
+        active: false,
+        captureConsole: true,
+        duration: 2000,
+        autoClose: true, // Prevent tab leaks
       });
 
-    expect(result.consoleLogs.length).toBeGreaterThan(0);
+      expect(result.consoleLogs.length).toBeGreaterThan(0);
 
-    // Should have "After circular" log
-    const afterLog = result.consoleLogs.find(log =>
-      log.message && log.message === 'After circular'
-    );
-    expect(afterLog).toBeDefined();
+      // Should have "After circular" log
+      const afterLog = result.consoleLogs.find(
+        log => log.message && log.message === 'After circular'
+      );
+      expect(afterLog).toBeDefined();
 
-    console.log(`✓ Circular reference handled correctly`);
+      console.log('✓ Circular reference handled correctly');
+    },
+    TEST_TIMEOUT
+  );
 
-  }, TEST_TIMEOUT);
+  test(
+    'handles invalid tab ID gracefully',
+    async () => {
+      await expect(
+        chromeDevAssist.reloadTab(999999, { captureConsole: true, duration: 1000 })
+      ).rejects.toThrow();
 
-  test('handles invalid tab ID gracefully', async () => {
-    await expect(
-      chromeDevAssist.reloadTab(999999, { captureConsole: true, duration: 1000 })
-    ).rejects.toThrow();
+      console.log('✓ Invalid tab ID rejected correctly');
+    },
+    TEST_TIMEOUT
+  );
 
-    console.log(`✓ Invalid tab ID rejected correctly`);
-  }, TEST_TIMEOUT);
+  test(
+    'handles missing required parameters',
+    async () => {
+      await expect(chromeDevAssist.openUrl(null)).rejects.toThrow();
 
-  test('handles missing required parameters', async () => {
-    await expect(
-      chromeDevAssist.openUrl(null)
-    ).rejects.toThrow();
+      await expect(chromeDevAssist.reloadTab(null)).rejects.toThrow();
 
-    await expect(
-      chromeDevAssist.reloadTab(null)
-    ).rejects.toThrow();
+      console.log('✓ Missing parameters rejected correctly');
+    },
+    TEST_TIMEOUT
+  );
 
-    console.log(`✓ Missing parameters rejected correctly`);
-  }, TEST_TIMEOUT);
-
-  test('handles empty console output', async () => {
-    const result = await chromeDevAssist.openUrl(getFixtureUrl('empty-test.html'), {
-      active: false,
-      captureConsole: true,
-      duration: 1000,
-        autoClose: true // Prevent tab leaks
+  test(
+    'handles empty console output',
+    async () => {
+      const result = await chromeDevAssist.openUrl(getFixtureUrl('empty-test.html'), {
+        active: false,
+        captureConsole: true,
+        duration: 1000,
+        autoClose: true, // Prevent tab leaks
       });
 
-    // empty-test.html has no console logs, so should be empty (or just test ID header)
-    expect(result.consoleLogs.length).toBeGreaterThanOrEqual(0);
-    expect(result.tabId).toBeDefined();
+      // empty-test.html has no console logs, so should be empty (or just test ID header)
+      expect(result.consoleLogs.length).toBeGreaterThanOrEqual(0);
+      expect(result.tabId).toBeDefined();
 
-    console.log(`✓ Empty console output handled correctly`);
-
-  }, TEST_TIMEOUT);
-
+      console.log('✓ Empty console output handled correctly');
+    },
+    TEST_TIMEOUT
+  );
 });
 
 describe('Edge Cases - Race Conditions & Timing', () => {
-
-  test('handles overlapping captures on same tab', async () => {
-    // Open tab first
-    const tab = await chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
-      active: false,
-      captureConsole: false
-    });
-
-    await sleep(500);
-
-    // Start two overlapping reloads with capture
-    const promise1 = chromeDevAssist.reloadTab(tab.tabId, {
-      captureConsole: true,
-      duration: 2000
-    });
-
-    await sleep(500); // Start second reload midway through first
-
-    const promise2 = chromeDevAssist.reloadTab(tab.tabId, {
-      captureConsole: true,
-      duration: 2000
-    });
-
-    const [result1, result2] = await Promise.all([promise1, promise2]);
-
-    // Both should complete
-    expect(result1.tabId).toBe(tab.tabId);
-    expect(result2.tabId).toBe(tab.tabId);
-
-    console.log(`✓ Overlapping captures handled: ${result1.consoleLogs.length} and ${result2.consoleLogs.length} logs`);
-
-    await chromeDevAssist.closeTab(tab.tabId);
-  }, TEST_TIMEOUT);
-
-  test('handles rapid sequential operations on same tab', async () => {
-    // Open tab
-    const tab = await chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
-      active: false
-    });
-
-    await sleep(500);
-
-    // Perform 5 rapid reloads with capture
-    for (let i = 0; i < 5; i++) {
-      const result = await chromeDevAssist.reloadTab(tab.tabId, {
-        captureConsole: true,
-        duration: 1000
+  test(
+    'handles overlapping captures on same tab',
+    async () => {
+      // Open tab first
+      const tab = await chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
+        active: false,
+        captureConsole: false,
       });
-      expect(result.consoleLogs.length).toBeGreaterThan(0);
-    }
 
-    console.log(`✓ 5 rapid sequential operations completed`);
+      await sleep(500);
 
-    await chromeDevAssist.closeTab(tab.tabId);
-  }, TEST_TIMEOUT);
+      // Start two overlapping reloads with capture
+      const promise1 = chromeDevAssist.reloadTab(tab.tabId, {
+        captureConsole: true,
+        duration: 2000,
+      });
 
+      await sleep(500); // Start second reload midway through first
+
+      const promise2 = chromeDevAssist.reloadTab(tab.tabId, {
+        captureConsole: true,
+        duration: 2000,
+      });
+
+      const [result1, result2] = await Promise.all([promise1, promise2]);
+
+      // Both should complete
+      expect(result1.tabId).toBe(tab.tabId);
+      expect(result2.tabId).toBe(tab.tabId);
+
+      console.log(
+        `✓ Overlapping captures handled: ${result1.consoleLogs.length} and ${result2.consoleLogs.length} logs`
+      );
+
+      await chromeDevAssist.closeTab(tab.tabId);
+    },
+    TEST_TIMEOUT
+  );
+
+  test(
+    'handles rapid sequential operations on same tab',
+    async () => {
+      // Open tab
+      const tab = await chromeDevAssist.openUrl(getFixtureUrl('edge-rapid-logs.html'), {
+        active: false,
+      });
+
+      await sleep(500);
+
+      // Perform 5 rapid reloads with capture
+      for (let i = 0; i < 5; i++) {
+        const result = await chromeDevAssist.reloadTab(tab.tabId, {
+          captureConsole: true,
+          duration: 1000,
+        });
+        expect(result.consoleLogs.length).toBeGreaterThan(0);
+      }
+
+      console.log('✓ 5 rapid sequential operations completed');
+
+      await chromeDevAssist.closeTab(tab.tabId);
+    },
+    TEST_TIMEOUT
+  );
 });
