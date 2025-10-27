@@ -1,13 +1,14 @@
 # TO-FIX - Active Issues
 
-**Last Updated:** 2025-10-27 (Post Phase 1.3 implementation)
-**Status:** 18 active issues (14 phantom APIs, 1 validation bug, 2 cleanup recommendations)
+**Last Updated:** 2025-10-27 (Post Phase 1.3 + P0 Bug Fix)
+**Status:** 17 active issues (14 phantom APIs, 1 validation bug, 2 cleanup recommendations)
 
-**Resolved (Oct 27, Phase 1.3):**
-- ✅ getPageMetadata phantom → Implemented
-- ✅ captureScreenshot phantom → Implemented
+**Resolved (Oct 27):**
+- ✅ getPageMetadata phantom → Implemented (Phase 1.3)
+- ✅ captureScreenshot phantom → Implemented (Phase 1.3)
 - ✅ ConsoleCapture "unused" → Verified ACTIVE (7 usages)
 - ✅ HealthManager "unused" → Verified ACTIVE (4 usages)
+- ✅ P0 Validation Bug → Fixed (captureScreenshot validation, commit 197fd79)
 
 **CRITICAL CORRECTION:** Initially reported 4-5 phantom APIs. Systematic analysis (Oct 26) found **16 phantom APIs**. Phase 1.3 (Oct 27) implemented 2, leaving **14 phantom APIs**.
 
@@ -163,7 +164,60 @@ $ grep -n "abortTest" claude-code/index.js
 
 ---
 
-### 2. Validation Bug - Incorrect Regex (MEDIUM PRIORITY)
+### ~~2. P0 Validation Bug - captureScreenshot()~~ - ✅ RESOLVED (Fixed Oct 27)
+
+**Status:** ✅ **FIXED** (Oct 27, 2025)
+
+**Issue**: captureScreenshot() accepted invalid tab IDs (NaN, Infinity, floats)
+
+**Root Cause**: Missing 5 validation checks
+- JavaScript quirk: `NaN <= 0` returns `false` (not caught!)
+- Validation coverage: 29% (2/7 checks)
+
+**Discovery Method**: 5-persona code review (unanimous finding)
+- Code Auditor (Persona 6): Found validation inconsistency
+- QA Engineer (Persona 3): Found 40 missing tests
+- Security Hacker (Persona 7): Confirmed exploitability
+- Code Logician (Persona 11): Proved mathematical incorrectness
+- Architect (Persona 2): Identified pattern violation
+
+**Fix Applied** (commit 197fd79):
+```javascript
+// Added 5 missing checks:
+✅ null/undefined check
+✅ NaN check (Number.isNaN)
+✅ Infinity check (Number.isFinite)
+✅ Integer check (Number.isInteger)
+✅ Safe range check (< MAX_SAFE_INTEGER)
+
+// Result: 2/7 → 7/7 checks (100% coverage)
+```
+
+**Testing**:
+- Added 7 new edge case tests
+- 18 → 25 tests (100% pass rate)
+- All edge cases now covered (NaN, Infinity, floats, boundaries)
+
+**Security Documentation**:
+- README.md: Added security warnings section
+- docs/API.md: Added comprehensive security documentation (60+ lines)
+- docs/QUICK_REFERENCE.md: Added P0 fix summary
+
+**Approval**:
+- ⚠️ Before: 0/5 approval (all conditional)
+- ✅ After: 5/5 approval (unanimous)
+
+**Related Documents**:
+- `.P0-VALIDATION-BUG-FIX-2025-10-27.md` - Complete fix documentation
+- `.MULTI-PERSONA-REVIEW-SUMMARY-2025-10-27.md` - 5-persona findings
+- `.SESSION-SUMMARY-P0-FIXES-2025-10-27.md` - Complete session summary
+- `.PRE-MERGE-VERIFICATION-2025-10-27.md` - Pre-merge verification
+
+**Resolution**: Bug fixed, tested, documented, and merged to main. No further action needed.
+
+---
+
+### 3. Validation Bug - Incorrect Regex (MEDIUM PRIORITY)
 
 **File:** server/validation.js
 **Function:** validateExtensionId()
@@ -382,18 +436,20 @@ const extensionIdRegex = /^[a-p]{32}$/;
 | Category | Count | Priority | Lines of Code |
 |----------|-------|----------|---------------|
 | Phantom APIs | 14 (was 16) | HIGH/MEDIUM | 0 (not implemented) |
-| Validation Bug | 1 | MEDIUM | 1 line fix |
+| ~~P0 Validation Bug~~ | ~~1~~ ✅ RESOLVED | ~~HIGH~~ | ~~Fixed~~ |
+| Validation Bug (Extension ID Regex) | 1 | MEDIUM | 1 line fix |
 | ~~Unused Modules~~ | ~~3~~ ✅ RESOLVED | ~~LOW~~ | ~~741 lines~~ |
 | Documentation Gaps | 2 | MEDIUM | N/A |
 | Duplicate Files | 11 | MEDIUM | ~500 lines |
 | Obsolete Files | 5 | LOW | ~200 lines |
 | Prototype Files | 3 | LOW | ~150 lines |
-| **TOTAL** | **36** → **18** | | **~850 lines** |
+| **TOTAL** | **36** → **17** | | **~850 lines** |
 
-**Phase 1.3 Resolutions (Oct 27):**
+**Phase 1.3 + P0 Bug Fix Resolutions (Oct 27):**
 - ✅ 2 phantom APIs implemented (getPageMetadata, captureScreenshot)
 - ✅ 2 modules verified ACTIVE (ConsoleCapture, HealthManager)
-- ⬇️ Issue count: 36 → 18 (50% reduction)
+- ✅ 1 P0 validation bug fixed (captureScreenshot)
+- ⬇️ Issue count: 36 → 17 (53% reduction)
 
 ---
 

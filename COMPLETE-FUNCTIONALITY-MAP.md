@@ -424,11 +424,18 @@
 - Handler: `extension/background.js:721-765`
 - Uses: `chrome.tabs.captureVisibleTab()`
 - Implemented: Phase 1.3 (Oct 27, 2025)
+- **P0 Bug Fix**: Validation bug fixed same day (commit 197fd79)
+  - Bug: Accepted NaN, Infinity, floats
+  - Fix: Added 5 missing validation checks (7 total, 100% coverage)
+  - Tests: 25 passing (7 new edge case tests added)
+  - Discovered by: 5-persona code review (unanimous)
 
 **Use Cases:**
 - Visual regression testing
 - Test documentation
 - Bug reports with screenshots
+
+**Security:** See README.md and docs/API.md for comprehensive security warnings about screenshot data sensitivity and extension permissions
 
 ---
 
@@ -1586,4 +1593,14 @@ These features are PLANNED but NOT YET IMPLEMENTED:
 - Implemented getPageMetadata(tabId) - commit 0a367ae
 - Implemented captureScreenshot(tabId, options) - commit 0a367ae
 - Verified ConsoleCapture and HealthManager active usage
+
+**P0 Bug Fix (Oct 27):**
+- Fixed critical validation bug in captureScreenshot() - commit 197fd79
+- Bug: Accepted NaN, Infinity, floats (discovered by 5-persona code review)
+- Fix: Added 5 missing validation checks (2/7 → 7/7, 100% coverage)
+- Tests: Added 7 new edge case tests (18 → 25 tests, 100% pass rate)
+- Security: Added comprehensive warnings to README.md and docs/API.md
+- Review: Unanimous approval from all 5 expert reviewers after fix
+- Documentation: 8 comprehensive review documents created (5,595 lines)
+
 **Maintained By:** Chrome Dev Assist Team

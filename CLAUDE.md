@@ -61,6 +61,16 @@ getPageMetadata(tabId)  ✨ NEW Oct 27
 captureScreenshot(tabId, options)  ✨ NEW Oct 27
 ```
 
+**P0 Bug Fix (Oct 27)**: captureScreenshot() had critical validation bug fixed same day:
+- **Bug**: Accepted NaN, Infinity, floats (discovered by 5-persona code review)
+- **Fix**: Added 5 missing validation checks (commit 197fd79)
+- **Tests**: 7 new edge case tests added (25 total, 100% pass rate)
+- **Security**: Comprehensive warnings added to README.md and docs/API.md
+- **Approval**: Unanimous approval from all 5 expert reviewers
+- **Documentation**: 8 comprehensive review documents (5,595 lines)
+
+**See**: `.SESSION-SUMMARY-P0-FIXES-2025-10-27.md` for complete details
+
 ---
 
 ## Development Commands
