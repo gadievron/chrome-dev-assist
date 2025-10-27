@@ -66,7 +66,7 @@
 
 ---
 
-## 🎯 PUBLIC API (8 Functions) - v1.0.0
+## 🎯 PUBLIC API (10 Functions) - v1.0.0
 
 ### Extension Management (2 functions)
 
@@ -363,7 +363,78 @@
 
 ---
 
-## ⚠️ PHANTOM APIs (16 Functions) - TESTED BUT NOT IMPLEMENTED
+### DOM Inspection (1 function)
+
+#### 9. ✅ `getPageMetadata(tabId)`
+**Purpose:** Extract page metadata from a tab
+
+**Parameters:**
+- `tabId` (number, required): Tab ID to extract metadata from
+
+**Returns:**
+```javascript
+{
+  tabId: number,
+  url: string,
+  metadata: {
+    title: string,
+    readyState: string,
+    url: string,
+    custom?: object  // window.testMetadata if present
+  }
+}
+```
+
+**Implementation:**
+- File: `claude-code/index.js:213-256`
+- Handler: `extension/background.js:656-712`
+- Uses: `chrome.scripting.executeScript()`
+- Implemented: Phase 1.3 (Oct 27, 2025)
+
+**Use Cases:**
+- Extract test metadata from pages
+- Verify page loaded correctly
+- Test automation metadata
+
+---
+
+### Screenshot Capture (1 function)
+
+#### 10. ✅ `captureScreenshot(tabId, options)`
+**Purpose:** Capture screenshot of a tab
+
+**Parameters:**
+- `tabId` (number, required): Tab ID to capture
+- `options.format` (string, optional): 'png' or 'jpeg' (default: 'png')
+- `options.quality` (number, optional): JPEG quality 0-100 (default: 90)
+
+**Returns:**
+```javascript
+{
+  tabId: number,
+  dataUrl: string,  // base64 data URL
+  format: string,
+  quality?: number,  // for JPEG
+  timestamp: number
+}
+```
+
+**Implementation:**
+- File: `claude-code/index.js:266-300`
+- Handler: `extension/background.js:721-765`
+- Uses: `chrome.tabs.captureVisibleTab()`
+- Implemented: Phase 1.3 (Oct 27, 2025)
+
+**Use Cases:**
+- Visual regression testing
+- Test documentation
+- Bug reports with screenshots
+
+---
+
+## ⚠️ PHANTOM APIs (14 Functions) - TESTED BUT NOT IMPLEMENTED
+
+**Note:** Was 16 phantoms. Phase 1.3 (Oct 27) implemented getPageMetadata and captureScreenshot, reducing to 14.
 
 **CRITICAL DISCOVERY (2025-10-26):** Extensive test suites exist for **16 functions** that have ZERO implementation in production code. This suggests Test-Driven Development where tests were written before implementation, but implementation was never completed.
 
