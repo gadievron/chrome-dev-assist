@@ -1,13 +1,13 @@
 # Complete Functionality Map - Chrome Dev Assist
 
-**Version:** 1.0.0 (ACTUAL - Verified 2025-10-26)
-**Last Updated:** 2025-10-26 (Updated with phantom API findings)
+**Version:** 1.0.0 (ACTUAL - Verified 2025-10-27)
+**Last Updated:** 2025-10-27 (Post Phase 1.3 - getPageMetadata & captureScreenshot implemented)
 **Status:** ⚠️ PARTIALLY ACCURATE - See Phantom APIs section
 
 ⚠️ **CRITICAL FINDINGS:**
-- **16 Phantom APIs** - Extensive tests exist, but NO implementation (CORRECTED: was 4-5)
+- **14 Phantom APIs** - Extensive tests exist, but NO implementation (was 16, reduced by Phase 1.3)
 - **24 Placeholder Tests** - Tests with expect(true).toBe(true) pattern
-- **Unused imports** - HealthManager imported but never used
+- **ConsoleCapture & HealthManager** - Both ACTIVE (not unused as previously documented)
 - **Level4 CDP** - Implemented but not exposed in API
 
 ⚠️ **IMPORTANT:** This document has been updated to reflect ONLY the functionality that actually exists in v1.0.0. Previous versions documented planned v1.1.0+ features. See `PLANNED-FEATURES.md` for future roadmap.
@@ -16,19 +16,21 @@
 
 ---
 
-## 📊 SUMMARY STATISTICS (CORRECTED 2025-10-26)
+## 📊 SUMMARY STATISTICS (CORRECTED 2025-10-27)
 
 ### Public API Functions (Implemented)
-- **Total:** 8 functions (actually exist in code)
+- **Total:** 10 functions (actually exist in code) - Added in Phase 1.3: getPageMetadata, captureScreenshot
 - **Extension Management:** 2 functions
 - **Extension Reload & Console Capture:** 3 functions
 - **Tab Management:** 3 functions
+- **DOM Inspection:** 1 function (getPageMetadata)
+- **Screenshot Capture:** 1 function (captureScreenshot)
 
 ### Phantom APIs (Tested But NOT Implemented)
-- **Total:** 16 phantom functions (100+ tests, ZERO implementation) - CORRECTED from initial 4-5
-- **getPageMetadata(tabId)** - 60+ security test cases, NO implementation
+- **Total:** 14 phantom functions (was 16, reduced by Phase 1.3 implementation)
+- ~~**getPageMetadata(tabId)**~~ - ✅ IMPLEMENTED in Phase 1.3
 - **startTest(testId, options)** - Test orchestration, NO implementation
-- **Plus 14 more** - See PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md for complete list
+- **Plus 12 more** - See PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md for complete list
 - **endTest(testId)** - Test completion, NO implementation
 - **abortTest(testId, reason)** - Test abortion, NO implementation
 - **getTestStatus()** - Referenced in scripts, UNCLEAR if implemented
@@ -37,8 +39,8 @@
 - **Total:** 7 modules, 74 functions/constants/callbacks
 - **Validation:** server/validation.js (6 functions + 2 constants)
 - **Error Logging:** extension/lib/error-logger.js (5 methods)
-- **Console Capture:** extension/modules/ConsoleCapture.js (10 methods, POC - NOT USED)
-- **Health Monitoring:** src/health/health-manager.js (9 methods - IMPORTED BUT NOT USED)
+- **Console Capture:** extension/modules/ConsoleCapture.js (10 methods, ACTIVE - 7 usages)
+- **Health Monitoring:** src/health/health-manager.js (9 methods - ACTIVE - 4 usages)
 - **CDP Reload:** claude-code/level4-reload-cdp.js (3 functions - NOT EXPOSED IN API)
 - **Injection Scripts:** extension/inject-console-capture.js (6 functions + 6 constants)
 - **Background Handlers:** extension/background.js (13 functions + 2 callbacks + 4 constants)
