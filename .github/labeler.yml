@@ -1,0 +1,33 @@
+# Auto-label PRs based on changed files
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['docs/**/*', '*.md', '!CHANGELOG.md']
+
+tests:
+  - changed-files:
+    - any-glob-to-any-file: ['tests/**/*', '**/*.test.js', '**/*.spec.js']
+
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: ['package.json', 'package-lock.json']
+
+github-actions:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/workflows/**/*', '.github/actions/**/*']
+
+api:
+  - changed-files:
+    - any-glob-to-any-file: ['claude-code/**/*']
+
+extension:
+  - changed-files:
+    - any-glob-to-any-file: ['extension/**/*']
+
+server:
+  - changed-files:
+    - any-glob-to-any-file: ['server/**/*']
+
+configuration:
+  - changed-files:
+    - any-glob-to-any-file: ['.*', '*.json', '*.yml', '*.yaml', '!package.json', '!package-lock.json']
