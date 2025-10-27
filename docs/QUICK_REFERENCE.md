@@ -48,6 +48,31 @@
 
 ---
 
+## ✨ What's New (2025-10-27)
+
+### Self-Healing Mechanism
+
+Chrome Dev Assist extension now includes **automatic self-healing** to recover from connection failures.
+
+**Quick Facts:**
+- ⏱️ **60-second timeout** - Automatically reloads if disconnected for 60+ seconds
+- 🔄 **Auto-reconnect** - Attempts reconnection every 1 second
+- 🛡️ **Infinite loop protection** - Maximum 3 reload attempts
+- 🎯 **Smart recovery** - Cancels reload if reconnection succeeds
+
+**Why It Matters:**
+- Extension won't get stuck in bad state
+- Automatically recovers from server restarts
+- No manual intervention needed
+
+**Documentation:**
+- Implementation details: `.SESSION-SUMMARY-SELF-HEALING-2025-10-27.md`
+- Bug fixes: `.BUG-FIXES-PERSONA-REVIEW-2025-10-27.md`
+- User guide: `README.md` (Advanced Usage section)
+- API docs: `docs/API.md` (Key Features section)
+
+---
+
 ## 🔍 Finding Information Fast
 
 ### Security Questions
@@ -362,4 +387,4 @@ npm test
 
 ---
 
-**Last Updated**: 2025-10-26 (Added phantom APIs warning after comprehensive audit)
+**Last Updated**: 2025-10-27 (Added self-healing mechanism documentation)
