@@ -3,13 +3,10 @@
  * Handles native messaging and extension testing operations
  */
 
-// State - command-specific capture to avoid race conditions
-// Map<commandId, {logs: Array, active: boolean, timeout: number, endTime: number, tabId: number|null}>
-const captureState = new Map();
-
-// Index for fast O(1) lookup by tabId to prevent race conditions in high-concurrency scenarios
-// Map<tabId, Set<commandId>> - tracks which command IDs are capturing for each tab
-const capturesByTab = new Map();
+// Import ConsoleCapture class for managing console log captures
+// Using importScripts() for Chrome service worker compatibility
+importScripts('./modules/ConsoleCapture.js');
+const consoleCapture = new ConsoleCapture();
 
 // Memory leak prevention
 const MAX_LOGS_PER_CAPTURE = 10000; // Maximum logs per command to prevent memory exhaustion
@@ -20,19 +17,11 @@ console.log('[ChromeDevAssist] Background service worker started');
 
 // Periodic cleanup of old captures to prevent memory leaks
 setInterval(() => {
-  const now = Date.now();
-  let cleanedCount = 0;
-
-  for (const [commandId, state] of captureState.entries()) {
-    // Clean up inactive captures older than MAX_CAPTURE_AGE_MS
-    if (!state.active && state.endTime && (now - state.endTime) > MAX_CAPTURE_AGE_MS) {
-      cleanupCapture(commandId); // Use consolidated cleanup helper
-      cleanedCount++;
-    }
-  }
+  const cleanedCount = consoleCapture.cleanupStale(MAX_CAPTURE_AGE_MS);
 
   if (cleanedCount > 0) {
-    console.log(`[ChromeDevAssist] Cleaned up ${cleanedCount} old capture(s). Active captures: ${captureState.size}`);
+    const totalCaptures = consoleCapture.getTotalCount();
+    console.log(`[ChromeDevAssist] Cleaned up ${cleanedCount} old capture(s). Active captures: ${totalCaptures}`);
   }
 }, CLEANUP_INTERVAL_MS);
 
@@ -166,9 +155,9 @@ function connectToServer() {
     } catch (error) {
       console.error('[ChromeDevAssist] Command failed:', error);
 
-      // Clean up any capture state on error using consolidated helper
-      if (message.id && captureState.has(message.id)) {
-        cleanupCapture(message.id);
+      // Clean up any capture state on error
+      if (message.id) {
+        consoleCapture.cleanup(message.id);
       }
 
       // Send error response
@@ -573,71 +562,23 @@ async function handleCloseTabCommand(commandId, params) {
  * @param {number|null} tabId - Tab ID to filter logs (null = capture all tabs)
  */
 function startConsoleCapture(commandId, duration, tabId = null) {
-  // Initialize command-specific capture state
-  captureState.set(commandId, {
-    logs: [],
-    active: true,
-    timeout: null,
-    tabId: tabId  // null = capture all tabs, number = specific tab only
+  // Delegate to ConsoleCapture class which handles:
+  // - State initialization (logs array, active=true, timeout, tabId)
+  // - Tab-specific indexing (capturesByTab) for O(1) lookup
+  // - Automatic timeout handling
+  // - Auto-stop with endTime tracking
+  consoleCapture.start(commandId, {
+    tabId: tabId,
+    maxLogs: MAX_LOGS_PER_CAPTURE,
+    duration: duration
   });
-
-  // Add to tab-specific index for O(1) lookup (prevents race conditions)
-  if (tabId !== null) {
-    if (!capturesByTab.has(tabId)) {
-      capturesByTab.set(tabId, new Set());
-    }
-    capturesByTab.get(tabId).add(commandId);
-  }
 
   console.log(`[ChromeDevAssist] Console capture started for command ${commandId}${tabId ? ` (tab ${tabId})` : ' (all tabs)'}`);
 
-  // Set timeout to stop capture
-  const timeout = setTimeout(() => {
-    const state = captureState.get(commandId);
-    if (state) {
-      state.active = false;
-      state.endTime = Date.now(); // Track when capture ended for cleanup
-      console.log(`[ChromeDevAssist] Console capture complete for command ${commandId}:`, state.logs.length, 'logs');
-    }
-  }, duration);
+  // Note: Completion logging removed to prevent dangling timeout
+  // Logs can be retrieved explicitly via getCommandLogs(commandId)
 
-  // Store timeout reference for cleanup
-  captureState.get(commandId).timeout = timeout;
-
-  // Return immediately (don't wait for duration)
   return Promise.resolve();
-}
-
-/**
- * CLEANUP HELPER: Remove capture state and maintain index integrity
- * Architectural purpose: Ensures captureState and capturesByTab stay synchronized
- * Used by: periodic cleanup, error handlers, normal completion
- */
-function cleanupCapture(commandId) {
-  const state = captureState.get(commandId);
-  if (!state) {
-    return; // Already cleaned up
-  }
-
-  // Clear timeout if exists
-  if (state.timeout) {
-    clearTimeout(state.timeout);
-  }
-
-  // Remove from tab-specific index (prevents orphaned entries)
-  if (state.tabId !== null) {
-    const tabSet = capturesByTab.get(state.tabId);
-    if (tabSet) {
-      tabSet.delete(commandId);
-      // Clean up empty sets to prevent memory leaks
-      if (tabSet.size === 0) {
-        capturesByTab.delete(state.tabId);
-      }
-    }
-  }
-
-  // Remove from main state
-  captureState.delete(commandId);
 }
 
 /**
@@ -645,15 +586,10 @@ function cleanupCapture(commandId) {
  * Returns logs and cleans up completed captures
  */
 function getCommandLogs(commandId) {
-  const state = captureState.get(commandId);
-  if (!state) {
-    return [];
-  }
+  const logs = consoleCapture.getLogs(commandId);
 
-  const logs = [...state.logs]; // Copy logs
-
-  // Clean up using consolidated helper
-  cleanupCapture(commandId);
+  // Clean up after retrieving logs
+  consoleCapture.cleanup(commandId);
 
   return logs;
 }
@@ -700,52 +636,15 @@ if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage)
       frameId: sender.frameId
     };
 
-    // Add log to active captures that match this tab (with limit enforcement)
-    // Uses O(1) direct lookup instead of O(n) iteration to prevent race conditions
-    let addedToAny = false;
+    // Delegate to ConsoleCapture class which handles:
+    // - O(1) tab-specific lookup via capturesByTab index
+    // - Global capture routing (tabId === null)
+    // - Limit enforcement (MAX_LOGS_PER_CAPTURE)
+    // - Limit warning message generation
     const tabId = sender.tab.id;
-    const relevantCommandIds = new Set();
+    consoleCapture.addLog(tabId, logEntry);
 
-    // 1. Get tab-specific captures via O(1) lookup
-    if (capturesByTab.has(tabId)) {
-      for (const cmdId of capturesByTab.get(tabId)) {
-        relevantCommandIds.add(cmdId);
-      }
-    }
-
-    // 2. Get global captures (tabId === null) via iteration
-    for (const [commandId, state] of captureState.entries()) {
-      if (state.active && state.tabId === null) {
-        relevantCommandIds.add(commandId);
-      }
-    }
-
-    // 3. Add log to all relevant captures
-    for (const commandId of relevantCommandIds) {
-      const state = captureState.get(commandId);
-      if (state && state.active) {
-        // Enforce max logs limit to prevent memory exhaustion
-        if (state.logs.length < MAX_LOGS_PER_CAPTURE) {
-          state.logs.push(logEntry);
-          addedToAny = true;
-        } else if (state.logs.length === MAX_LOGS_PER_CAPTURE) {
-          // Add warning message once when limit is reached
-          state.logs.push({
-            level: 'warn',
-            message: `[ChromeDevAssist] Log limit reached (${MAX_LOGS_PER_CAPTURE}). Further logs will be dropped.`,
-            timestamp: new Date().toISOString(),
-            source: 'chrome-dev-assist',
-            url: 'internal',
-            tabId: logEntry.tabId,
-            frameId: 0
-          });
-          addedToAny = true;
-        }
-        // else: silently drop logs exceeding limit
-      }
-    }
-
-    sendResponse({ received: addedToAny });
+    sendResponse({ received: true });
   }
 
   return true; // Keep message channel open for async response

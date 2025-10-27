@@ -39,9 +39,16 @@ class ConsoleCapture {
    * @param {number} [options.tabId] - Tab to capture from (null = all tabs)
    * @param {number} [options.duration] - Auto-stop after ms
    * @param {number} [options.maxLogs] - Maximum logs to capture
+   * @throws {Error} If captureId already exists
+   *
+   * IMPORTANT: captureId must be unique. Do not call start() twice with
+   * the same captureId, even from different async contexts.
+   *
+   * Race condition note: If two async calls with the same captureId occur
+   * simultaneously, the second will throw an error. Use unique IDs to prevent this.
    */
   start(captureId, options = {}) {
-    // Validate captureId doesn't already exist
+    // First check - validate captureId doesn't already exist
     if (this.captures.has(captureId)) {
       throw new Error(`Capture ${captureId} already exists`);
     }
@@ -68,6 +75,16 @@ class ConsoleCapture {
       state.timeout = setTimeout(() => {
         this.stop(captureId);
       }, duration);
+    }
+
+    // Double-check before setting (reduces race window)
+    // If another async call set this captureId between first check and now, catch it
+    if (this.captures.has(captureId)) {
+      // Clean up timeout we just created
+      if (state.timeout) {
+        clearTimeout(state.timeout);
+      }
+      throw new Error(`Capture ${captureId} already exists (race condition detected)`);
     }
 
     // Add to main storage
@@ -226,11 +243,21 @@ class ConsoleCapture {
   }
 
   /**
+   * Get total number of captures (active + inactive)
+   * @returns {number} Total capture count
+   */
+  getTotalCount() {
+    return this.captures.size;
+  }
+
+  /**
    * Clean up stale (old, inactive) captures
    * @param {number} [thresholdMs] - Max age in ms (default: 5 minutes)
+   * @returns {number} Count of captures cleaned up
    */
   cleanupStale(thresholdMs = 300000) {
     const now = Date.now();
+    let cleanedCount = 0;
 
     for (const [captureId, state] of this.captures.entries()) {
       // Only clean up inactive captures
@@ -239,12 +266,16 @@ class ConsoleCapture {
       // Check age
       if (state.endTime && (now - state.endTime) > thresholdMs) {
         this.cleanup(captureId);
+        cleanedCount++;
       }
     }
+
+    return cleanedCount;
   }
 }
 
-// Export for use in background.js and tests
+// Export for Node.js tests (CommonJS)
+// In Chrome extensions, the class is globally available without export
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ConsoleCapture;
 }

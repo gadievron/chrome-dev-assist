@@ -6,7 +6,11 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "validate:syntax": "node scripts/validate-extension-syntax.js",
+    "validate:health": "node scripts/check-extension-health.js",
+    "validate:all": "bash scripts/pre-commit-validation.sh",
+    "precommit": "npm run validate:all"
   },
   "keywords": [
     "chrome-extension",

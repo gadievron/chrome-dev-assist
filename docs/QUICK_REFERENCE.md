@@ -2,6 +2,50 @@
 
 **Fast lookup for architectural decisions, security documentation, and key implementation details.**
 
+⚠️ **CRITICAL UPDATE (2025-10-26):** 16 phantom APIs discovered - functions with tests but NO implementation. See [Phantom APIs](#-phantom-apis-warning) section below.
+
+---
+
+## 🚨 Phantom APIs Warning
+
+**⚠️ IMPORTANT:** During a comprehensive audit (8 rounds of user challenges), **16 phantom APIs** were discovered - functions that have extensive test coverage but are NOT implemented in the codebase.
+
+**DO NOT USE these functions** - they will fail with "function not found" errors:
+
+<details>
+<summary><strong>Click to see all 16 phantom APIs</strong></summary>
+
+1. startTest(testId, options)
+2. endTest(testId)
+3. abortTest(testId, reason)
+4. getTestStatus()
+5. getPageMetadata(tabId) - has 60+ security test cases!
+6. captureScreenshot(tabId, options)
+7. captureServiceWorkerLogs()
+8. getServiceWorkerStatus()
+9. wakeServiceWorker()
+10. enableExtension(extensionId)
+11. disableExtension(extensionId)
+12. toggleExtension(extensionId)
+13. enableExternalLogging()
+14. disableExternalLogging()
+15. getExternalLoggingStatus()
+16. verifyCleanup()
+
+</details>
+
+**Actually Implemented Functions (8):**
+- getAllExtensions()
+- getExtensionInfo(extensionId)
+- reload(extensionId)
+- reloadAndCapture(extensionId, options)
+- captureLogs(duration)
+- openUrl(url, options)
+- reloadTab(tabId, options)
+- closeTab(tabId)
+
+**See detailed analysis:** `PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md`
+
 ---
 
 ## 🔍 Finding Information Fast
@@ -114,15 +158,21 @@ curl "http://localhost:9876/fixtures/basic-test.html?token=$TOKEN"
 chrome-dev-assist/
 ├── server/
 │   └── websocket-server.js          ← HTTP + WebSocket server with auth
+├── scripts/                         ← Development & validation scripts
+│   ├── validate-extension-syntax.js ← Detects Node.js-only code
+│   ├── check-extension-health.js    ← Verifies extension working
+│   └── pre-commit-validation.sh     ← Comprehensive validation gate
 ├── tests/
 │   ├── fixtures/                    ← Test HTML files
-│   └── integration/
-│       ├── test-helpers.js          ← URL generation with token
-│       ├── edge-cases.test.js       ← Edge case tests
-│       └── dogfooding.test.js       ← Self-testing tests
+│   ├── integration/                 ← Integration tests
+│   └── unit/                        ← Unit tests (80 tests total)
+│       ├── console-capture-class.test.js         ← 47 tests
+│       ├── validate-extension-syntax.test.js     ← 19 tests
+│       └── check-extension-health.test.js        ← 14 tests
 ├── docs/
 │   ├── SECURITY.md                  ← Complete security architecture
 │   ├── QUICK_REFERENCE.md           ← This file
+│   ├── PREVENTING-EXTENSION-BUGS.md ← Bug prevention system
 │   └── decisions/                   ← Architecture Decision Records
 │       ├── README.md                ← ADR index
 │       ├── 001-*.md                 ← Test infrastructure auth
@@ -312,4 +362,4 @@ npm test
 
 ---
 
-**Last Updated**: 2025-10-24
+**Last Updated**: 2025-10-26 (Added phantom APIs warning after comprehensive audit)
