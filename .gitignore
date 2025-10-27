@@ -4,3 +4,7 @@
 node_modules/
 npm-debug.log*
 .DS_Store
+
+# Issues dashboard data
+.issues/snapshots/
+.issues/latest.*
