@@ -264,14 +264,39 @@ async function getPageMetadata(tabId) {
  * @returns {Promise<Object>} Result with { tabId, dataUrl, format, quality, timestamp }
  */
 async function captureScreenshot(tabId, options = {}) {
+  // Validation: tabId is required
+  if (tabId === undefined || tabId === null) {
+    throw new Error('tabId is required');
+  }
+
   // Validation: tabId must be a number
   if (typeof tabId !== 'number') {
     throw new Error('Tab ID must be a number');
   }
 
+  // Validation: tabId must not be NaN
+  if (Number.isNaN(tabId)) {
+    throw new Error('Tab ID must be a number');
+  }
+
+  // Validation: tabId must be finite
+  if (!Number.isFinite(tabId)) {
+    throw new Error('Tab ID must be a finite number');
+  }
+
+  // Validation: tabId must be an integer
+  if (!Number.isInteger(tabId)) {
+    throw new Error('Tab ID must be an integer');
+  }
+
   // Validation: tabId must be positive
   if (tabId <= 0) {
     throw new Error('Tab ID must be a positive number');
+  }
+
+  // Validation: tabId must be within safe integer range
+  if (tabId > Number.MAX_SAFE_INTEGER) {
+    throw new Error('Tab ID exceeds safe integer range');
   }
 
   // Validation: format must be 'png' or 'jpeg'

@@ -14,12 +14,12 @@ describe('captureScreenshot() - Input Validation', () => {
 
     test('should reject non-number tab ID (null)', async () => {
       await expect(captureScreenshot(null))
-        .rejects.toThrow(/tab id must be a number/i);
+        .rejects.toThrow(/tabid is required/i);
     });
 
     test('should reject non-number tab ID (undefined)', async () => {
       await expect(captureScreenshot(undefined))
-        .rejects.toThrow(/tab id must be a number/i);
+        .rejects.toThrow(/tabid is required/i);
     });
 
     test('should reject non-number tab ID (object)', async () => {
@@ -35,6 +35,43 @@ describe('captureScreenshot() - Input Validation', () => {
     test('should reject zero tab ID', async () => {
       await expect(captureScreenshot(0))
         .rejects.toThrow(/tab id must be a positive number/i);
+    });
+  });
+
+  describe('Tab ID Edge Cases (Previously Broken - Fixed in P0)', () => {
+    test('should reject NaN tab ID', async () => {
+      await expect(captureScreenshot(NaN))
+        .rejects.toThrow(/tab id must be a number/i);
+    });
+
+    test('should reject Infinity tab ID', async () => {
+      await expect(captureScreenshot(Infinity))
+        .rejects.toThrow(/tab id must be a finite number/i);
+    });
+
+    test('should reject -Infinity tab ID', async () => {
+      await expect(captureScreenshot(-Infinity))
+        .rejects.toThrow(/tab id must be a finite number/i);
+    });
+
+    test('should reject float tab ID (123.456)', async () => {
+      await expect(captureScreenshot(123.456))
+        .rejects.toThrow(/tab id must be an integer/i);
+    });
+
+    test('should reject tab ID exceeding MAX_SAFE_INTEGER', async () => {
+      await expect(captureScreenshot(Number.MAX_SAFE_INTEGER + 1))
+        .rejects.toThrow(/tab id exceeds safe integer range/i);
+    });
+
+    test('should reject negative float tab ID (-99.5)', async () => {
+      await expect(captureScreenshot(-99.5))
+        .rejects.toThrow(/tab id must be an integer/i);
+    });
+
+    test('should reject very large float (9007199254740992.5)', async () => {
+      await expect(captureScreenshot(9007199254740992.5))
+        .rejects.toThrow(/tab id exceeds safe integer range/i);
     });
   });
 

@@ -18,6 +18,43 @@ Programmatically reload Chrome extensions and capture console logs from your Nod
 
 ---
 
+## ⚠️ Security Warnings
+
+### Extension Permissions
+
+This extension requires **broad permissions** to function:
+
+- **`<all_urls>`** - Access to ALL websites you visit
+- **`tabs`** - Access to ALL browser tabs
+- **`scripting`** - Can inject code into ANY page
+- **`management`** - Can control ALL extensions
+
+**Security Recommendations:**
+1. ✅ Install in **dedicated test browser profile** (not your personal profile)
+2. ✅ **Uninstall after testing** - Don't leave installed permanently
+3. ✅ Never install in browser with **real credentials or personal data**
+4. ✅ Only run **trusted test scripts** - Review code before execution
+5. ✅ Use in **isolated test environment** only
+
+### Screenshot Data Sensitivity
+
+`captureScreenshot()` captures **ALL visible content** including:
+
+- ❌ **Passwords** (even if displayed as dots/asterisks)
+- ❌ **Credit card numbers**
+- ❌ **Social Security Numbers**
+- ❌ **Medical records**
+- ❌ **Any personally identifiable information (PII)**
+
+**Security Recommendations:**
+1. ✅ Only use in **isolated test environment** with fake data
+2. ✅ **Never use in personal browser** with real credentials
+3. ✅ **Clear test data immediately** after capture
+4. ✅ **Do not commit screenshots** to version control
+5. ✅ Use **synthetic test data only** - never real user data
+
+---
+
 ## Quick Start
 
 ### 1. Install Dependencies

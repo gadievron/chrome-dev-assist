@@ -71,6 +71,38 @@ Chrome Dev Assist extension now includes **automatic self-healing** to recover f
 - User guide: `README.md` (Advanced Usage section)
 - API docs: `docs/API.md` (Key Features section)
 
+### P0 Validation Bug Fixed (Phase 1.3)
+
+**Critical bug fixed in captureScreenshot()** - API was accepting invalid inputs (NaN, Infinity, floats).
+
+**Quick Facts:**
+- 🐛 **Bug discovered by**: 5-persona code review (unanimous finding)
+- ✅ **Fix verified**: 37 validation tests passing (25 for captureScreenshot, 12 for getPageMetadata)
+- 🔒 **Security added**: Comprehensive warnings in README.md and API.md
+- 📊 **Coverage**: 100% validation coverage (7/7 checks)
+
+**What was fixed**:
+```javascript
+// BEFORE: NaN, Infinity, 123.456 incorrectly passed validation
+if (typeof tabId !== 'number') throw...
+if (tabId <= 0) throw...  // NaN <= 0 is FALSE (bug!)
+
+// AFTER: Comprehensive validation (matches getPageMetadata)
+✅ null/undefined check
+✅ typeof check
+✅ NaN check (Number.isNaN)
+✅ Infinity check (Number.isFinite)
+✅ Integer check (Number.isInteger)
+✅ Positive check (> 0)
+✅ Safe range check (< MAX_SAFE_INTEGER)
+```
+
+**Documentation:**
+- Complete fix summary: `.P0-VALIDATION-BUG-FIX-2025-10-27.md`
+- Multi-persona review: `.MULTI-PERSONA-REVIEW-SUMMARY-2025-10-27.md`
+- Individual reviews: `.PERSONA-*-REVIEW-2025-10-27.md` (5 files)
+- Test file: `tests/unit/screenshot-validation.test.js`
+
 ---
 
 ## 🔍 Finding Information Fast

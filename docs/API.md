@@ -35,6 +35,68 @@ const logs = await chromeDevAssist.captureLogs(3000);
 
 ---
 
+## ⚠️ Security Warnings
+
+### Extension Permissions Risk
+
+This extension requires **broad permissions** to enable test automation:
+
+- **`<all_urls>`** - Access to ALL websites you visit
+- **`tabs`** - Access to ALL browser tabs
+- **`scripting`** - Can inject code into ANY page
+- **`management`** - Can control ALL extensions
+
+**If this extension were compromised, an attacker could:**
+- Read all web page content (including sensitive data)
+- Steal cookies, session tokens, and credentials
+- Inject malicious code into any website
+- Control all installed extensions
+- Capture screenshots of everything you view
+
+**REQUIRED Security Practices:**
+1. ✅ **Install ONLY in dedicated test browser profile** - Never in personal browser
+2. ✅ **Uninstall immediately after testing** - Don't leave permanently installed
+3. ✅ **Use isolated test environment** - No real credentials or personal data
+4. ✅ **Review all test code** - Only run trusted scripts
+5. ✅ **Regular security audits** - Verify extension source hasn't changed
+
+### Screenshot Data Sensitivity
+
+**CRITICAL**: `captureScreenshot()` captures **ALL visible content** without discrimination:
+
+**What gets captured:**
+- ❌ **Passwords** (even if displayed as dots/asterisks - OCR can reveal)
+- ❌ **Credit card numbers** and CVV codes
+- ❌ **Social Security Numbers** and tax documents
+- ❌ **Medical records** and health information
+- ❌ **Banking information** and account numbers
+- ❌ **API keys** and authentication tokens
+- ❌ **Any personally identifiable information (PII)**
+- ❌ **Proprietary business data**
+
+**Security Requirements:**
+1. ✅ **Synthetic data ONLY** - Never use real user data in tests
+2. ✅ **Isolated test environment** - Dedicated browser profile with fake accounts
+3. ✅ **Immediate deletion** - Clear screenshots after each test run
+4. ✅ **No version control** - Add `*.png, *.jpg, *.jpeg` to `.gitignore`
+5. ✅ **Access control** - Restrict who can run screenshot tests
+6. ✅ **Audit logging** - Track when screenshots are captured
+7. ✅ **Data retention policy** - Automatic deletion after N days
+
+**Compliance Considerations:**
+- **GDPR** - Screenshots may constitute personal data processing
+- **HIPAA** - Medical screenshots are protected health information
+- **PCI DSS** - Credit card screenshots violate card data storage rules
+- **SOC 2** - Screenshots require security controls and audit trails
+
+**For production testing:**
+- Use **masked data** in test environments
+- Implement **screenshot review process** before storage
+- Apply **automatic PII detection** and redaction
+- Consider **screenshot-less testing** alternatives when possible
+
+---
+
 ## Key Features
 
 ### Self-Healing Mechanism ✨ NEW
@@ -434,6 +496,8 @@ if (result.metadata.readyState === 'complete') {
 
 #### `captureScreenshot(tabId, options)`
 Capture screenshot of visible area in a tab
+
+⚠️ **SECURITY WARNING**: Screenshots capture ALL visible content including passwords, PII, and sensitive data. Only use in isolated test environments with synthetic data. See [Security Warnings](#️-security-warnings) section for details.
 
 **Parameters**:
 - `tabId` (number, required): Tab ID to capture

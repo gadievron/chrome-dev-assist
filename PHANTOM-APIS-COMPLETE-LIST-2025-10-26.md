@@ -1,8 +1,9 @@
 # Complete Phantom APIs List
 
-**Date:** 2025-10-26
-**Discovery Method:** Systematic grep of all test files
-**Status:** ✅ COMPLETE - All phantom APIs identified
+**Date:** 2025-10-26 (Original audit)
+**Updated:** 2025-10-27 (Post Phase 1.3 implementation)
+**Discovery Method:** Systematic grep of all test files + code verification
+**Status:** ✅ UPDATED - 2 phantom APIs implemented in Phase 1.3
 
 ---
 
@@ -28,7 +29,7 @@ grep "module.exports = {" -A 20 claude-code/index.js
 
 ---
 
-## ACTUALLY EXPORTED (8 functions)
+## ACTUALLY EXPORTED (10 functions)
 
 ✅ Functions that exist in claude-code/index.js:
 
@@ -40,12 +41,16 @@ grep "module.exports = {" -A 20 claude-code/index.js
 6. `openUrl(url, options)`
 7. `reloadTab(tabId, options)`
 8. `closeTab(tabId)`
+9. `getPageMetadata(tabId)` ✨ *Implemented in Phase 1.3 (Oct 27, 2025)*
+10. `captureScreenshot(tabId, options)` ✨ *Implemented in Phase 1.3 (Oct 27, 2025)*
 
 ---
 
-## PHANTOM APIs (16 functions)
+## PHANTOM APIs (14 functions)
 
 ❌ Functions called in tests but NOT in module.exports:
+
+**Note:** This was 16 phantoms on Oct 26. After Phase 1.3 implementation (Oct 27), `getPageMetadata` and `captureScreenshot` were implemented, reducing the count to 14.
 
 ### Test Orchestration (4 phantoms)
 
@@ -113,54 +118,27 @@ $ grep -n "getTestStatus" claude-code/index.js
 
 ---
 
-### Page Metadata Extraction (1 phantom)
+### ~~Page Metadata Extraction~~ ✅ IMPLEMENTED
 
-#### 5. getPageMetadata(tabId)
-**Test File:** tests/unit/page-metadata.test.js (60+ test cases!)
-**Expected Functionality:**
-- Extract page metadata from tab
-- Security-hardened to prevent credential leakage
-- Return {title, url, metaTags, description, ...}
-- Validate against sensitive data exposure
-
-**Impact:** HIGH - 60+ security tests suggest this was security-critical
-
-**Verification:**
-```bash
-$ grep -n "getPageMetadata" claude-code/index.js
-# NO RESULTS
-```
+~~#### 5. getPageMetadata(tabId)~~ → **Implemented in Phase 1.3 (Oct 27, 2025)**
+- See ACTUALLY EXPORTED section above
+- Commit: 0a367ae
+- Implementation: claude-code/index.js:213-256, extension/background.js:656-712
 
 ---
 
-### Screenshot Capture (1 phantom)
+### ~~Screenshot Capture~~ ✅ IMPLEMENTED
 
-#### 6. captureScreenshot(tabId, options)
-**Test File:** tests/unit/screenshot.test.js
-**Expected Functionality:**
-- Capture screenshot of tab
-- Support PNG and JPEG formats
-- Quality parameter for JPEG
-- Validate tabId and options
-
-**Test Evidence:**
-- Tests for format: 'png'
-- Tests for format: 'jpeg'
-- Tests for quality parameter
-- Tests for invalid formats
-- Tests for invalid tabIds
-
-**Verification:**
-```bash
-$ grep -n "captureScreenshot" claude-code/index.js
-# NO RESULTS
-```
+~~#### 6. captureScreenshot(tabId, options)~~ → **Implemented in Phase 1.3 (Oct 27, 2025)**
+- See ACTUALLY EXPORTED section above
+- Commit: 0a367ae
+- Implementation: claude-code/index.js:266-300, extension/background.js:721-765
 
 ---
 
 ### Service Worker Management (3 phantoms)
 
-#### 7. getServiceWorkerStatus()
+#### 5. getServiceWorkerStatus()
 **Test Files:** tests/integration/service-worker-api.test.js, service-worker-lifecycle.test.js
 **Expected Functionality:**
 - Check if service worker is active
@@ -175,7 +153,7 @@ $ grep -n "getServiceWorkerStatus" claude-code/index.js
 
 ---
 
-#### 8. wakeServiceWorker()
+#### 6. wakeServiceWorker()
 **Test File:** tests/integration/service-worker-lifecycle.test.js
 **Expected Functionality:**
 - Wake dormant service worker
@@ -190,7 +168,7 @@ $ grep -n "wakeServiceWorker" claude-code/index.js
 
 ---
 
-#### 9. captureServiceWorkerLogs()
+#### 7. captureServiceWorkerLogs()
 **Test File:** tests/integration/service-worker-api.test.js
 **Expected Functionality:**
 - Capture logs from service worker context
@@ -207,7 +185,7 @@ $ grep -n "captureServiceWorkerLogs" claude-code/index.js
 
 ### Extension Control (3 phantoms)
 
-#### 10. enableExtension(extensionId)
+#### 8. enableExtension(extensionId)
 **Test File:** tests/unit/extension-discovery-validation.test.js
 **Expected Functionality:**
 - Enable disabled extension
@@ -222,7 +200,7 @@ $ grep -n "^function enableExtension\|^const enableExtension" claude-code/index.
 
 ---
 
-#### 11. disableExtension(extensionId)
+#### 9. disableExtension(extensionId)
 **Test File:** tests/unit/extension-discovery-validation.test.js
 **Expected Functionality:**
 - Disable enabled extension
@@ -237,7 +215,7 @@ $ grep -n "disableExtension" claude-code/index.js
 
 ---
 
-#### 12. toggleExtension(extensionId)
+#### 10. toggleExtension(extensionId)
 **Expected Functionality:**
 - Toggle extension enabled/disabled state
 - Query current state and invert
@@ -253,7 +231,7 @@ $ grep -n "toggleExtension" claude-code/index.js
 
 ### External Logging (3 phantoms)
 
-#### 13. enableExternalLogging()
+#### 11. enableExternalLogging()
 **Expected Functionality:**
 - Enable logging to external system
 - Configure logging destinations
@@ -267,7 +245,7 @@ $ grep -n "enableExternalLogging" claude-code/index.js
 
 ---
 
-#### 14. disableExternalLogging()
+#### 12. disableExternalLogging()
 **Expected Functionality:**
 - Disable external logging
 - Stop sending logs externally
@@ -281,7 +259,7 @@ $ grep -n "disableExternalLogging" claude-code/index.js
 
 ---
 
-#### 15. getExternalLoggingStatus()
+#### 13. getExternalLoggingStatus()
 **Expected Functionality:**
 - Check if external logging is enabled
 - Return logging configuration
@@ -297,7 +275,7 @@ $ grep -n "getExternalLoggingStatus" claude-code/index.js
 
 ### Cleanup Verification (1 phantom)
 
-#### 16. verifyCleanup()
+#### 14. verifyCleanup()
 **Expected Functionality:**
 - Verify all resources cleaned up
 - Check for memory leaks
@@ -401,6 +379,7 @@ This preserves important security tests, documents intentions, and cleans up low
 
 ## CORRECTED STATISTICS
 
+### Oct 26, 2025 - Initial Audit
 **Previously Claimed:** 4-5 phantom APIs
 **Actually Found:** **16 phantom APIs**
 
@@ -412,10 +391,22 @@ This preserves important security tests, documents intentions, and cleans up low
 - COMPLETE-FUNCTIONALITY-MAP.md - Updated statistics
 - COMPLETE-FUNCTIONS-LIST-2025-10-26.md - Updated phantom count
 
+### Oct 27, 2025 - Phase 1.3 Implementation ✨
+**Previously Phantom:** 16 APIs
+**Implemented:** 2 APIs (getPageMetadata, captureScreenshot)
+**Currently Phantom:** **14 APIs**
+
+**Commit:** 0a367ae
+**Implementation:**
+- getPageMetadata: claude-code/index.js:213-256, background.js:656-712
+- captureScreenshot: claude-code/index.js:266-300, background.js:721-765
+
+**Impact:** 12.5% reduction in phantom APIs (16 → 14)
+
 ---
 
-**Date:** 2025-10-26
-**Status:** ✅ COMPLETE - All 16 phantom APIs identified
-**Verification:** Systematic grep of all test files + comparison with module.exports
+**Date:** 2025-10-26 (Original audit) | **Updated:** 2025-10-27 (Post Phase 1.3)
+**Status:** ✅ UPDATED - 14 phantom APIs remain
+**Verification:** Systematic grep + code verification + git history
 **User Challenge:** "4 or 5 phantom? maybe 6?" - Triggered complete recount
-**Actual Count:** **16 phantom APIs**
+**Initial Count:** 16 phantom APIs → **Current Count:** **14 phantom APIs**
