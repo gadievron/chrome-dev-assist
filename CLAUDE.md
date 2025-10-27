@@ -21,16 +21,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **What this is**: Automated Chrome extension testing tool with WebSocket-based communication between Node.js and Chrome extensions.
 
-**Current Status**: v1.0.0 - Core features working, 16 phantom APIs discovered during audit (tested but not implemented)
+**Current Status**: v1.0.0 - Core features working, 14 phantom APIs remain (was 16, Phase 1.3 implemented 2)
 
 ---
 
 ## ⚠️ Critical Information
 
-### 16 Phantom APIs (DO NOT USE)
-During comprehensive audit, **16 functions were discovered with tests but NO implementation**. These will fail:
+### 14 Phantom APIs (DO NOT USE)
+During comprehensive audit, **16 functions were discovered with tests but NO implementation**. Phase 1.3 implemented 2, leaving **14 phantoms**. These will fail:
 - `startTest()`, `endTest()`, `abortTest()`, `getTestStatus()`
-- `getPageMetadata()`, `captureScreenshot()`
+- ~~`getPageMetadata()`~~, ~~`captureScreenshot()`~~ ✅ Implemented Oct 27
 - `captureServiceWorkerLogs()`, `getServiceWorkerStatus()`, `wakeServiceWorker()`
 - `enableExtension()`, `disableExtension()`, `toggleExtension()`
 - `enableExternalLogging()`, `disableExternalLogging()`, `getExternalLoggingStatus()`
@@ -38,7 +38,7 @@ During comprehensive audit, **16 functions were discovered with tests but NO imp
 
 **See**: `PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md` for full analysis
 
-### 8 Actually Implemented Functions
+### 10 Actually Implemented Functions
 ```javascript
 // Extension management
 getAllExtensions()
@@ -53,6 +53,12 @@ captureLogs(duration)
 openUrl(url, options)
 reloadTab(tabId, options)
 closeTab(tabId)
+
+// DOM inspection (Phase 1.3)
+getPageMetadata(tabId)  ✨ NEW Oct 27
+
+// Screenshot capture (Phase 1.3)
+captureScreenshot(tabId, options)  ✨ NEW Oct 27
 ```
 
 ---

@@ -13,7 +13,7 @@ Programmatically reload Chrome extensions and capture console logs from your Nod
 - ✅ **Auto-Start Server** - No manual server management required
 - ✅ **Auto-Reconnect** - Resilient to server/extension restarts
 - ✅ **Self-Healing** - Automatically reloads itself after 60s of persistent connection loss (with safeguards)
-- ✅ **Simple API** - Eight functions (3 core MVP + 5 utilities): `reload()`, `reloadAndCapture()`, `captureLogs()`, `getAllExtensions()`, `getExtensionInfo()`, `openUrl()`, `reloadTab()`, `closeTab()`
+- ✅ **Simple API** - Ten functions (3 core MVP + 7 utilities): `reload()`, `reloadAndCapture()`, `captureLogs()`, `getAllExtensions()`, `getExtensionInfo()`, `openUrl()`, `reloadTab()`, `closeTab()`, `getPageMetadata()`, `captureScreenshot()`
 - ✅ **Type Validated** - Extension ID validation with clear error messages
 
 ---

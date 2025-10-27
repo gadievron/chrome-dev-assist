@@ -2,7 +2,7 @@
 
 **Fast lookup for architectural decisions, security documentation, and key implementation details.**
 
-⚠️ **CRITICAL UPDATE (2025-10-26):** 16 phantom APIs discovered - functions with tests but NO implementation. See [Phantom APIs](#-phantom-apis-warning) section below.
+⚠️ **CRITICAL UPDATE (2025-10-27):** 14 phantom APIs remain (was 16, Phase 1.3 implemented 2). See [Phantom APIs](#-phantom-apis-warning) section below.
 
 ---
 
