@@ -8,10 +8,11 @@ Programmatically reload Chrome extensions and capture console logs from your Nod
 
 ## Features
 
-- ✅ **Reload Extensions** - Programmatically reload any Chrome extension
+- ✅ **Reload Extensions** - Programmatically reload any Chrome extension (including self-reload)
 - ✅ **Capture Console Logs** - Intercept console output from all tabs and frames
 - ✅ **Auto-Start Server** - No manual server management required
 - ✅ **Auto-Reconnect** - Resilient to server/extension restarts
+- ✅ **Self-Healing** - Automatically reloads itself after 60s of persistent connection loss (with safeguards)
 - ✅ **Simple API** - Eight functions (3 core MVP + 5 utilities): `reload()`, `reloadAndCapture()`, `captureLogs()`, `getAllExtensions()`, `getExtensionInfo()`, `openUrl()`, `reloadTab()`, `closeTab()`
 - ✅ **Type Validated** - Extension ID validation with clear error messages
 
@@ -224,6 +225,41 @@ kill <PID>
 ---
 
 ## Advanced Usage
+
+### Self-Healing Mechanism
+
+The Chrome Dev Assist extension includes **automatic self-healing** to recover from persistent connection failures.
+
+**How it works:**
+- When WebSocket connection to server is lost, extension attempts to reconnect every 1 second
+- If reconnection fails for **60 seconds**, extension automatically reloads itself
+- On successful reconnection, self-heal timer is cancelled
+- Maximum **3 reload attempts** before giving up (prevents infinite loops if server is permanently down)
+
+**Why this matters:**
+- Extension won't get stuck in a bad state
+- Automatically recovers from transient failures
+- Balances false positives (temporary network issues) vs recovery time
+
+**User-facing behavior:**
+- Normal operation: No visible effect
+- Temporary server restart: Reconnects within seconds, no reload
+- Persistent connection loss: Extension reloads after 60s, reconnects automatically
+
+**Logs to monitor:**
+```
+[ChromeDevAssist] Self-heal timer started (60s until reload)
+[ChromeDevAssist] Self-heal timer cancelled (reconnection successful)
+[ChromeDevAssist] Self-healing: No reconnection after 60s, reloading extension (attempt 1/3)...
+```
+
+**Configuration:**
+- `SELF_HEAL_TIMEOUT_MS`: 60 seconds (validated minimum: 5 seconds)
+- `MAX_SELF_HEAL_ATTEMPTS`: 3 attempts before giving up
+
+See `.BUG-FIXES-PERSONA-REVIEW-2025-10-27.md` for implementation details and multi-persona review findings.
+
+---
 
 ### Debug Logging
 

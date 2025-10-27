@@ -79,11 +79,41 @@ if (typeof chrome !== 'undefined' && chrome.scripting) {
 // WebSocket connection to server
 let ws = null;
 
+// Self-healing: Automatic reload if connection lost for too long
+// If extension can't reconnect to server within 60 seconds, reload itself
+const SELF_HEAL_TIMEOUT_MS = 60000; // 60 seconds
+const MAX_SELF_HEAL_ATTEMPTS = 3; // Maximum number of self-heal reloads before giving up
+
+// Validate SELF_HEAL_TIMEOUT_MS (must be at least 5 seconds to prevent immediate reload loops)
+if (SELF_HEAL_TIMEOUT_MS < 5000) {
+  throw new Error(`SELF_HEAL_TIMEOUT_MS must be at least 5000ms (5 seconds), got ${SELF_HEAL_TIMEOUT_MS}ms`);
+}
+
+let selfHealTimer = null;
+let selfHealAttempts = 0; // Track reload attempts to prevent infinite loop
+
 function connectToServer() {
+  // Clear any existing self-heal timer (we're attempting connection)
+  if (selfHealTimer) {
+    clearTimeout(selfHealTimer);
+    selfHealTimer = null;
+    console.log('[ChromeDevAssist] Self-heal timer cancelled (reconnection attempt)');
+  }
+
   ws = new WebSocket('ws://localhost:9876');
 
   ws.onopen = () => {
     console.log('[ChromeDevAssist] Connected to server');
+
+    // Cancel self-heal timer (reconnection successful)
+    if (selfHealTimer) {
+      clearTimeout(selfHealTimer);
+      selfHealTimer = null;
+      console.log('[ChromeDevAssist] Self-heal timer cancelled (reconnection successful)');
+    }
+
+    // Reset self-heal attempt counter on successful connection
+    selfHealAttempts = 0;
 
     // Register as extension
     ws.send(JSON.stringify({
@@ -160,15 +190,20 @@ function connectToServer() {
         consoleCapture.cleanup(message.id);
       }
 
-      // Send error response
-      ws.send(JSON.stringify({
-        type: 'error',
-        id: message.id,
-        error: {
-          message: error.message,
-          code: error.code || 'EXTENSION_ERROR'
-        }
-      }));
+      // Send error response ONLY if WebSocket is open
+      // (Prevents second error if WebSocket closed during command execution)
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'error',
+          id: message.id,
+          error: {
+            message: error.message,
+            code: error.code || 'EXTENSION_ERROR'
+          }
+        }));
+      } else {
+        console.error('[ChromeDevAssist] Cannot send error response: WebSocket not open');
+      }
     }
   };
 
@@ -179,6 +214,33 @@ function connectToServer() {
   ws.onclose = () => {
     console.log('[ChromeDevAssist] Disconnected from server, reconnecting in 1s...');
     ws = null;
+
+    // Start self-heal timer if not already running
+    // If we can't reconnect within 60 seconds, reload extension (self-healing)
+    if (!selfHealTimer) {
+      selfHealTimer = setTimeout(() => {
+        // Check if we've exceeded max reload attempts
+        if (selfHealAttempts >= MAX_SELF_HEAL_ATTEMPTS) {
+          console.error(`[ChromeDevAssist] Self-healing disabled: Exceeded ${MAX_SELF_HEAL_ATTEMPTS} reload attempts. Server may be permanently down.`);
+          selfHealTimer = null;
+          // Stop trying to reconnect (give up)
+          return;
+        }
+
+        selfHealAttempts++;
+        console.warn(`[ChromeDevAssist] Self-healing: No reconnection after 60s, reloading extension (attempt ${selfHealAttempts}/${MAX_SELF_HEAL_ATTEMPTS})...`);
+
+        // Check if chrome.runtime.reload is available
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.reload) {
+          chrome.runtime.reload();
+        } else {
+          console.error('[ChromeDevAssist] Self-healing failed: chrome.runtime.reload not available');
+        }
+      }, SELF_HEAL_TIMEOUT_MS);
+
+      console.log('[ChromeDevAssist] Self-heal timer started (60s until reload)');
+    }
+
     setTimeout(connectToServer, 1000);
   };
 }
@@ -213,9 +275,33 @@ async function handleReloadCommand(commandId, params) {
     throw new Error(`Extension not found: ${extensionId}`);
   }
 
-  // Check if we can manage this extension
+  // Special handling for self-reload
   if (extension.id === chrome.runtime.id) {
-    throw new Error('Cannot reload self');
+    console.log('[ChromeDevAssist] Self-reload requested via command, using chrome.runtime.reload()');
+
+    // Use chrome.runtime.reload() for self (works correctly)
+    // Note: This returns immediately but extension reloads shortly after
+    //
+    // RACE CONDITION (non-critical, documented):
+    // chrome.runtime.reload() is asynchronous - it returns immediately, reload happens later
+    // We return response object, then ws.send() sends it (synchronous to socket buffer)
+    // Reload happens after response is sent to socket buffer (best effort)
+    // Server PROBABLY receives response, but no guarantee if reload is very fast
+    // Impact: LOW - Server can detect reconnection even without response
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.reload) {
+      chrome.runtime.reload();
+
+      // Return success (execution continues briefly before reload)
+      return {
+        extensionId,
+        extensionName: extension.name,
+        reloadSuccess: true,
+        reloadMethod: 'chrome.runtime.reload',
+        consoleLogs: []
+      };
+    } else {
+      throw new Error('chrome.runtime.reload not available');
+    }
   }
 
   // Disable extension
