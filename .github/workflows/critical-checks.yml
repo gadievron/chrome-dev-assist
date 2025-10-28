@@ -126,7 +126,9 @@ jobs:
           # Check 4: Unquoted variables
           echo ""
           echo "Check 4: Unquoted variables..."
-          if find . -name "*.sh" -type f -exec grep -Hn '\$[A-Z_][A-Z_0-9]*[^"\}]' {} \; 2>/dev/null | grep -v '^\s*#' | grep -v '=' | head -5; then
+          if find . -name "*.sh" -type f \
+            -exec grep -Hn '\$[A-Z_][A-Z_0-9]*[^"\}]' {} \; 2>/dev/null \
+            | grep -v '^\s*#' | grep -v '=' | head -5; then
             echo "⚠️  WARNING: Found potentially unquoted variables"
             echo "   Review: Ensure all \$VARS are quoted: \"\$VAR\""
             # Not failing on this, just warning
@@ -241,7 +243,9 @@ jobs:
           echo "Critical Security: ${{ needs.critical-security.result }}"
           echo ""
 
-          if [ "${{ needs.critical-lint.result }}" != "success" ] || [ "${{ needs.critical-security.result }}" != "success" ]; then
+          LINT="${{ needs.critical-lint.result }}"
+          SECURITY="${{ needs.critical-security.result }}"
+          if [ "$LINT" != "success" ] || [ "$SECURITY" != "success" ]; then
             echo "❌ PIPELINE FAILED"
             echo "========================================"
             exit 1
