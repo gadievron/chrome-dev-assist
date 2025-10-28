@@ -4,7 +4,7 @@ name: Critical Checks (Free)
 # Cost: $0 (uses GitHub Actions free tier)
 # Duration: ~3-5 minutes
 
-on:
+'on':
   push:
     branches: [main, master, develop]
   pull_request:
