@@ -3,7 +3,7 @@
  * This code will have access to the page's real console object
  */
 
-(function() {
+(function () {
   'use strict';
 
   // Only inject once
@@ -20,16 +20,18 @@
   const originalDebug = console.debug;
 
   function sendToExtension(level, args) {
-    let message = Array.from(args).map(arg => {
-      if (typeof arg === 'object') {
-        try {
-          return JSON.stringify(arg);
-        } catch (e) {
-          return String(arg);
+    let message = Array.from(args)
+      .map(arg => {
+        if (typeof arg === 'object') {
+          try {
+            return JSON.stringify(arg);
+          } catch (e) {
+            return String(arg);
+          }
         }
-      }
-      return String(arg);
-    }).join(' ');
+        return String(arg);
+      })
+      .join(' ');
 
     // Truncate very long messages at source to prevent memory exhaustion
     // and reduce data sent through CustomEvent bridge
@@ -39,38 +41,40 @@
     }
 
     // Dispatch event for content script to catch
-    window.dispatchEvent(new CustomEvent('chromeDevAssist:consoleLog', {
-      detail: {
-        level: level,
-        message: message,
-        timestamp: new Date().toISOString(),
-        source: 'page-main-world'
-      }
-    }));
+    window.dispatchEvent(
+      new CustomEvent('chromeDevAssist:consoleLog', {
+        detail: {
+          level: level,
+          message: message,
+          timestamp: new Date().toISOString(),
+          source: 'page-main-world',
+        },
+      })
+    );
   }
 
   // Wrap console methods
-  console.log = function() {
+  console.log = function () {
     originalLog.apply(console, arguments);
     sendToExtension('log', arguments);
   };
 
-  console.error = function() {
+  console.error = function () {
     originalError.apply(console, arguments);
     sendToExtension('error', arguments);
   };
 
-  console.warn = function() {
+  console.warn = function () {
     originalWarn.apply(console, arguments);
     sendToExtension('warn', arguments);
   };
 
-  console.info = function() {
+  console.info = function () {
     originalInfo.apply(console, arguments);
     sendToExtension('info', arguments);
   };
 
-  console.debug = function() {
+  console.debug = function () {
     originalDebug.apply(console, arguments);
     sendToExtension('debug', arguments);
   };

@@ -22,6 +22,7 @@ It's a bug where the system checks something ("Is capture registered?"), then ti
 ### Real-World Analogy
 
 Imagine you're delivering pizza:
+
 1. You check if customer is home (Time-Of-Check)
 2. You drive to customer's house (time passes)
 3. You knock on door (Time-Of-Use)
@@ -72,6 +73,7 @@ async function handleOpenUrlCommand(commandId, params) {
 ```
 
 **Why it fails:**
+
 - Tab creation is async (returns a Promise)
 - Page scripts run IMMEDIATELY after tab is created
 - Capture registration happens AFTER await resolves (50ms later)
@@ -100,9 +102,9 @@ async function handleOpenUrlCommand(commandId, params) {
     captureState.set(commandId, {
       logs: [],
       active: true,
-      tabId: null,  // Will be set after tab created
-      pendingTabUpdate: true,  // Flag for message handler
-      endTime: Date.now() + duration
+      tabId: null, // Will be set after tab created
+      pendingTabUpdate: true, // Flag for message handler
+      endTime: Date.now() + duration,
     });
   }
 
@@ -182,7 +184,7 @@ it('should capture messages from inline <head> scripts', async () => {
   const result = await handleOpenUrlCommand('cmd-1', {
     url,
     captureConsole: true,
-    duration: 1000
+    duration: 1000,
   });
 
   // Should capture the message
@@ -191,6 +193,7 @@ it('should capture messages from inline <head> scripts', async () => {
 ```
 
 **Why this test is critical:**
+
 - Inline <head> scripts execute at document_start (T+5ms)
 - This is the NARROWEST timing window
 - If this passes, all slower cases will also pass
@@ -224,14 +227,14 @@ it('should register capture BEFORE creating tab', async () => {
 it('should buffer messages that arrive before tab.id is set', async () => {
   // Simulate slow tab creation
   chrome.tabs.create.mockImplementation(async () => {
-    await sleep(50);  // Delay
+    await sleep(50); // Delay
     return { id: 123 };
   });
 
   const resultPromise = handleOpenUrlCommand('cmd-1', {
     url: 'test.html',
     captureConsole: true,
-    duration: 200
+    duration: 200,
   });
 
   // Send message DURING tab creation (before tab.id known)
@@ -254,11 +257,12 @@ it('should buffer messages that arrive before tab.id is set', async () => {
 
 ```javascript
 // ANTIPATTERN: Action → Setup
-const resource = await createResource();  // ← Resource generates events
-await setupHandler(resource.id);         // ← Handler registered AFTER events sent
+const resource = await createResource(); // ← Resource generates events
+await setupHandler(resource.id); // ← Handler registered AFTER events sent
 ```
 
 **Red Flags:**
+
 1. Async resource creation (returns Promise)
 2. Handler/listener registered AFTER resource created
 3. No buffer mechanism for early events
@@ -293,6 +297,7 @@ await setupHandler(resource.id);         // ← Handler registered AFTER events 
 ## Current Status
 
 ### What's Fixed
+
 ✅ Pre-registration pattern implemented
 ✅ Global message buffer added
 ✅ Immediate tab.id update after creation
@@ -300,16 +305,19 @@ await setupHandler(resource.id);         // ← Handler registered AFTER events 
 ✅ Pending state detection in message handler
 
 ### What's Not Working
+
 ❌ Still only capturing 1 message (inject script initialization)
 ❌ Page console messages not being captured
 
 ### Possible Issues
+
 1. Content-script not loaded on page
 2. CustomEvents not being dispatched from inject script
 3. Messages not reaching background.js
 4. Inject script running AFTER page scripts (still a timing issue)
 
 ### Next Investigation Steps
+
 1. Check extension service worker console for DEBUG messages
 2. Verify content-script loaded ("DEBUG CONTENT Content script loaded")
 3. Verify inject script dispatching ("DEBUG INJECT Dispatching console event")

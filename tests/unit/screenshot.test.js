@@ -13,7 +13,9 @@ describe('Screenshot Capture', () => {
 
   beforeAll(async () => {
     // Open a test page
-    const result = await chromeDevAssist.openUrl('http://localhost:9876/fixtures/test-page-simple.html');
+    const result = await chromeDevAssist.openUrl(
+      'http://localhost:9876/fixtures/test-page-simple.html'
+    );
     testTabId = result.tabId;
 
     // Wait for page to load
@@ -85,9 +87,9 @@ describe('Screenshot Capture', () => {
     });
 
     it('should reject invalid format', async () => {
-      await expect(
-        chromeDevAssist.captureScreenshot(testTabId, { format: 'gif' })
-      ).rejects.toThrow(/format must be "png" or "jpeg"/i);
+      await expect(chromeDevAssist.captureScreenshot(testTabId, { format: 'gif' })).rejects.toThrow(
+        /format must be "png" or "jpeg"/i
+      );
     });
   });
 
@@ -95,7 +97,7 @@ describe('Screenshot Capture', () => {
     it('should accept quality parameter for JPEG', async () => {
       const result = await chromeDevAssist.captureScreenshot(testTabId, {
         format: 'jpeg',
-        quality: 80
+        quality: 80,
       });
 
       expect(result.format).toBe('jpeg');
@@ -112,7 +114,7 @@ describe('Screenshot Capture', () => {
       await expect(
         chromeDevAssist.captureScreenshot(testTabId, {
           format: 'jpeg',
-          quality: -10
+          quality: -10,
         })
       ).rejects.toThrow(/quality must be between 0 and 100/i);
     });
@@ -121,7 +123,7 @@ describe('Screenshot Capture', () => {
       await expect(
         chromeDevAssist.captureScreenshot(testTabId, {
           format: 'jpeg',
-          quality: 150
+          quality: 150,
         })
       ).rejects.toThrow(/quality must be between 0 and 100/i);
     });
@@ -129,7 +131,7 @@ describe('Screenshot Capture', () => {
     it('should ignore quality parameter for PNG', async () => {
       const result = await chromeDevAssist.captureScreenshot(testTabId, {
         format: 'png',
-        quality: 50
+        quality: 50,
       });
 
       expect(result.format).toBe('png');
@@ -139,42 +141,40 @@ describe('Screenshot Capture', () => {
 
   describe('Validation', () => {
     it('should reject invalid tab ID (non-number)', async () => {
-      await expect(
-        chromeDevAssist.captureScreenshot('not-a-number')
-      ).rejects.toThrow(/tab id must be a number/i);
+      await expect(chromeDevAssist.captureScreenshot('not-a-number')).rejects.toThrow(
+        /tab id must be a number/i
+      );
     });
 
     it('should reject invalid tab ID (negative)', async () => {
-      await expect(
-        chromeDevAssist.captureScreenshot(-1)
-      ).rejects.toThrow(/tab id must be a positive number/i);
+      await expect(chromeDevAssist.captureScreenshot(-1)).rejects.toThrow(
+        /tab id must be a positive number/i
+      );
     });
 
     it('should reject invalid tab ID (non-existent)', async () => {
-      await expect(
-        chromeDevAssist.captureScreenshot(999999)
-      ).rejects.toThrow(/tab not found|no tab with id/i);
+      await expect(chromeDevAssist.captureScreenshot(999999)).rejects.toThrow(
+        /tab not found|no tab with id/i
+      );
     });
 
     it('should reject null tab ID', async () => {
-      await expect(
-        chromeDevAssist.captureScreenshot(null)
-      ).rejects.toThrow(/tab id must be a number/i);
+      await expect(chromeDevAssist.captureScreenshot(null)).rejects.toThrow(
+        /tab id must be a number/i
+      );
     });
 
     it('should reject undefined tab ID', async () => {
-      await expect(
-        chromeDevAssist.captureScreenshot(undefined)
-      ).rejects.toThrow(/tab id must be a number/i);
+      await expect(chromeDevAssist.captureScreenshot(undefined)).rejects.toThrow(
+        /tab id must be a number/i
+      );
     });
   });
 
   describe('Error Handling', () => {
     it('should handle extension disconnection gracefully', async () => {
       // This will timeout if extension not connected
-      await expect(
-        chromeDevAssist.captureScreenshot(testTabId)
-      ).resolves.toBeDefined();
+      await expect(chromeDevAssist.captureScreenshot(testTabId)).resolves.toBeDefined();
     });
 
     it('should provide clear error message for invalid options', async () => {
@@ -196,7 +196,9 @@ describe('Screenshot Capture', () => {
 
     it('should capture screenshots of different tabs', async () => {
       // Open second tab
-      const result2 = await chromeDevAssist.openUrl('http://localhost:9876/fixtures/test-page-simple.html');
+      const result2 = await chromeDevAssist.openUrl(
+        'http://localhost:9876/fixtures/test-page-simple.html'
+      );
       const testTabId2 = result2.tabId;
 
       try {
@@ -222,7 +224,7 @@ describe('Screenshot Capture', () => {
 
       // Navigate to different page
       await chromeDevAssist.openUrl('http://localhost:9876/fixtures/error-page.html', {
-        tabId: testTabId
+        tabId: testTabId,
       });
       await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -240,7 +242,9 @@ describe('Screenshot Capture', () => {
 
       await chromeDevAssist.startTest(testId, { autoCleanup: true });
 
-      const tabResult = await chromeDevAssist.openUrl('http://localhost:9876/fixtures/test-page-simple.html');
+      const tabResult = await chromeDevAssist.openUrl(
+        'http://localhost:9876/fixtures/test-page-simple.html'
+      );
       await new Promise(resolve => setTimeout(resolve, 500));
 
       const screenshot = await chromeDevAssist.captureScreenshot(tabResult.tabId);
@@ -253,7 +257,7 @@ describe('Screenshot Capture', () => {
       // Verify tab was cleaned up
       const cleanup = await chromeDevAssist.verifyCleanup({
         expectedClosed: [tabResult.tabId],
-        autoClose: true
+        autoClose: true,
       });
 
       expect(cleanup.allClosed).toBe(true);

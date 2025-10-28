@@ -10,22 +10,22 @@
 
 ### Verified Features in ConsoleCapture.js
 
-| Feature | Inline (background.js) | ConsoleCapture.js | Status |
-|---------|------------------------|-------------------|--------|
-| Start capture | Manual state creation | `start(captureId, options)` | ✅ SUPPORTED |
-| Tab-specific capture | tabId in state | `options.tabId` | ✅ SUPPORTED |
-| Global capture (all tabs) | tabId: null | `options.tabId = null` | ✅ SUPPORTED (line 119-123) |
-| 10K log limit | MAX_LOGS_PER_CAPTURE | `options.maxLogs` (default 10000) | ✅ SUPPORTED |
-| Auto-stop timeout | setTimeout in handler | Built-in (line 66-71) | ✅ SUPPORTED |
-| Dual-index Maps | captureState + capturesByTab | this.captures + this.capturesByTab | ✅ SUPPORTED |
-| O(1) tab lookup | capturesByTab.get(tabId) | this.capturesByTab.get(tabId) | ✅ SUPPORTED |
-| Add logs | Manual array push | `addLog(tabId, logEntry)` | ✅ SUPPORTED |
-| Limit enforcement | if/else check | Built-in (line 131-145) | ✅ SUPPORTED |
-| Warning at limit | Manual log push | Built-in (line 136-142) | ✅ SUPPORTED |
-| Get logs | Direct array access | `getLogs(captureId)` | ✅ SUPPORTED (returns copy) |
-| Stop capture | Set active = false | `stop(captureId)` | ✅ SUPPORTED |
-| Cleanup capture | Manual deletion | `cleanup(captureId)` | ✅ SUPPORTED |
-| Stale cleanup | setInterval + manual | `cleanupStale(thresholdMs)` | ✅ SUPPORTED |
+| Feature                   | Inline (background.js)       | ConsoleCapture.js                  | Status                      |
+| ------------------------- | ---------------------------- | ---------------------------------- | --------------------------- |
+| Start capture             | Manual state creation        | `start(captureId, options)`        | ✅ SUPPORTED                |
+| Tab-specific capture      | tabId in state               | `options.tabId`                    | ✅ SUPPORTED                |
+| Global capture (all tabs) | tabId: null                  | `options.tabId = null`             | ✅ SUPPORTED (line 119-123) |
+| 10K log limit             | MAX_LOGS_PER_CAPTURE         | `options.maxLogs` (default 10000)  | ✅ SUPPORTED                |
+| Auto-stop timeout         | setTimeout in handler        | Built-in (line 66-71)              | ✅ SUPPORTED                |
+| Dual-index Maps           | captureState + capturesByTab | this.captures + this.capturesByTab | ✅ SUPPORTED                |
+| O(1) tab lookup           | capturesByTab.get(tabId)     | this.capturesByTab.get(tabId)      | ✅ SUPPORTED                |
+| Add logs                  | Manual array push            | `addLog(tabId, logEntry)`          | ✅ SUPPORTED                |
+| Limit enforcement         | if/else check                | Built-in (line 131-145)            | ✅ SUPPORTED                |
+| Warning at limit          | Manual log push              | Built-in (line 136-142)            | ✅ SUPPORTED                |
+| Get logs                  | Direct array access          | `getLogs(captureId)`               | ✅ SUPPORTED (returns copy) |
+| Stop capture              | Set active = false           | `stop(captureId)`                  | ✅ SUPPORTED                |
+| Cleanup capture           | Manual deletion              | `cleanup(captureId)`               | ✅ SUPPORTED                |
+| Stale cleanup             | setInterval + manual         | `cleanupStale(thresholdMs)`        | ✅ SUPPORTED                |
 
 **Conclusion:** ConsoleCapture.js has 100% feature parity. Ready to integrate.
 
@@ -36,12 +36,14 @@
 ### Current Inline Implementation in background.js
 
 **Data Structures (REMOVE after refactoring):**
+
 ```
 Line 10-12: const captureState = new Map();
             const capturesByTab = new Map();
 ```
 
 **Constants (KEEP - used for configuration):**
+
 ```
 Line 14-17: MAX_LOGS_PER_CAPTURE = 10000
             MAX_MESSAGE_LENGTH = 10000
@@ -50,11 +52,13 @@ Line 14-17: MAX_LOGS_PER_CAPTURE = 10000
 ```
 
 **Periodic Cleanup (REFACTOR):**
+
 ```
 Line 22-37: setInterval(() => { ... }, CLEANUP_INTERVAL_MS)
 ```
 
 **Message Handler (REFACTOR):**
+
 ```
 Line 687-744: chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 if (message.type === 'console-log') {
@@ -64,11 +68,13 @@ Line 687-744: chrome.runtime.onMessage.addListener((message, sender, sendRespons
 ```
 
 **Capture Start Logic (REFACTOR - multiple locations):**
+
 ```
 Approximate line 620-650: Function that creates capture state
 ```
 
 **Capture Stop/Get Logic (REFACTOR - multiple locations):**
+
 ```
 Various command handlers that access captureState
 ```
@@ -80,13 +86,15 @@ Various command handlers that access captureState
 ### Mapping 1: Data Structures
 
 **BEFORE (inline):**
+
 ```javascript
 // background.js:10-12
-const captureState = new Map();       // Map<commandId, state>
-const capturesByTab = new Map();      // Map<tabId, Set<commandId>>
+const captureState = new Map(); // Map<commandId, state>
+const capturesByTab = new Map(); // Map<tabId, Set<commandId>>
 ```
 
 **AFTER (using class):**
+
 ```javascript
 // background.js:10-15 (NEW)
 const ConsoleCapture = require('./modules/ConsoleCapture');
@@ -102,6 +110,7 @@ const consoleCapture = new ConsoleCapture();
 ### Mapping 2: Periodic Cleanup
 
 **BEFORE (inline):**
+
 ```javascript
 // background.js:22-37
 setInterval(() => {
@@ -128,6 +137,7 @@ setInterval(() => {
 ```
 
 **AFTER (using class):**
+
 ```javascript
 // background.js:22-24 (SIMPLIFIED)
 setInterval(() => {
@@ -142,6 +152,7 @@ setInterval(() => {
 ### Mapping 3: Start Capture
 
 **BEFORE (inline - approximate location):**
+
 ```javascript
 // background.js:~620-650
 function startConsoleCapture(commandId, options) {
@@ -150,7 +161,7 @@ function startConsoleCapture(commandId, options) {
     active: true,
     tabId: options.tabId || null,
     endTime: null,
-    timeout: null
+    timeout: null,
   };
 
   captureState.set(commandId, state);
@@ -176,13 +187,14 @@ function startConsoleCapture(commandId, options) {
 ```
 
 **AFTER (using class):**
+
 ```javascript
 // background.js:~620-625 (SIMPLIFIED)
 function startConsoleCapture(commandId, options) {
   consoleCapture.start(commandId, {
     tabId: options.tabId || null,
     duration: options.duration,
-    maxLogs: MAX_LOGS_PER_CAPTURE
+    maxLogs: MAX_LOGS_PER_CAPTURE,
   });
 }
 ```
@@ -194,6 +206,7 @@ function startConsoleCapture(commandId, options) {
 ### Mapping 4: Add Log (Message Handler)
 
 **BEFORE (inline):**
+
 ```javascript
 // background.js:687-744
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -219,10 +232,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // Truncate message (defense-in-depth)
     let truncatedMessage = message.message;
-    if (typeof message.message === 'string' &&
-        message.message.length > MAX_MESSAGE_LENGTH) {
-      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) +
-                         '... [truncated]';
+    if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_LENGTH) {
+      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) + '... [truncated]';
     }
 
     // Build log entry
@@ -233,7 +244,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       source: message.source || 'unknown',
       url: sender.url || 'unknown',
       tabId: sender.tab.id,
-      frameId: sender.frameId
+      frameId: sender.frameId,
     };
 
     // Add to relevant captures
@@ -249,7 +260,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           message: `[ChromeDevAssist] Log limit reached (${MAX_LOGS_PER_CAPTURE}). Further logs will be dropped.`,
           timestamp: new Date().toISOString(),
           source: 'chrome-dev-assist',
-          tabId: logEntry.tabId
+          tabId: logEntry.tabId,
         });
       }
     }
@@ -259,16 +270,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ```
 
 **AFTER (using class):**
+
 ```javascript
 // background.js:687-720 (SIMPLIFIED)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'console-log') {
     // Truncate message (keep defense-in-depth)
     let truncatedMessage = message.message;
-    if (typeof message.message === 'string' &&
-        message.message.length > MAX_MESSAGE_LENGTH) {
-      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) +
-                         '... [truncated]';
+    if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_LENGTH) {
+      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) + '... [truncated]';
     }
 
     // Build log entry
@@ -279,7 +289,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       source: message.source || 'unknown',
       url: sender.url || 'unknown',
       tabId: sender.tab.id,
-      frameId: sender.frameId
+      frameId: sender.frameId,
     };
 
     // Delegate to ConsoleCapture
@@ -296,20 +306,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ### Mapping 5: Get Logs
 
 **BEFORE (inline):**
+
 ```javascript
 // In command handler (approximate location)
 function getConsoleLogs(commandId) {
   const state = captureState.get(commandId);
   if (!state) return [];
-  return state.logs;  // Returns reference (mutable)
+  return state.logs; // Returns reference (mutable)
 }
 ```
 
 **AFTER (using class):**
+
 ```javascript
 // In command handler
 function getConsoleLogs(commandId) {
-  return consoleCapture.getLogs(commandId);  // Returns copy (immutable)
+  return consoleCapture.getLogs(commandId); // Returns copy (immutable)
 }
 ```
 
@@ -320,6 +332,7 @@ function getConsoleLogs(commandId) {
 ### Mapping 6: Stop Capture
 
 **BEFORE (inline):**
+
 ```javascript
 // In command handler (approximate location)
 function stopConsoleCapture(commandId) {
@@ -337,6 +350,7 @@ function stopConsoleCapture(commandId) {
 ```
 
 **AFTER (using class):**
+
 ```javascript
 // In command handler
 function stopConsoleCapture(commandId) {
@@ -351,6 +365,7 @@ function stopConsoleCapture(commandId) {
 ### Mapping 7: Cleanup Capture (Optional - may not exist in current code)
 
 **NEW (using class):**
+
 ```javascript
 // Optional: Add cleanup method if needed
 function cleanupConsoleCapture(commandId) {
@@ -364,15 +379,15 @@ function cleanupConsoleCapture(commandId) {
 
 ### Lines of Code Reduction
 
-| Section | Before | After | Saved |
-|---------|--------|-------|-------|
-| Data structures | 2 | 2 (import + instantiate) | 0 |
-| Periodic cleanup | ~15 | 3 | ~12 |
-| Start capture | ~30 | 6 | ~24 |
-| Message handler (add log) | ~57 | ~25 | ~32 |
-| Get logs | ~5 | 1 | ~4 |
-| Stop capture | ~10 | 1 | ~9 |
-| **TOTAL** | **~119** | **~38** | **~81 lines** |
+| Section                   | Before   | After                    | Saved         |
+| ------------------------- | -------- | ------------------------ | ------------- |
+| Data structures           | 2        | 2 (import + instantiate) | 0             |
+| Periodic cleanup          | ~15      | 3                        | ~12           |
+| Start capture             | ~30      | 6                        | ~24           |
+| Message handler (add log) | ~57      | ~25                      | ~32           |
+| Get logs                  | ~5       | 1                        | ~4            |
+| Stop capture              | ~10      | 1                        | ~9            |
+| **TOTAL**                 | **~119** | **~38**                  | **~81 lines** |
 
 **Result:** Remove ~81 lines of inline logic from background.js
 
@@ -401,13 +416,16 @@ function cleanupConsoleCapture(commandId) {
 ### File 1: extension/background.js
 
 **Changes:**
+
 1. **Add import** (top of file, after other requires):
+
    ```javascript
    const ConsoleCapture = require('./modules/ConsoleCapture');
    const consoleCapture = new ConsoleCapture();
    ```
 
 2. **Remove data structures** (line 10-12):
+
    ```javascript
    // DELETE:
    // const captureState = new Map();
@@ -438,6 +456,7 @@ function cleanupConsoleCapture(commandId) {
 **Changes:** NONE (already complete)
 
 **Verification needed:** Check if global captures (tabId: null) work
+
 - Line 119-123: Code exists for global captures ✅
 - Should work as-is
 
@@ -446,22 +465,15 @@ function cleanupConsoleCapture(commandId) {
 ## Next Steps
 
 **Before implementation:**
+
 1. ✅ Read background.js to find exact line numbers for each section
 2. ✅ Write tests FIRST (unit tests for ConsoleCapture, integration tests for background.js)
 3. ✅ Create HTML test fixtures
 4. ✅ Run existing tests to establish baseline
 
-**Implementation:**
-5. Make surgical changes (one section at a time)
-6. Run tests after each change
-7. Validate continuously
+**Implementation:** 5. Make surgical changes (one section at a time) 6. Run tests after each change 7. Validate continuously
 
-**Validation:**
-8. Run all tests
-9. Manual testing with extension
-10. /validate command
-11. /review command
-12. Self-check: "Was I careful?"
+**Validation:** 8. Run all tests 9. Manual testing with extension 10. /validate command 11. /review command 12. Self-check: "Was I careful?"
 
 ---
 

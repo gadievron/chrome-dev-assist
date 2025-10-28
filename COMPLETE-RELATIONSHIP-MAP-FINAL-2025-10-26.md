@@ -26,21 +26,24 @@ const HealthManager = require('../src/health/health-manager');
 ### 1. claude-code/index.js (350 lines)
 
 #### Imports (Dependencies)
+
 ```javascript
-const WebSocket = require('ws');                    // Line 6
-const { spawn } = require('child_process');         // Line 7
-const path = require('path');                       // Line 8
-const crypto = require('crypto');                   // Line 9
+const WebSocket = require('ws'); // Line 6
+const { spawn } = require('child_process'); // Line 7
+const path = require('path'); // Line 8
+const crypto = require('crypto'); // Line 9
 ```
 
 #### Constants Defined
+
 ```javascript
-const DEFAULT_DURATION = 5000;                      // Line 12
-const DEFAULT_TIMEOUT = 30000;                      // Line 13
-const EXTENSION_ID_LENGTH = 32;                     // Line 14
+const DEFAULT_DURATION = 5000; // Line 12
+const DEFAULT_TIMEOUT = 30000; // Line 13
+const EXTENSION_ID_LENGTH = 32; // Line 14
 ```
 
 #### Functions Defined (12 total)
+
 1. `reloadAndCapture(extensionId, options)` - Line 23
 2. `reload(extensionId)` - Line 44
 3. `captureLogs(duration)` - Line 64
@@ -57,6 +60,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 #### Complete Function Call Graph
 
 **reloadAndCapture(extensionId, options)** [Line 23]
+
 ```
 → validateExtensionId(extensionId)              [Line 24]
 → generateCommandId()                           [Line 27]
@@ -64,6 +68,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **reload(extensionId)** [Line 44]
+
 ```
 → validateExtensionId(extensionId)              [Line 45]
 → generateCommandId()                           [Line 48]
@@ -71,6 +76,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **captureLogs(duration)** [Line 64]
+
 ```
 → throw new Error(...)                          [Line 66]
 → generateCommandId()                           [Line 70]
@@ -78,12 +84,14 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **getAllExtensions()** [Line 84]
+
 ```
 → generateCommandId()                           [Line 86]
 → sendCommand(command)                          [Line 91]
 ```
 
 **getExtensionInfo(extensionId)** [Line 99]
+
 ```
 → validateExtensionId(extensionId)              [Line 100]
 → generateCommandId()                           [Line 103]
@@ -91,6 +99,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **openUrl(url, options)** [Line 121]
+
 ```
 → throw new Error('url is required')            [Line 123]
 → throw new Error('url must be a string')       [Line 127]
@@ -101,6 +110,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **reloadTab(tabId, options)** [Line 161]
+
 ```
 → throw new Error('tabId is required')          [Line 163]
 → throw new Error('tabId must be a positive number') [Line 167]
@@ -109,6 +119,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **closeTab(tabId)** [Line 189]
+
 ```
 → throw new Error('tabId is required')          [Line 191]
 → throw new Error('tabId must be a positive number') [Line 195]
@@ -117,6 +128,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **sendCommand(command)** [Line 212] - CRITICAL - Complex nested calls
+
 ```
 → new Promise((resolve, reject) => {...})       [Line 213]
   → attemptConnection()                         [Line 272]
@@ -147,6 +159,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **startServer()** [Line 280]
+
 ```
 → new Promise((resolve, reject) => {...})       [Line 281]
 → path.join(__dirname, '../server/websocket-server.js') [Line 282]
@@ -168,6 +181,7 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **validateExtensionId(extensionId)** [Line 313]
+
 ```
 → throw new Error('extensionId is required')    [Line 315]
 → throw new Error('extensionId must be a string') [Line 319]
@@ -177,14 +191,17 @@ const EXTENSION_ID_LENGTH = 32;                     // Line 14
 ```
 
 **generateCommandId()** [Line 336]
+
 ```
 → crypto.randomUUID()                           [Line 337]
 → return `cmd-${...}`                           [Line 337]
 ```
 
 #### Exports
+
 ```javascript
-module.exports = {                              // Line 341-350
+module.exports = {
+  // Line 341-350
   reloadAndCapture,
   reload,
   captureLogs,
@@ -192,11 +209,12 @@ module.exports = {                              // Line 341-350
   getExtensionInfo,
   openUrl,
   reloadTab,
-  closeTab
+  closeTab,
 };
 ```
 
 **NOT Exported** (private):
+
 - sendCommand()
 - startServer()
 - validateExtensionId()
@@ -207,27 +225,30 @@ module.exports = {                              // Line 341-350
 ### 2. server/websocket-server.js (583 lines)
 
 #### Imports (Dependencies)
+
 ```javascript
-const http = require('http');                   // Line 26
-const fs = require('fs');                       // Line 27
-const path = require('path');                   // Line 28
-const crypto = require('crypto');               // Line 29
-const WebSocket = require('ws');                // Line 30
-const HealthManager = require('../src/health/health-manager');  // Line 31 - UNUSED!
+const http = require('http'); // Line 26
+const fs = require('fs'); // Line 27
+const path = require('path'); // Line 28
+const crypto = require('crypto'); // Line 29
+const WebSocket = require('ws'); // Line 30
+const HealthManager = require('../src/health/health-manager'); // Line 31 - UNUSED!
 ```
 
 #### Constants Defined
+
 ```javascript
-const PORT = 9876;                              // Line 33
-const HOST = '127.0.0.1';                       // Line 34
-const DEBUG = process.env.DEBUG === 'true';     // Line 35
+const PORT = 9876; // Line 33
+const HOST = '127.0.0.1'; // Line 34
+const DEBUG = process.env.DEBUG === 'true'; // Line 35
 const FIXTURES_PATH = path.join(__dirname, '../tests/fixtures'); // Line 38
-const PID_FILE = path.join(__dirname, '../.server-pid');        // Line 42
-const AUTH_TOKEN = crypto.randomBytes(32).toString('hex');      // Line 115
-const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
+const PID_FILE = path.join(__dirname, '../.server-pid'); // Line 42
+const AUTH_TOKEN = crypto.randomBytes(32).toString('hex'); // Line 115
+const TOKEN_FILE = path.join(__dirname, '../.auth-token'); // Line 116
 ```
 
 #### Functions Defined (8 total)
+
 1. `ensureSingleInstance()` - Line 48
 2. `log(message, data)` - Line 133
 3. `logError(message, error)` - Line 139
@@ -240,6 +261,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 #### Complete Function Call Graph
 
 **ensureSingleInstance()** [Line 48]
+
 ```
 → fs.existsSync(PID_FILE)                       [Line 49]
 → fs.readFileSync(PID_FILE, 'utf8')             [Line 51]
@@ -251,12 +273,14 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 **log(message, data)** [Line 133]
+
 ```
 → if (DEBUG):
     → console.log(`[WebSocketServer] ${message}`, data || '') [Line 135]
 ```
 
 **logError(message, error)** [Line 139]
+
 ```
 → console.error(`[WebSocketServer ERROR] ${message}`, {
     message: error?.message,
@@ -265,6 +289,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 **handleHttpRequest(req, res)** [Line 152]
+
 ```
 → new URL(req.url, `http://localhost:${PORT}`)  [Line 156]
 → url.searchParams.get('token')                 [Line 159]
@@ -281,6 +306,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 **handleRegister(ws, message)** [Line 427]
+
 ```
 → log('Client registered', {                    [Line 428]
     client: message.client,
@@ -295,6 +321,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 **handleCommand(ws, message)** [Line 450]
+
 ```
 → log('Routing command to extension', {         [Line 451]
     id: message.id,
@@ -314,6 +341,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 **handleResponse(ws, message)** [Line 505]
+
 ```
 → log('Routing response to API', {id: message.id}) [Line 506]
 → apiSocket = pendingCommands.get(message.id)   [Line 510]
@@ -329,6 +357,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 **cleanup()** [Line 540]
+
 ```
 → console.log('[WebSocketServer] Shutting down...') [Line 541]
 → if (extensionSocket):
@@ -342,6 +371,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 #### Server Initialization
+
 ```javascript
 // Line 92-110: WebSocket server setup
 → http.createServer(handleHttpRequest)          [Line 92]
@@ -383,6 +413,7 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ```
 
 #### Process Signal Handlers
+
 ```javascript
 → process.on('SIGINT', cleanup)                 [Line 569]
 → process.on('SIGTERM', cleanup)                [Line 570]
@@ -393,15 +424,17 @@ const TOKEN_FILE = path.join(__dirname, '../.auth-token');      // Line 116
 ### 3. extension/background.js (~900 lines)
 
 #### Constants Defined
+
 ```javascript
-const captureState = new Map();                 // Line 8
-const capturesByTab = new Map();                // Line 12
-const MAX_LOGS_PER_CAPTURE = 10000;             // Line 15
-const CLEANUP_INTERVAL_MS = 60000;              // Line 16
-const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
+const captureState = new Map(); // Line 8
+const capturesByTab = new Map(); // Line 12
+const MAX_LOGS_PER_CAPTURE = 10000; // Line 15
+const CLEANUP_INTERVAL_MS = 60000; // Line 16
+const MAX_CAPTURE_AGE_MS = 300000; // Line 17
 ```
 
 #### Functions Defined (13 total)
+
 1. `registerConsoleCaptureScript()` - Line 44
 2. `connectToServer()` - Line 93
 3. `handleReloadCommand(commandId, params)` - Line 206
@@ -417,12 +450,14 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 13. `sleep(ms)` - Line 758
 
 #### Callbacks/Listeners (2 total)
+
 1. `setInterval` cleanup callback - Line 22
 2. `chrome.runtime.onMessage` listener - Line 669
 
 #### Complete Function Call Graph
 
 **registerConsoleCaptureScript()** [Line 44]
+
 ```
 → chrome.scripting.getRegisteredContentScripts() [Line 47]
 → registered.some(script => script.id === 'console-capture') [Line 48]
@@ -442,6 +477,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **connectToServer()** [Line 93]
+
 ```
 → new WebSocket('ws://localhost:9876')          [Line 94]
 → ws.onopen = () => {
@@ -485,6 +521,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **handleReloadCommand(commandId, params)** [Line 206]
+
 ```
 → const {extensionId, captureConsole, duration} = params [Line 207]
 → if (!extensionId): throw new Error(...)       [Line 210]
@@ -507,6 +544,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **handleCaptureCommand(commandId, params)** [Line 271]
+
 ```
 → const {duration = 5000} = params              [Line 272]
 → console.log(...)                              [Line 274]
@@ -516,6 +554,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **handleGetAllExtensionsCommand(commandId, params)** [Line 291]
+
 ```
 → console.log(...)                              [Line 292]
 → chrome.management.getAll()                    [Line 294]
@@ -525,6 +564,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **handleGetExtensionInfoCommand(commandId, params)** [Line 318]
+
 ```
 → const {extensionId} = params                  [Line 319]
 → if (!extensionId): throw new Error(...)       [Line 322]
@@ -535,6 +575,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **handleOpenUrlCommand(commandId, params)** [Line 354] - MOST COMPLEX
+
 ```
 → const safeStringify = (obj) => {              [Line 356-371]
     → try:
@@ -595,6 +636,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **handleReloadTabCommand(commandId, params)** [Line 513]
+
 ```
 → const {tabId, bypassCache, captureConsole, duration} = params [Line 514]
 → if (tabId === undefined): throw new Error(...) [Line 517]
@@ -609,6 +651,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **handleCloseTabCommand(commandId, params)** [Line 549]
+
 ```
 → const {tabId} = params                        [Line 550]
 → if (tabId === undefined): throw new Error(...) [Line 553]
@@ -618,6 +661,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **startConsoleCapture(commandId, duration, tabId)** [Line 575]
+
 ```
 → captureState.set(commandId, {                 [Line 577-582]
     logs: [],
@@ -641,6 +685,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **cleanupCapture(commandId)** [Line 616]
+
 ```
 → const state = captureState.get(commandId)     [Line 617]
 → if (!state): return                           [Line 618]
@@ -657,6 +702,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **getCommandLogs(commandId)** [Line 647]
+
 ```
 → const state = captureState.get(commandId)     [Line 648]
 → if (!state): return []                        [Line 649]
@@ -666,6 +712,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 ```
 
 **sleep(ms)** [Line 758]
+
 ```
 → return new Promise(resolve => setTimeout(resolve, ms)) [Line 759]
 ```
@@ -673,6 +720,7 @@ const MAX_CAPTURE_AGE_MS = 300000;              // Line 17
 #### Callbacks/Listeners
 
 **setInterval cleanup callback** [Line 22]
+
 ```
 setInterval(() => {
   → const now = Date.now()                      [Line 23]
@@ -687,6 +735,7 @@ setInterval(() => {
 ```
 
 **chrome.runtime.onMessage listener** [Line 669]
+
 ```
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   → if (message.type !== 'console'): return     [Line 670]
@@ -717,6 +766,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ```
 
 #### Chrome Storage Usage
+
 ```javascript
 // Line 765-773
 if (typeof chrome !== 'undefined' && chrome.storage) {
@@ -724,8 +774,8 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
     status: {
       running: true,
       connectedToServer: ws !== null,
-      timestamp: new Date().toISOString()
-    }
+      timestamp: new Date().toISOString(),
+    },
   });
 }
 ```
@@ -735,17 +785,20 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ### 4. server/validation.js (196 lines)
 
 #### Constants Defined
+
 ```javascript
-const METADATA_SIZE_LIMIT = 10 * 1024;          // Line 14
-const ALLOWED_CAPABILITIES = [                  // Line 15-20
+const METADATA_SIZE_LIMIT = 10 * 1024; // Line 14
+const ALLOWED_CAPABILITIES = [
+  // Line 15-20
   'test-orchestration',
   'console-capture',
   'window-management',
-  'tab-control'
+  'tab-control',
 ];
 ```
 
 #### Functions Defined (6 total)
+
 1. `validateExtensionId(id)` - Line 34
 2. `validateMetadata(metadata)` - Line 59
 3. `sanitizeManifest(manifest)` - Line 92
@@ -756,6 +809,7 @@ const ALLOWED_CAPABILITIES = [                  // Line 15-20
 #### Complete Function Call Graph
 
 **validateExtensionId(id)** [Line 34]
+
 ```
 → if (!id || typeof id !== 'string'):
     → return false                              [Line 36]
@@ -767,6 +821,7 @@ const ALLOWED_CAPABILITIES = [                  // Line 15-20
 ```
 
 **validateMetadata(metadata)** [Line 59]
+
 ```
 → if (!metadata || typeof metadata !== 'object'):
     → throw new Error('Metadata must be an object') [Line 61]
@@ -782,6 +837,7 @@ const ALLOWED_CAPABILITIES = [                  // Line 15-20
 ```
 
 **sanitizeManifest(manifest)** [Line 92]
+
 ```
 → if (!manifest || typeof manifest !== 'object'):
     → return {}                                 [Line 94]
@@ -794,6 +850,7 @@ const ALLOWED_CAPABILITIES = [                  // Line 15-20
 ```
 
 **validateCapabilities(capabilities)** [Line 120]
+
 ```
 → if (!Array.isArray(capabilities)):
     → throw new Error('Capabilities must be an array') [Line 122]
@@ -806,6 +863,7 @@ const ALLOWED_CAPABILITIES = [                  // Line 15-20
 ```
 
 **validateName(name)** [Line 150]
+
 ```
 → if (!name || typeof name !== 'string'):
     → throw new Error('Extension name is required') [Line 152]
@@ -815,6 +873,7 @@ const ALLOWED_CAPABILITIES = [                  // Line 15-20
 ```
 
 **validateVersion(version)** [Line 173]
+
 ```
 → if (!version || typeof version !== 'string'):
     → throw new Error('Version is required and must be a string') [Line 175]
@@ -824,8 +883,10 @@ const ALLOWED_CAPABILITIES = [                  // Line 15-20
 ```
 
 #### Exports
+
 ```javascript
-module.exports = {                              // Line 185-195
+module.exports = {
+  // Line 185-195
   validateExtensionId,
   validateMetadata,
   sanitizeManifest,
@@ -833,7 +894,7 @@ module.exports = {                              // Line 185-195
   validateName,
   validateVersion,
   METADATA_SIZE_LIMIT,
-  ALLOWED_CAPABILITIES
+  ALLOWED_CAPABILITIES,
 };
 ```
 
@@ -872,6 +933,7 @@ module.exports = {                              // Line 185-195
 ## TOTAL FUNCTION COUNT - CORRECTED
 
 ### Production Code
+
 - **claude-code/index.js:** 12 functions + 3 constants
 - **claude-code/level4-reload-cdp.js:** 3 functions
 - **server/websocket-server.js:** 8 functions + 7 constants + 1 unused import (HealthManager)
@@ -910,12 +972,14 @@ module.exports = {                              // Line 185-195
 ### 5. extension/lib/error-logger.js (156 lines)
 
 #### Imports (Dependencies)
+
 ```javascript
 // NO EXTERNAL DEPENDENCIES (standalone utility class)
 // Uses only built-in JavaScript (console, Date)
 ```
 
 #### Module Exports
+
 ```javascript
 // Line 147-149: Node.js export
 if (typeof module !== 'undefined' && module.exports) {
@@ -929,6 +993,7 @@ if (typeof window !== 'undefined') {
 ```
 
 #### Methods Defined (5 total)
+
 1. `logExpectedError(context, message, error)` - Line 27 (static)
 2. `logUnexpectedError(context, message, error)` - Line 45 (static)
 3. `logInfo(context, message, data)` - Line 61 (static)
@@ -938,6 +1003,7 @@ if (typeof window !== 'undefined') {
 #### Complete Function Call Graph
 
 **logExpectedError(context, message, error)** [Line 27]
+
 ```
 → _buildErrorData(context, message, error)     [Line 28]
 → console.warn('[ChromeDevAssist]...', errorData)  [Line 31]
@@ -945,6 +1011,7 @@ if (typeof window !== 'undefined') {
 ```
 
 **logUnexpectedError(context, message, error)** [Line 45]
+
 ```
 → _buildErrorData(context, message, error)     [Line 46]
 → console.error('[ChromeDevAssist]...', errorData) [Line 49]
@@ -952,16 +1019,19 @@ if (typeof window !== 'undefined') {
 ```
 
 **logInfo(context, message, data)** [Line 61]
+
 ```
 → console.log('[ChromeDevAssist]...', message, data || '') [Line 62]
 ```
 
 **logCritical(context, message, error)** [Line 73]
+
 ```
 → this.logUnexpectedError(context, message, error)  [Line 74]
 ```
 
-**_buildErrorData(context, message, error)** [Line 91]
+**\_buildErrorData(context, message, error)** [Line 91]
+
 ```
 → error?.constructor?.name                      [Line 104]
 → error.toString()                              [Line 112]
@@ -970,12 +1040,14 @@ if (typeof window !== 'undefined') {
 ```
 
 #### Used By (1 file)
+
 ```
 extension/background.js
   → ErrorLogger.logExpectedError('closeTab', ...) [Line 554]
 ```
 
 **Design Pattern:**
+
 - Static utility class (no instantiation)
 - Dual export (Node.js + Browser)
 - Security: Explicitly omits stack traces to prevent path disclosure
@@ -986,12 +1058,14 @@ extension/background.js
 ### 6. extension/modules/ConsoleCapture.js (251 lines)
 
 #### Imports (Dependencies)
+
 ```javascript
 // NO EXTERNAL DEPENDENCIES (POC class)
 // Uses only built-in JavaScript (Map, Set, setTimeout, clearTimeout)
 ```
 
 #### Module Exports
+
 ```javascript
 // Line 248-250: Node.js export only
 if (typeof module !== 'undefined' && module.exports) {
@@ -1000,6 +1074,7 @@ if (typeof module !== 'undefined' && module.exports) {
 ```
 
 #### Methods Defined (10 total)
+
 1. `constructor()` - Line 21
 2. `start(captureId, options)` - Line 43
 3. `stop(captureId)` - Line 89
@@ -1014,12 +1089,14 @@ if (typeof module !== 'undefined' && module.exports) {
 #### Complete Function Call Graph
 
 **constructor()** [Line 21]
+
 ```
 → new Map()                                     [Line 23]
 → new Map()                                     [Line 26]
 ```
 
 **start(captureId, options)** [Line 43]
+
 ```
 → this.captures.has(captureId)                  [Line 45]
 → throw new Error(...)                          [Line 46]
@@ -1032,6 +1109,7 @@ if (typeof module !== 'undefined' && module.exports) {
 ```
 
 **stop(captureId)** [Line 89]
+
 ```
 → this.captures.get(captureId)                  [Line 90]
 → Date.now()                                    [Line 94]
@@ -1039,6 +1117,7 @@ if (typeof module !== 'undefined' && module.exports) {
 ```
 
 **addLog(tabId, logEntry)** [Line 108]
+
 ```
 → new Set()                                     [Line 109]
 → this.capturesByTab.has(tabId)                 [Line 112]
@@ -1048,12 +1127,14 @@ if (typeof module !== 'undefined' && module.exports) {
 ```
 
 **getLogs(captureId)** [Line 153]
+
 ```
 → this.captures.get(captureId)                  [Line 154]
 → return [...state.logs]                        [Line 158] (array spread)
 ```
 
 **cleanup(captureId)** [Line 165]
+
 ```
 → this.captures.get(captureId)                  [Line 166]
 → clearTimeout(state.timeout)                   [Line 171]
@@ -1064,23 +1145,27 @@ if (typeof module !== 'undefined' && module.exports) {
 ```
 
 **isActive(captureId)** [Line 195]
+
 ```
 → this.captures.get(captureId)                  [Line 196]
 → return state ? state.active : false           [Line 197]
 ```
 
 **getStats(captureId)** [Line 205]
+
 ```
 → this.captures.get(captureId)                  [Line 206]
 → return { captureId, active, ... }             [Line 209]
 ```
 
 **getAllCaptureIds()** [Line 224]
+
 ```
 → Array.from(this.captures.keys())              [Line 225]
 ```
 
 **cleanupStale(thresholdMs)** [Line 232]
+
 ```
 → Date.now()                                    [Line 233]
 → this.captures.entries()                       [Line 235]
@@ -1088,6 +1173,7 @@ if (typeof module !== 'undefined' && module.exports) {
 ```
 
 #### Used By (0 files)
+
 ```
 ⚠️ CRITICAL: This class is NOT USED in production code
 - It's a POC (Proof of Concept) implementation
@@ -1096,6 +1182,7 @@ if (typeof module !== 'undefined' && module.exports) {
 ```
 
 **Design Pattern:**
+
 - Class-based encapsulation
 - O(1) tab lookup via dual indexing (captures + capturesByTab)
 - Auto-cleanup with setTimeout
@@ -1106,17 +1193,20 @@ if (typeof module !== 'undefined' && module.exports) {
 ### 7. src/health/health-manager.js (292 lines)
 
 #### Imports (Dependencies)
+
 ```javascript
-const WebSocket = require('ws');                // Line 15
-const { EventEmitter } = require('events');     // Line 16
+const WebSocket = require('ws'); // Line 15
+const { EventEmitter } = require('events'); // Line 16
 ```
 
 #### Module Exports
+
 ```javascript
-module.exports = HealthManager;                 // Line 291
+module.exports = HealthManager; // Line 291
 ```
 
 #### Methods Defined (9 total + extends EventEmitter)
+
 1. `constructor()` - Line 37
 2. `setExtensionSocket(socket)` - Line 58
 3. `setApiSocket(socket)` - Line 66
@@ -1130,6 +1220,7 @@ module.exports = HealthManager;                 // Line 291
 #### Complete Function Call Graph
 
 **constructor()** [Line 37]
+
 ```
 → super()                                       [Line 38] (EventEmitter)
 → this.extensionSocket = null                   [Line 40]
@@ -1138,22 +1229,26 @@ module.exports = HealthManager;                 // Line 291
 ```
 
 **setExtensionSocket(socket)** [Line 58]
+
 ```
 → this.extensionSocket = socket                 [Line 59]
 ```
 
 **setApiSocket(socket)** [Line 66]
+
 ```
 → this.apiSocket = socket                       [Line 67]
 ```
 
 **isExtensionConnected()** [Line 74]
+
 ```
 → this.extensionSocket?.readyState              [Line 76, 81]
 → return readyState === WebSocket.OPEN          [Line 86]
 ```
 
 **getHealthStatus()** [Line 99]
+
 ```
 → this.extensionSocket?.readyState              [Line 108]
 → this._detectAndEmitChanges(currentState)      [Line 147]
@@ -1161,6 +1256,7 @@ module.exports = HealthManager;                 // Line 291
 ```
 
 **ensureHealthy()** [Line 166]
+
 ```
 → this.getHealthStatus()                        [Line 167]
 → this.getReadyStateName(state)                 [Line 177]
@@ -1168,12 +1264,14 @@ module.exports = HealthManager;                 // Line 291
 ```
 
 **getReadyStateName(readyState)** [Line 191]
+
 ```
 → switch (readyState) { ... }                   [Line 192]
 → return 'CONNECTING' | 'OPEN' | 'CLOSING' | ... [Line 193-197]
 ```
 
-**_detectAndEmitChanges(currentState)** [Line 210]
+**\_detectAndEmitChanges(currentState)** [Line 210]
+
 ```
 → this.emit('health-changed', {...})            [Line 221]
 → this.emit('connection-state-changed', {...})  [Line 242]
@@ -1181,13 +1279,15 @@ module.exports = HealthManager;                 // Line 291
 → this.emit('issues-updated', {...})            [Line 260]
 ```
 
-**_arraysEqual(arr1, arr2)** [Line 276]
+**\_arraysEqual(arr1, arr2)** [Line 276]
+
 ```
 → arr1.length !== arr2.length                   [Line 277]
 → return false | true                           [Line 278, 287]
 ```
 
 #### Used By (1 file - but NOT ACTUALLY USED!)
+
 ```
 server/websocket-server.js
   → const HealthManager = require('../src/health/health-manager');  [Line 31]
@@ -1195,12 +1295,14 @@ server/websocket-server.js
 ```
 
 **Design Pattern:**
+
 - Extends EventEmitter (observability)
 - Event-driven state change notifications
 - Defensive validation (null checks, type checks)
 - State comparison to prevent noisy events
 
 **Events Emitted:**
+
 - `health-changed` - When overall health status changes
 - `connection-state-changed` - When connection state changes
 - `issues-updated` - When issues array changes
@@ -1210,18 +1312,21 @@ server/websocket-server.js
 ### 8. claude-code/level4-reload-cdp.js (198 lines)
 
 #### Imports (Dependencies)
+
 ```javascript
-const WebSocket = require('ws');                         // Line 17
-const http = require('http');                            // Line 18
-const { validateExtensionId } = require('../server/validation');  // Line 19
+const WebSocket = require('ws'); // Line 17
+const http = require('http'); // Line 18
+const { validateExtensionId } = require('../server/validation'); // Line 19
 ```
 
 #### Module Exports
+
 ```javascript
-module.exports = level4ReloadCDP;                        // Line 197
+module.exports = level4ReloadCDP; // Line 197
 ```
 
 #### Functions Defined (3 total)
+
 1. `getCDPWebSocketURL(port)` - Line 26
 2. `evaluateExpression(ws, expression)` - Line 66
 3. `level4ReloadCDP(extensionId, options)` - Line 116
@@ -1229,6 +1334,7 @@ module.exports = level4ReloadCDP;                        // Line 197
 #### Complete Function Call Graph
 
 **getCDPWebSocketURL(port)** [Line 26]
+
 ```
 → new Promise((resolve, reject) => {...})       [Line 27]
 → http.get(`http://127.0.0.1:${port}/json/version`, ...) [Line 28]
@@ -1239,6 +1345,7 @@ module.exports = level4ReloadCDP;                        // Line 197
 ```
 
 **evaluateExpression(ws, expression)** [Line 66]
+
 ```
 → new Promise((resolve, reject) => {...})       [Line 67]
 → Math.floor(Math.random() * 1000000)           [Line 68]
@@ -1251,6 +1358,7 @@ module.exports = level4ReloadCDP;                        // Line 197
 ```
 
 **level4ReloadCDP(extensionId, options)** [Line 116]
+
 ```
 → Date.now()                                    [Line 117]
 → validateExtensionId(extensionId)              [Line 120]
@@ -1269,6 +1377,7 @@ module.exports = level4ReloadCDP;                        // Line 197
 ```
 
 #### Used By (0 files)
+
 ```
 ⚠️ CRITICAL: This function is NOT EXPOSED in main API
 - Implemented and tested
@@ -1278,12 +1387,14 @@ module.exports = level4ReloadCDP;                        // Line 197
 ```
 
 **Design Pattern:**
+
 - CDP (Chrome DevTools Protocol) integration
 - WebSocket-based communication with Chrome
 - Promise-based async handling
 - Error handling with detailed context
 
 **Chrome APIs Used (via CDP):**
+
 - `chrome.management.setEnabled(id, false)` - Disable extension
 - `chrome.management.setEnabled(id, true)` - Enable extension
 
@@ -1292,22 +1403,26 @@ module.exports = level4ReloadCDP;                        // Line 197
 ### 9. extension/popup/popup.js (24 lines)
 
 #### Imports (Dependencies)
+
 ```javascript
 // NO EXTERNAL DEPENDENCIES
 // Uses only Chrome Extension APIs
 ```
 
 #### Module Exports
+
 ```javascript
 // NO EXPORTS (standalone popup script)
 ```
 
 #### Event Listeners Defined (1 total)
+
 1. `DOMContentLoaded` listener - Line 6
 
 #### Complete Function Call Graph
 
 **DOMContentLoaded listener** [Line 6]
+
 ```
 → async () => {...}                             [Line 6]
 → chrome.storage.local.get('status')            [Line 9]
@@ -1320,11 +1435,13 @@ module.exports = level4ReloadCDP;                        // Line 197
 ```
 
 #### Chrome APIs Used
+
 ```javascript
 chrome.storage.local.get('status')              [Line 9]
 ```
 
 #### Used By (0 files)
+
 ```
 - Standalone popup UI
 - Reads status written by background.js
@@ -1332,11 +1449,13 @@ chrome.storage.local.get('status')              [Line 9]
 ```
 
 **Design Pattern:**
+
 - Event-driven UI update
 - Reads from chrome.storage (written by background.js)
 - Error handling with console.error
 
 **Communication Flow:**
+
 ```
 extension/background.js
   → chrome.storage.local.set({status: {...}})   [Line 898]
@@ -1353,12 +1472,14 @@ extension/popup/popup.js
 ### All Imports Across All Files
 
 **claude-code/index.js:**
+
 - ws (WebSocket)
 - child_process (spawn)
 - path
 - crypto
 
 **server/websocket-server.js:**
+
 - ws (WebSocket, WebSocketServer)
 - http
 - fs
@@ -1367,31 +1488,40 @@ extension/popup/popup.js
 - ../src/health/health-manager (⚠️ UNUSED)
 
 **server/validation.js:**
+
 - (no imports)
 
 **extension/background.js:**
+
 - (no imports - uses Chrome APIs)
 
 **extension/content-script.js:**
+
 - (no imports - uses Chrome APIs)
 
 **extension/inject-console-capture.js:**
+
 - (no imports - pure JavaScript)
 
 **extension/popup/popup.js:**
+
 - (no imports - uses Chrome APIs)
 
 **extension/lib/error-logger.js:**
+
 - (no imports - pure JavaScript)
 
 **extension/modules/ConsoleCapture.js:**
+
 - (no imports - pure JavaScript)
 
 **src/health/health-manager.js:**
+
 - ws (WebSocket)
 - events (EventEmitter)
 
 **claude-code/level4-reload-cdp.js:**
+
 - ws (WebSocket)
 - http
 - ../server/validation (validateExtensionId)
@@ -1401,6 +1531,7 @@ extension/popup/popup.js
 ### Chrome APIs Used (Complete List)
 
 **extension/background.js:**
+
 ```javascript
 chrome.scripting.getRegisteredContentScripts()
 chrome.scripting.registerContentScripts([{...}])
@@ -1418,19 +1549,22 @@ chrome.storage.local.set({status})
 ```
 
 **extension/content-script.js:**
+
 ```javascript
 chrome.runtime.sendMessage({type: 'console', ...})
 ```
 
 **extension/popup/popup.js:**
+
 ```javascript
-chrome.storage.local.get('status')
+chrome.storage.local.get('status');
 ```
 
 **claude-code/level4-reload-cdp.js (via CDP):**
+
 ```javascript
-chrome.management.setEnabled(extensionId, false)  // Via CDP
-chrome.management.setEnabled(extensionId, true)   // Via CDP
+chrome.management.setEnabled(extensionId, false); // Via CDP
+chrome.management.setEnabled(extensionId, true); // Via CDP
 ```
 
 ---
@@ -1438,29 +1572,36 @@ chrome.management.setEnabled(extensionId, true)   // Via CDP
 ### Node.js Built-ins Used
 
 **WebSocket (ws package):**
+
 - WebSocket class - 5 files
 - WebSocketServer class - 1 file
 
 **HTTP:**
+
 - http.createServer() - 1 file
 - http.get() - 1 file
 
 **Filesystem:**
+
 - fs.readFileSync() - 1 file
 - fs.writeFileSync() - 1 file
 - fs.existsSync() - 1 file
 - fs.unlinkSync() - 1 file
 
 **Path:**
+
 - path.join() - 3 files
 
 **Crypto:**
+
 - crypto.randomBytes() - 2 files
 
 **Child Process:**
+
 - spawn() - 1 file
 
 **Events:**
+
 - EventEmitter - 1 file
 
 ---
@@ -1468,6 +1609,7 @@ chrome.management.setEnabled(extensionId, true)   // Via CDP
 ### Complete Function Count (FINAL)
 
 **Implemented Functions:**
+
 - claude-code/index.js: 12 functions + 3 constants
 - claude-code/level4-reload-cdp.js: 3 functions
 - server/websocket-server.js: 8 functions + 7 constants
@@ -1479,11 +1621,13 @@ chrome.management.setEnabled(extensionId, true)   // Via CDP
 - extension/inject-console-capture.js: 6 functions + 6 constants
 
 **Event Listeners/Callbacks:**
+
 - extension/background.js: 2 (setInterval, onMessage)
 - extension/content-script.js: 1 (DOMContentLoaded → message relay)
 - extension/popup/popup.js: 1 (DOMContentLoaded)
 
 **Total Production Items:** 72 functions + 4 listeners + 22 constants = **98 items**
+
 - 95 items across original 10 files
 - 3 additional items from level4-reload-cdp.js (implemented but not exposed in API)
 
@@ -1492,6 +1636,7 @@ chrome.management.setEnabled(extensionId, true)   // Via CDP
 ⚠️ **CRITICAL CORRECTION:** Initially reported 4-5 phantom APIs. Systematic grep of ALL test files found **16 phantom APIs**.
 
 **Discovery Method:**
+
 ```bash
 grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" \
   | sed 's/.*chromeDevAssist\.\([a-zA-Z]*\)(.*/\1/' | sort -u
@@ -1501,6 +1646,7 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" \
 ```
 
 **The 16 Phantom APIs:**
+
 1. startTest(testId, options)
 2. endTest(testId)
 3. abortTest(testId, reason)
@@ -1519,12 +1665,14 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" \
 16. verifyCleanup()
 
 **Additional Findings:**
+
 - **24 Placeholder tests** - expect(true).toBe(true) pattern in 9 files
 - **3 Unused modules** - HealthManager (imported but never used), ConsoleCapture (POC only), Level4 CDP (not exposed)
 
 **Total Including Phantoms:** 98 + 16 = **114 items**
 
 **See Also:**
+
 - PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md - Detailed analysis of all 16 phantom APIs
 - PLACEHOLDER-TESTS-INDEX-2025-10-26.md - All 24 placeholder tests documented
 - FINAL-CORRECTIONS-SUMMARY-2025-10-26.md - How user challenges led to discovering 16 (not 4-5)
@@ -1552,4 +1700,3 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" \
 **Files Documented:** 11/11 (100%)
 **Relationships Verified:** ALL
 **Missed Items from Previous Audits:** NONE REMAINING
-

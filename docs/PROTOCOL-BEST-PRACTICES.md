@@ -12,6 +12,7 @@
 > "Make interfaces easy to use correctly and hard to use incorrectly." - Scott Meyers
 
 **Best Practice**: Minimal required parameters
+
 ```javascript
 // ❌ BAD: Too many required fields
 startTest({ projectName, testName, testId, version, expectedTabs, expectedDuration });
@@ -29,10 +30,11 @@ startTest(testId);
 > "Calling an operation multiple times should have the same effect as calling it once."
 
 **Best Practice**: Make operations safe to retry
+
 ```javascript
 // ✅ GOOD: Can call multiple times safely
-startTest('test-001');  // Creates test
-startTest('test-001');  // Returns existing test (not error)
+startTest('test-001'); // Creates test
+startTest('test-001'); // Returns existing test (not error)
 ```
 
 **Rationale**: Network failures, retries, and race conditions happen
@@ -44,6 +46,7 @@ startTest('test-001');  // Returns existing test (not error)
 > "The protocol should have well-defined states and transitions."
 
 **Best Practice**: Document state transitions
+
 ```
 IDLE
   ├─ startTest() → RUNNING
@@ -64,13 +67,14 @@ RUNNING
 > "System should handle failures gracefully, not catastrophically."
 
 **Best Practice**: Provide escape hatches
+
 ```javascript
 // If test stuck in RUNNING state:
-await abortTest(testId);  // Emergency cleanup
+await abortTest(testId); // Emergency cleanup
 
 // If cleanup failed:
-await verifyCleanup(expectedClosedTabs);  // Detect orphans
-await verifyCleanup({ autoClean: true });  // Force cleanup
+await verifyCleanup(expectedClosedTabs); // Detect orphans
+await verifyCleanup({ autoClean: true }); // Force cleanup
 ```
 
 **Rationale**: Things will go wrong, provide recovery mechanisms
@@ -82,6 +86,7 @@ await verifyCleanup({ autoClean: true });  // Force cleanup
 > "Store state only when absolutely necessary."
 
 **Best Practice**: Minimize state
+
 ```javascript
 // ❌ BAD: Storing unnecessary state
 let testState = {
@@ -106,6 +111,7 @@ let testState = {
 > "State that matters should survive crashes."
 
 **Best Practice**: Persist critical state
+
 ```javascript
 // ❌ BAD: In-memory only (lost on service worker restart)
 let testState = { ... };
@@ -128,6 +134,7 @@ if (saved.testState) testState = saved.testState;
 ### 1. Request-Response Pattern
 
 **Best Practice**: Every command gets a response
+
 ```javascript
 // Request
 {
@@ -158,8 +165,9 @@ if (saved.testState) testState = saved.testState;
 ### 2. Timeout Handling
 
 **Best Practice**: Every operation has a timeout
+
 ```javascript
-const COMMAND_TIMEOUT = 30000;  // 30 seconds
+const COMMAND_TIMEOUT = 30000; // 30 seconds
 
 setTimeout(() => {
   reject(new Error('Command timeout'));
@@ -173,6 +181,7 @@ setTimeout(() => {
 ### 3. Version Negotiation
 
 **Best Practice**: Include protocol version
+
 ```javascript
 // Registration message
 {
@@ -194,12 +203,13 @@ if (msg.protocolVersion !== '1.0.0') {
 ### 4. Error Codes
 
 **Best Practice**: Structured error codes
+
 ```javascript
 const ErrorCodes = {
   TEST_ALREADY_RUNNING: 'TEST_ALREADY_RUNNING',
   TEST_NOT_FOUND: 'TEST_NOT_FOUND',
   TAB_NOT_FOUND: 'TAB_NOT_FOUND',
-  WEBSOCKET_ERROR: 'WEBSOCKET_ERROR'
+  WEBSOCKET_ERROR: 'WEBSOCKET_ERROR',
 };
 
 // Usage
@@ -216,6 +226,7 @@ error.code = ErrorCodes.TEST_ALREADY_RUNNING;
 ### 1. Input Validation
 
 **Best Practice**: Validate all inputs
+
 ```javascript
 function validateTestId(testId) {
   if (!testId) throw new Error('testId required');
@@ -232,8 +243,9 @@ function validateTestId(testId) {
 ### 2. Rate Limiting
 
 **Best Practice**: Limit operation frequency
+
 ```javascript
-const RATE_LIMIT_MS = 1000;  // Max 1 startTest per second
+const RATE_LIMIT_MS = 1000; // Max 1 startTest per second
 let lastStartTime = 0;
 
 function handleStartTest(params) {
@@ -253,6 +265,7 @@ function handleStartTest(params) {
 ### 3. Resource Limits
 
 **Best Practice**: Bound all resources
+
 ```javascript
 const MAX_TRACKED_TABS = 100;
 const MAX_TEST_HISTORY = 10;
@@ -270,6 +283,7 @@ if (trackedTabs.length > MAX_TRACKED_TABS) {
 ### 4. Sanitize Outputs
 
 **Best Practice**: Don't leak sensitive data
+
 ```javascript
 // ❌ BAD: Exposes internal tab IDs
 return { allTabs: chrome.tabs.query({}) };
@@ -287,6 +301,7 @@ return { trackedTabs: testState.trackedTabs };
 ### 1. Separation of Concerns
 
 **Best Practice**: Separate protocol from implementation
+
 ```javascript
 // ✅ GOOD: Protocol layer (API)
 async function startTest(testId) {
@@ -306,12 +321,13 @@ async function handleStartTestCommand(params) {
 ### 2. Testable State
 
 **Best Practice**: Make state inspectable
+
 ```javascript
 // ✅ GOOD: Expose getTestStatus() for testing
 async function getTestStatus() {
   return {
     activeTestId: testState.activeTestId,
-    trackedTabs: testState.trackedTabs
+    trackedTabs: testState.trackedTabs,
   };
 }
 
@@ -327,12 +343,13 @@ expect(status.activeTestId).toBe('test-001');
 ### 3. Deterministic Behavior
 
 **Best Practice**: Avoid random/timing-dependent behavior
+
 ```javascript
 // ❌ BAD: Non-deterministic
 const testId = `test-${Math.random()}`;
 
 // ✅ GOOD: Deterministic
-const testId = params.testId;  // User provides
+const testId = params.testId; // User provides
 ```
 
 **Rationale**: Tests should be repeatable
@@ -344,6 +361,7 @@ const testId = params.testId;  // User provides
 ### 1. HTTP Protocol (Gold Standard)
 
 **What they do well**:
+
 - Stateless (each request independent)
 - Clear methods (GET, POST, DELETE)
 - Standard status codes (200, 404, 500)
@@ -351,6 +369,7 @@ const testId = params.testId;  // User provides
 - Idempotent operations (GET, PUT)
 
 **Applied to our protocol**:
+
 ```javascript
 // Clear command names (like HTTP methods)
 startTest()  → POST /test
@@ -369,12 +388,14 @@ getStatus()  → GET /test/status
 ### 2. WebSocket Protocol
 
 **What they do well**:
+
 - Bidirectional communication
 - Frame-based messages
 - Ping/pong for keep-alive
 - Clean disconnect (close frames)
 
 **Applied to our protocol**:
+
 ```javascript
 // Keep-alive (ping/pong)
 setInterval(() => {
@@ -392,11 +413,13 @@ ws.on('close', () => {
 ### 3. JSON-RPC 2.0
 
 **What they do well**:
+
 - Request-response pairing (id)
 - Structured errors ({ code, message, data })
 - Batching (multiple requests in one)
 
 **Applied to our protocol**:
+
 ```javascript
 // Request-response pairing
 {
@@ -418,30 +441,35 @@ ws.on('close', () => {
 ## ✅ CHECKLIST: Is Your Protocol Good?
 
 ### Simplicity
+
 - [ ] Minimal required parameters (< 3)
 - [ ] Clear command names (verb-based)
 - [ ] No unnecessary state
 - [ ] Easy to use correctly
 
 ### Reliability
+
 - [ ] Idempotent operations where possible
 - [ ] Timeout handling
 - [ ] Error recovery (abort, cleanup)
 - [ ] State persistence
 
 ### Security
+
 - [ ] Input validation
 - [ ] Rate limiting
 - [ ] Resource limits
 - [ ] No sensitive data leaks
 
 ### Testability
+
 - [ ] Separation of concerns
 - [ ] Inspectable state
 - [ ] Deterministic behavior
 - [ ] Mock-friendly
 
 ### Documentation
+
 - [ ] State machine documented
 - [ ] Error codes documented
 - [ ] Usage examples
@@ -452,6 +480,7 @@ ws.on('close', () => {
 ## 🎯 RECOMMENDATIONS FOR OUR PROTOCOL
 
 ### Keep ✅
+
 1. **Request-response pairing** (command ID matching)
 2. **Clear command names** (startTest, endTest)
 3. **State inspection** (getTestStatus)
@@ -459,6 +488,7 @@ ws.on('close', () => {
 5. **Cleanup verification** (verifyCleanup)
 
 ### Add 🆕
+
 1. **State persistence** (chrome.storage.session)
 2. **Idempotency** (startTest twice = same result)
 3. **Rate limiting** (max 1 startTest/sec)
@@ -466,6 +496,7 @@ ws.on('close', () => {
 5. **Protocol version** ('1.0.0' in registration)
 
 ### Remove ❌
+
 1. **Test history** (unused)
 2. **expectedTabs** (not validated)
 3. **expectedDuration** (not validated)
@@ -476,16 +507,19 @@ ws.on('close', () => {
 ## 📚 REFERENCES
 
 ### Industry Standards
+
 - **HTTP/1.1**: RFC 7230-7235 (request-response, status codes)
 - **WebSocket**: RFC 6455 (bidirectional, frames, keep-alive)
 - **JSON-RPC 2.0**: Request-response pairing, structured errors
 
 ### Best Practice Sources
-- *Designing Data-Intensive Applications* (Martin Kleppmann)
-- *RESTful Web APIs* (Leonard Richardson)
-- *Chrome Extension API Design* (Google)
+
+- _Designing Data-Intensive Applications_ (Martin Kleppmann)
+- _RESTful Web APIs_ (Leonard Richardson)
+- _Chrome Extension API Design_ (Google)
 
 ### Lessons From Production
+
 - **Keep it simple**: 80% of complexity is unused
 - **Persist state**: Service workers restart frequently
 - **Provide escape hatches**: Users need recovery from failures

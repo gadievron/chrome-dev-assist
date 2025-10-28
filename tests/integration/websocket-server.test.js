@@ -15,7 +15,7 @@ describe('WebSocket Server Integration', () => {
     }
   });
 
-  test('server accepts connections', (done) => {
+  test('server accepts connections', done => {
     ws = new WebSocket('ws://localhost:9876');
 
     ws.on('open', () => {
@@ -23,21 +23,23 @@ describe('WebSocket Server Integration', () => {
       done();
     });
 
-    ws.on('error', (err) => {
+    ws.on('error', err => {
       done(new Error(`Server not running or connection failed: ${err.message}`));
     });
   }, 5000);
 
-  test('server receives and acknowledges registration', (done) => {
+  test('server receives and acknowledges registration', done => {
     ws = new WebSocket('ws://localhost:9876');
 
     ws.on('open', () => {
       // Send registration message
-      ws.send(JSON.stringify({
-        type: 'register',
-        client: 'extension',
-        extensionId: 'test-extension-id'
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'register',
+          client: 'extension',
+          extensionId: 'test-extension-id',
+        })
+      );
 
       // Server should accept registration silently
       // (no explicit ack in current design, but connection stays open)
@@ -47,12 +49,12 @@ describe('WebSocket Server Integration', () => {
       }, 100);
     });
 
-    ws.on('error', (err) => {
+    ws.on('error', err => {
       done(new Error(`Registration failed: ${err.message}`));
     });
   }, 5000);
 
-  test('server routes command from API to extension', (done) => {
+  test('server routes command from API to extension', done => {
     // This test requires two connections: one "extension" and one "API"
     const extensionWs = new WebSocket('ws://localhost:9876');
     const apiWs = new WebSocket('ws://localhost:9876');
@@ -62,10 +64,12 @@ describe('WebSocket Server Integration', () => {
 
     // Extension registers
     extensionWs.on('open', () => {
-      extensionWs.send(JSON.stringify({
-        type: 'register',
-        client: 'extension'
-      }));
+      extensionWs.send(
+        JSON.stringify({
+          type: 'register',
+          client: 'extension',
+        })
+      );
       extensionReady = true;
       checkBothReady();
     });
@@ -80,19 +84,21 @@ describe('WebSocket Server Integration', () => {
     function checkBothReady() {
       if (extensionReady && apiReady) {
         // API sends command
-        apiWs.send(JSON.stringify({
-          type: 'command',
-          id: 'test-command-123',
-          command: {
-            type: 'reload',
-            params: { extensionId: 'test' }
-          }
-        }));
+        apiWs.send(
+          JSON.stringify({
+            type: 'command',
+            id: 'test-command-123',
+            command: {
+              type: 'reload',
+              params: { extensionId: 'test' },
+            },
+          })
+        );
       }
     }
 
     // Extension should receive the command
-    extensionWs.on('message', (data) => {
+    extensionWs.on('message', data => {
       const msg = JSON.parse(data.toString());
 
       if (msg.type === 'command') {
@@ -106,11 +112,11 @@ describe('WebSocket Server Integration', () => {
       }
     });
 
-    extensionWs.on('error', (err) => done(new Error(`Extension error: ${err.message}`)));
-    apiWs.on('error', (err) => done(new Error(`API error: ${err.message}`)));
+    extensionWs.on('error', err => done(new Error(`Extension error: ${err.message}`)));
+    apiWs.on('error', err => done(new Error(`API error: ${err.message}`)));
   }, 10000);
 
-  test('server routes response from extension to API', (done) => {
+  test('server routes response from extension to API', done => {
     const extensionWs = new WebSocket('ws://localhost:9876');
     const apiWs = new WebSocket('ws://localhost:9876');
 
@@ -120,10 +126,12 @@ describe('WebSocket Server Integration', () => {
 
     // Extension registers
     extensionWs.on('open', () => {
-      extensionWs.send(JSON.stringify({
-        type: 'register',
-        client: 'extension'
-      }));
+      extensionWs.send(
+        JSON.stringify({
+          type: 'register',
+          client: 'extension',
+        })
+      );
       extensionReady = true;
       checkBothReady();
     });
@@ -134,7 +142,7 @@ describe('WebSocket Server Integration', () => {
       checkBothReady();
     });
 
-    apiWs.on('message', (data) => {
+    apiWs.on('message', data => {
       const msg = JSON.parse(data.toString());
 
       if (msg.type === 'response') {
@@ -151,33 +159,37 @@ describe('WebSocket Server Integration', () => {
     function checkBothReady() {
       if (extensionReady && apiReady) {
         // API sends command
-        apiWs.send(JSON.stringify({
-          type: 'command',
-          id: commandId,
-          command: { type: 'test' }
-        }));
+        apiWs.send(
+          JSON.stringify({
+            type: 'command',
+            id: commandId,
+            command: { type: 'test' },
+          })
+        );
       }
     }
 
     // Extension receives command and responds
-    extensionWs.on('message', (data) => {
+    extensionWs.on('message', data => {
       const msg = JSON.parse(data.toString());
 
       if (msg.type === 'command') {
         // Send response
-        extensionWs.send(JSON.stringify({
-          type: 'response',
-          id: msg.id,
-          data: { success: true }
-        }));
+        extensionWs.send(
+          JSON.stringify({
+            type: 'response',
+            id: msg.id,
+            data: { success: true },
+          })
+        );
       }
     });
 
-    extensionWs.on('error', (err) => done(new Error(`Extension error: ${err.message}`)));
-    apiWs.on('error', (err) => done(new Error(`API error: ${err.message}`)));
+    extensionWs.on('error', err => done(new Error(`Extension error: ${err.message}`)));
+    apiWs.on('error', err => done(new Error(`API error: ${err.message}`)));
   }, 10000);
 
-  test('server handles extension not connected error', (done) => {
+  test('server handles extension not connected error', done => {
     // Note: In current design, server queues messages or fails silently
     // This test documents expected behavior when extension isn't connected
 
@@ -185,11 +197,13 @@ describe('WebSocket Server Integration', () => {
 
     apiWs.on('open', () => {
       // Send command without extension connected
-      apiWs.send(JSON.stringify({
-        type: 'command',
-        id: 'test-no-extension',
-        command: { type: 'reload', params: {} }
-      }));
+      apiWs.send(
+        JSON.stringify({
+          type: 'command',
+          id: 'test-no-extension',
+          command: { type: 'reload', params: {} },
+        })
+      );
 
       // Wait for error response
       setTimeout(() => {
@@ -200,7 +214,7 @@ describe('WebSocket Server Integration', () => {
       }, 1000);
     });
 
-    apiWs.on('message', (data) => {
+    apiWs.on('message', data => {
       const msg = JSON.parse(data.toString());
 
       if (msg.type === 'error') {
@@ -210,10 +224,10 @@ describe('WebSocket Server Integration', () => {
       }
     });
 
-    apiWs.on('error', (err) => done(new Error(`API error: ${err.message}`)));
+    apiWs.on('error', err => done(new Error(`API error: ${err.message}`)));
   }, 10000);
 
-  test('server handles multiple concurrent API connections', (done) => {
+  test('server handles multiple concurrent API connections', done => {
     const extensionWs = new WebSocket('ws://localhost:9876');
     const api1Ws = new WebSocket('ws://localhost:9876');
     const api2Ws = new WebSocket('ws://localhost:9876');
@@ -223,35 +237,41 @@ describe('WebSocket Server Integration', () => {
     let api2Responded = false;
 
     extensionWs.on('open', () => {
-      extensionWs.send(JSON.stringify({
-        type: 'register',
-        client: 'extension'
-      }));
+      extensionWs.send(
+        JSON.stringify({
+          type: 'register',
+          client: 'extension',
+        })
+      );
       extensionReady = true;
     });
 
     // Extension echoes all commands
-    extensionWs.on('message', (data) => {
+    extensionWs.on('message', data => {
       const msg = JSON.parse(data.toString());
       if (msg.type === 'command') {
-        extensionWs.send(JSON.stringify({
-          type: 'response',
-          id: msg.id,
-          data: { success: true, commandId: msg.id }
-        }));
+        extensionWs.send(
+          JSON.stringify({
+            type: 'response',
+            id: msg.id,
+            data: { success: true, commandId: msg.id },
+          })
+        );
       }
     });
 
     // API 1
     api1Ws.on('open', () => {
-      api1Ws.send(JSON.stringify({
-        type: 'command',
-        id: 'api1-cmd',
-        command: { type: 'test' }
-      }));
+      api1Ws.send(
+        JSON.stringify({
+          type: 'command',
+          id: 'api1-cmd',
+          command: { type: 'test' },
+        })
+      );
     });
 
-    api1Ws.on('message', (data) => {
+    api1Ws.on('message', data => {
       const msg = JSON.parse(data.toString());
       if (msg.type === 'response' && msg.id === 'api1-cmd') {
         api1Responded = true;
@@ -261,14 +281,16 @@ describe('WebSocket Server Integration', () => {
 
     // API 2
     api2Ws.on('open', () => {
-      api2Ws.send(JSON.stringify({
-        type: 'command',
-        id: 'api2-cmd',
-        command: { type: 'test' }
-      }));
+      api2Ws.send(
+        JSON.stringify({
+          type: 'command',
+          id: 'api2-cmd',
+          command: { type: 'test' },
+        })
+      );
     });
 
-    api2Ws.on('message', (data) => {
+    api2Ws.on('message', data => {
       const msg = JSON.parse(data.toString());
       if (msg.type === 'response' && msg.id === 'api2-cmd') {
         api2Responded = true;
@@ -285,8 +307,8 @@ describe('WebSocket Server Integration', () => {
       }
     }
 
-    extensionWs.on('error', (err) => done(new Error(`Extension error: ${err.message}`)));
-    api1Ws.on('error', (err) => done(new Error(`API1 error: ${err.message}`)));
-    api2Ws.on('error', (err) => done(new Error(`API2 error: ${err.message}`)));
+    extensionWs.on('error', err => done(new Error(`Extension error: ${err.message}`)));
+    api1Ws.on('error', err => done(new Error(`API1 error: ${err.message}`)));
+    api2Ws.on('error', err => done(new Error(`API2 error: ${err.message}`)));
   }, 10000);
 });

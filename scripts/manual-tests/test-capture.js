@@ -9,21 +9,23 @@ ws.on('open', () => {
   console.log('✓ Connected to server');
 
   // Send capture command
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: 'test-capture-123',
-    command: {
-      type: 'capture',
-      params: {
-        duration: 2000  // Capture for 2 seconds
-      }
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: 'test-capture-123',
+      command: {
+        type: 'capture',
+        params: {
+          duration: 2000, // Capture for 2 seconds
+        },
+      },
+    })
+  );
 
   console.log('→ Sent capture command (2 second duration)');
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const response = JSON.parse(data.toString());
 
   console.log('\n← Received response:');
@@ -41,7 +43,7 @@ ws.on('message', (data) => {
   ws.close();
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('✗ Error:', err.message);
 });
 

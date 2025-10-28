@@ -11,6 +11,7 @@
 Communication between the Node.js client, WebSocket server, and Chrome extension follows a bidirectional request-response pattern.
 
 **Architecture**:
+
 ```
 Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
@@ -22,10 +23,12 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ### 1. Registration Messages
 
 #### Extension Registration (Phase 0 Multi-Extension Support)
+
 **Direction**: Extension → Server
 **Purpose**: Register extension with server on connection
 
 **Protocol v1.2.0+** (Phase 0 - Full Metadata):
+
 ```javascript
 {
   type: 'register',
@@ -55,6 +58,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Protocol v1.0-1.1** (Legacy - Still Supported):
+
 ```javascript
 {
   type: 'register',
@@ -65,6 +69,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Validation** (Phase 0):
+
 - `extensionId`: 32 lowercase letters (a-z), format: `/^[a-z]{32}$/`
 - `name`: Non-empty string, max 100 chars, no XSS characters (`<>'"&`)
 - `version`: Semantic version format: `/^\d+\.\d+\.\d+$/`
@@ -87,6 +92,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ### 2. Command Messages
 
 #### Command Request
+
 **Direction**: Client → Server → Extension
 **Purpose**: Execute operation in Chrome extension
 
@@ -102,6 +108,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 #### Command Response
+
 **Direction**: Extension → Server → Client
 **Purpose**: Return command result
 
@@ -114,6 +121,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 #### Command Error
+
 **Direction**: Extension → Server → Client
 **Purpose**: Return command error
 
@@ -135,9 +143,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ### Extension Management
 
 #### getAllExtensions
+
 **Purpose**: Get list of all installed Chrome extensions
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -150,6 +160,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -172,9 +183,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ---
 
 #### getExtensionInfo
+
 **Purpose**: Get detailed info about specific extension
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -189,6 +202,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -207,9 +221,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ---
 
 #### enableExtension / disableExtension / toggleExtension
+
 **Purpose**: Enable, disable, or toggle extension state
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -224,6 +240,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -238,9 +255,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ---
 
 #### reload
+
 **Purpose**: Reload extension (disable + enable)
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -258,6 +277,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -275,11 +295,13 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ---
 
 #### forceReload
+
 **Purpose**: Force reload Chrome Dev Assist extension via `chrome.runtime.reload()`
 
 **Added**: v1.2.0
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -292,6 +314,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -303,18 +326,21 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Behavior**:
+
 - Sends response immediately
 - Waits 100ms
 - Calls `chrome.runtime.reload()` to restart service worker
 - Extension disconnects and reconnects within ~1 second
 
 **Use cases**:
+
 - Automated testing workflows (runtime restart)
 - Clearing extension state
 - Recovering from errors
 - Testing reload resilience
 
 **Important**:
+
 - ⚠️ Reloads extension **runtime**, NOT code from disk
 - For code changes, use Level 4 reload (manual remove/reload)
 - See [EXTENSION-RELOAD-GUIDE.md](../EXTENSION-RELOAD-GUIDE.md) for complete guide
@@ -324,9 +350,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ### Tab Management
 
 #### openUrl
+
 **Purpose**: Open URL in new tab
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -345,6 +373,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -361,9 +390,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ---
 
 #### reloadTab
+
 **Purpose**: Reload a tab
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -381,6 +412,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -395,9 +427,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ---
 
 #### closeTab
+
 **Purpose**: Close a tab
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -412,6 +446,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -427,9 +462,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ### Console Capture
 
 #### capture
+
 **Purpose**: Capture console logs from all tabs
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -444,6 +481,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -468,9 +506,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ### Test Fixture Metadata
 
 #### getPageMetadata
+
 **Purpose**: Extract test metadata from page
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -485,6 +525,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -509,9 +550,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ## Test Orchestration Protocol (v1.1.0)
 
 ### startTest
+
 **Purpose**: Start test with automatic resource tracking
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -527,6 +570,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -545,6 +589,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Side Effects**:
+
 - Sets `testState.activeTestId = testId`
 - Sets `testState.trackedTabs = []`
 - Sets `testState.startTime = Date.now()`
@@ -553,14 +598,17 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 - Prevents overlapping tests (throws error if test already running)
 
 **Errors**:
+
 - `Test already running: {testId}` - Another test is active
 
 ---
 
 ### endTest
+
 **Purpose**: End test and trigger cleanup
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -576,6 +624,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -595,21 +644,25 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Side Effects**:
+
 - If `autoCleanup=true`: Closes all tracked tabs
 - Clears `testState.activeTestId`
 - Clears `testState.trackedTabs`
 - Persists cleared state to `chrome.storage.session`
 
 **Errors**:
+
 - `No active test to end` - No test is running
 - `Test ID mismatch` - Different test is running
 
 ---
 
 ### getTestStatus
+
 **Purpose**: Get current test status
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -622,6 +675,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response** (active test):
+
 ```javascript
 {
   type: 'response',
@@ -639,6 +693,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response** (no active test):
+
 ```javascript
 {
   type: 'response',
@@ -652,9 +707,11 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ---
 
 ### abortTest
+
 **Purpose**: Emergency abort test with cleanup
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -670,6 +727,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -689,20 +747,24 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Side Effects**:
+
 - **Always** closes tracked tabs (regardless of `autoCleanup` setting)
 - Clears test state
 - Persists to storage
 
 **Errors**:
+
 - `No active test to abort` - No test is running
 - `Test ID mismatch` - Different test is running
 
 ---
 
 ### verifyCleanup
+
 **Purpose**: Verify tabs were closed (orphan detection)
 
 **Request**:
+
 ```javascript
 {
   type: 'command',
@@ -717,6 +779,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response**:
+
 ```javascript
 {
   type: 'response',
@@ -731,6 +794,7 @@ Client (Node.js) ←→ WebSocket Server ←→ Extension (Chrome)
 ```
 
 **Response** (orphans detected):
+
 ```javascript
 {
   type: 'response',
@@ -780,6 +844,7 @@ await endTest('test-001');
 **Why**: Service workers suspend after 5 minutes of inactivity. State must persist across suspensions.
 
 **What's persisted**:
+
 ```javascript
 {
   testState: {
@@ -792,17 +857,19 @@ await endTest('test-001');
 ```
 
 **When persisted**:
+
 - On `startTest()` - Save initial state
 - On `openUrl()` - Save updated trackedTabs
 - On `endTest()` - Save cleared state
 - On `abortTest()` - Save cleared state
 
 **Recovery on service worker restart**:
+
 ```javascript
 // Service worker starts
 chrome.storage.session.get('testState').then(data => {
   if (data.testState) {
-    testState = data.testState;  // Restore state
+    testState = data.testState; // Restore state
     console.log('Test state restored:', testState);
   }
 });
@@ -815,12 +882,14 @@ chrome.storage.session.get('testState').then(data => {
 ### Input Validation
 
 **testId**:
+
 - Required: Must be non-empty string
 - Length: Max 100 characters
 - Format: `^[a-z0-9_-]+$` (alphanumeric, underscore, hyphen)
 - Rejects: `test;DROP TABLE`, `../../etc/passwd`, etc.
 
 **Example**:
+
 ```javascript
 function validateTestId(testId) {
   if (!testId || typeof testId !== 'string') {
@@ -839,25 +908,26 @@ function validateTestId(testId) {
 
 ## Error Codes
 
-| Code | Meaning |
-|------|---------|
+| Code                      | Meaning                           |
+| ------------------------- | --------------------------------- |
 | `EXTENSION_NOT_CONNECTED` | Extension not connected to server |
-| `DUPLICATE_REGISTRATION` | Extension already registered |
-| `INVALID_JSON` | Message not valid JSON |
-| `INVALID_MESSAGE` | Message missing required fields |
-| `UNKNOWN_MESSAGE_TYPE` | Unknown message type |
-| `INVALID_COMMAND` | Command missing ID field |
-| `SEND_FAILED` | Failed to send to extension |
-| `TEST_ALREADY_RUNNING` | Test already active |
-| `NO_ACTIVE_TEST` | No test running |
-| `TEST_ID_MISMATCH` | Wrong test ID provided |
-| `INVALID_RESULT` | Invalid test result value |
+| `DUPLICATE_REGISTRATION`  | Extension already registered      |
+| `INVALID_JSON`            | Message not valid JSON            |
+| `INVALID_MESSAGE`         | Message missing required fields   |
+| `UNKNOWN_MESSAGE_TYPE`    | Unknown message type              |
+| `INVALID_COMMAND`         | Command missing ID field          |
+| `SEND_FAILED`             | Failed to send to extension       |
+| `TEST_ALREADY_RUNNING`    | Test already active               |
+| `NO_ACTIVE_TEST`          | No test running                   |
+| `TEST_ID_MISMATCH`        | Wrong test ID provided            |
+| `INVALID_RESULT`          | Invalid test result value         |
 
 ---
 
 ## Protocol Version History
 
 ### v1.2.0 (2025-10-25) - Phase 0 Multi-Extension Support
+
 - ✅ Enhanced `register` message with full metadata (name, version, capabilities, metadata)
 - ✅ Added server-side validation module (`server/validation.js`)
 - ✅ Added security validation:
@@ -872,6 +942,7 @@ function validateTestId(testId) {
 - ✅ Backward compatibility with v1.0-1.1 registration (server provides defaults)
 
 ### v1.1.0 (2025-10-24) - Test Orchestration
+
 - ✅ Added Test Orchestration Protocol (5 commands)
 - ✅ Added state persistence (chrome.storage.session)
 - ✅ Added tab auto-tracking
@@ -880,6 +951,7 @@ function validateTestId(testId) {
 - ✅ Added security validation (testId format)
 
 ### v1.0.0 (Initial) - Core Commands
+
 - Extension management commands
 - Tab management commands
 - Console capture
@@ -890,12 +962,14 @@ function validateTestId(testId) {
 ## Future Protocol Changes
 
 ### Planned for v1.3.0 (Window Management)
+
 - `getAllWindows` - List Chrome windows
 - `getFocusedWindow` - Get focused window
 - Window pinning in test state
 - Window info in responses
 
 ### Planned for v1.4.0 (Advanced Extension Discovery)
+
 - Extension routing (targetExtensionId in commands)
 - Query extensions by capability
 - Extension health status

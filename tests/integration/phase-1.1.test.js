@@ -38,11 +38,13 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       let timeout;
 
       ws.on('open', () => {
-        ws.send(JSON.stringify({
-          type: 'command',
-          id: commandId,
-          command: command
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'command',
+            id: commandId,
+            command: command,
+          })
+        );
 
         timeout = setTimeout(() => {
           ws.close();
@@ -50,7 +52,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
         }, 10000);
       });
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         clearTimeout(timeout);
         const response = JSON.parse(data.toString());
 
@@ -63,7 +65,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
         }
       });
 
-      ws.on('error', (err) => {
+      ws.on('error', err => {
         clearTimeout(timeout);
         reject(err);
       });
@@ -78,7 +80,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('returns list of installed extensions', async () => {
       const result = await sendCommand({
         type: 'getAllExtensions',
-        params: {}
+        params: {},
       });
 
       expect(result).toHaveProperty('extensions');
@@ -90,20 +92,18 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('filters out self (Chrome Dev Assist)', async () => {
       const result = await sendCommand({
         type: 'getAllExtensions',
-        params: {}
+        params: {},
       });
 
       // Should not include Chrome Dev Assist itself
-      const selfInList = result.extensions.some(ext =>
-        ext.name === 'Chrome Dev Assist'
-      );
+      const selfInList = result.extensions.some(ext => ext.name === 'Chrome Dev Assist');
       expect(selfInList).toBe(false);
     });
 
     test('includes extension details', async () => {
       const result = await sendCommand({
         type: 'getAllExtensions',
-        params: {}
+        params: {},
       });
 
       if (result.extensions.length > 0) {
@@ -126,7 +126,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('count matches array length', async () => {
       const result = await sendCommand({
         type: 'getAllExtensions',
-        params: {}
+        params: {},
       });
 
       expect(result.count).toBe(result.extensions.length);
@@ -144,7 +144,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       // Get a valid extension ID for testing
       const result = await sendCommand({
         type: 'getAllExtensions',
-        params: {}
+        params: {},
       });
 
       if (result.extensions.length > 0) {
@@ -160,7 +160,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
 
       const result = await sendCommand({
         type: 'getExtensionInfo',
-        params: { extensionId: testExtensionId }
+        params: { extensionId: testExtensionId },
       });
 
       expect(result).toHaveProperty('id');
@@ -177,7 +177,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       await expect(
         sendCommand({
           type: 'getExtensionInfo',
-          params: { extensionId: 'abcdefghijklmnopqrstuvwxyzabcdef' }
+          params: { extensionId: 'abcdefghijklmnopqrstuvwxyzabcdef' },
         })
       ).rejects.toThrow(/not found/i);
     });
@@ -186,7 +186,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       await expect(
         sendCommand({
           type: 'getExtensionInfo',
-          params: {}
+          params: {},
         })
       ).rejects.toThrow(/required/i);
     });
@@ -199,7 +199,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
 
       const result = await sendCommand({
         type: 'getExtensionInfo',
-        params: { extensionId: testExtensionId }
+        params: { extensionId: testExtensionId },
       });
 
       expect(Array.isArray(result.permissions)).toBe(true);
@@ -219,7 +219,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
         try {
           await sendCommand({
             type: 'closeTab',
-            params: { tabId: createdTabId }
+            params: { tabId: createdTabId },
           });
         } catch (err) {
           // Ignore errors if tab already closed
@@ -231,7 +231,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('opens URL in new tab', async () => {
       const result = await sendCommand({
         type: 'openUrl',
-        params: { url: 'https://example.com' }
+        params: { url: 'https://example.com' },
       });
 
       expect(result).toHaveProperty('tabId');
@@ -245,7 +245,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       await expect(
         sendCommand({
           type: 'openUrl',
-          params: {}
+          params: {},
         })
       ).rejects.toThrow(/required/i);
     });
@@ -253,7 +253,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('supports active option', async () => {
       const result = await sendCommand({
         type: 'openUrl',
-        params: { url: 'https://example.com', active: false }
+        params: { url: 'https://example.com', active: false },
       });
 
       expect(result.tabId).toBeDefined();
@@ -266,8 +266,8 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
         params: {
           url: 'https://example.com',
           captureConsole: true,
-          duration: 1000
-        }
+          duration: 1000,
+        },
       });
 
       expect(result).toHaveProperty('consoleLogs');
@@ -279,7 +279,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('returns tabId', async () => {
       const result = await sendCommand({
         type: 'openUrl',
-        params: { url: 'https://example.com' }
+        params: { url: 'https://example.com' },
       });
 
       expect(result.tabId).toBeGreaterThan(0);
@@ -298,7 +298,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       // Create a test tab
       const result = await sendCommand({
         type: 'openUrl',
-        params: { url: 'https://example.com' }
+        params: { url: 'https://example.com' },
       });
       testTabId = result.tabId;
     });
@@ -309,7 +309,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
         try {
           await sendCommand({
             type: 'closeTab',
-            params: { tabId: testTabId }
+            params: { tabId: testTabId },
           });
         } catch (err) {
           // Ignore
@@ -321,7 +321,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('reloads tab by ID', async () => {
       const result = await sendCommand({
         type: 'reloadTab',
-        params: { tabId: testTabId }
+        params: { tabId: testTabId },
       });
 
       expect(result).toHaveProperty('tabId');
@@ -332,7 +332,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
     test('supports bypassCache option (hard reload)', async () => {
       const result = await sendCommand({
         type: 'reloadTab',
-        params: { tabId: testTabId, bypassCache: true }
+        params: { tabId: testTabId, bypassCache: true },
       });
 
       expect(result.bypassCache).toBe(true);
@@ -344,8 +344,8 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
         params: {
           tabId: testTabId,
           captureConsole: true,
-          duration: 1000
-        }
+          duration: 1000,
+        },
       });
 
       expect(result).toHaveProperty('consoleLogs');
@@ -356,7 +356,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       await expect(
         sendCommand({
           type: 'reloadTab',
-          params: {}
+          params: {},
         })
       ).rejects.toThrow(/required/i);
     });
@@ -371,7 +371,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       // Create tab
       const openResult = await sendCommand({
         type: 'openUrl',
-        params: { url: 'https://example.com' }
+        params: { url: 'https://example.com' },
       });
 
       const tabId = openResult.tabId;
@@ -379,7 +379,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       // Close tab
       const result = await sendCommand({
         type: 'closeTab',
-        params: { tabId: tabId }
+        params: { tabId: tabId },
       });
 
       expect(result).toHaveProperty('closed');
@@ -391,7 +391,7 @@ describe('Phase 1.1 - Discovery & Tab Management', () => {
       await expect(
         sendCommand({
           type: 'closeTab',
-          params: {}
+          params: {},
         })
       ).rejects.toThrow(/required/i);
     });

@@ -207,6 +207,7 @@ Three persona reviews identified **critical gaps** in test coverage:
 ### New Files to Create (25 total)
 
 **Unit Tests (8 files):**
+
 1. `tests/unit/websocket-state-machine.test.js`
 2. `tests/unit/exponential-backoff-behavior.test.js`
 3. `tests/unit/message-queue-fifo.test.js`
@@ -216,54 +217,39 @@ Three persona reviews identified **critical gaps** in test coverage:
 7. `tests/utils/state-machine-tester.js`
 8. `tests/utils/fake-timers-helper.js`
 
-**Integration Tests (7 files):**
-9. `tests/integration/console-output-verification.test.js`
-10. `tests/integration/chrome-extension-health.test.js`
-11. `tests/integration/websocket-state-machine.test.js`
-12. `tests/integration/message-queue-behavior.test.js`
-13. `tests/integration/error-path-coverage.test.js`
-14. `tests/integration/registration-flow.test.js`
-15. `tests/integration/keep-alive-mechanism.test.js`
+**Integration Tests (7 files):** 9. `tests/integration/console-output-verification.test.js` 10. `tests/integration/chrome-extension-health.test.js` 11. `tests/integration/websocket-state-machine.test.js` 12. `tests/integration/message-queue-behavior.test.js` 13. `tests/integration/error-path-coverage.test.js` 14. `tests/integration/registration-flow.test.js` 15. `tests/integration/keep-alive-mechanism.test.js`
 
-**Security Tests (9 files):**
-16. `tests/security/ack-spoofing.test.js`
-17. `tests/security/command-injection.test.js`
-18. `tests/security/command-origin.test.js`
-19. `tests/security/queue-overflow.test.js`
-20. `tests/security/input-validation.test.js`
-21. `tests/security/replay-attacks.test.js`
-22. `tests/security/resource-leaks.test.js`
-23. `tests/security/permissions.test.js`
-24. `tests/security/compliance.test.js`
-25. `tests/security/utils/attack-simulator.js`
-26. `tests/security/utils/fuzzer.js`
+**Security Tests (9 files):** 16. `tests/security/ack-spoofing.test.js` 17. `tests/security/command-injection.test.js` 18. `tests/security/command-origin.test.js` 19. `tests/security/queue-overflow.test.js` 20. `tests/security/input-validation.test.js` 21. `tests/security/replay-attacks.test.js` 22. `tests/security/resource-leaks.test.js` 23. `tests/security/permissions.test.js` 24. `tests/security/compliance.test.js` 25. `tests/security/utils/attack-simulator.js` 26. `tests/security/utils/fuzzer.js`
 
-**E2E Tests (1 file):**
-27. `tests/e2e/reload-button-persistence.e2e.test.js`
+**E2E Tests (1 file):** 27. `tests/e2e/reload-button-persistence.e2e.test.js`
 
 ---
 
 ## Expected Outcomes
 
 ### After Priority 1 (Week 1-2)
+
 - **Behavior test ratio:** 30% (from 21%)
 - **Security coverage:** 60% (from 45%)
 - **Critical regressions:** Prevented (runtime behavior verified)
 - **P0 vulnerabilities:** Fixed and tested
 
 ### After Priority 2 (Week 3-4)
+
 - **Behavior test ratio:** 40%+ (goal achieved)
 - **Security coverage:** 75%
 - **Coverage metrics:** 75% line, 70% branch
 - **Known vulnerabilities:** All tested (some still unfixed)
 
 ### After Priority 3 (Week 5-6)
+
 - **Behavior test ratio:** 50%
 - **Security coverage:** 85%
 - **Manual tests:** Automated (no human verification needed)
 - **Test infrastructure:** Reusable mocks and utilities
 
 ### After Priority 4 (Week 7-8)
+
 - **Behavior test ratio:** 50%+
 - **Security coverage:** 95%+
 - **Attack surface:** Reduced by 85%
@@ -274,6 +260,7 @@ Three persona reviews identified **critical gaps** in test coverage:
 ## Key Metrics
 
 ### Current State
+
 - Total tests: ~150 tests
 - Behavior tests: ~32 tests (21%)
 - Verification tests: ~118 tests (79%)
@@ -281,6 +268,7 @@ Three persona reviews identified **critical gaps** in test coverage:
 - Test quality: 3/10
 
 ### Target State (After 8 weeks)
+
 - Total tests: ~300 tests
 - Behavior tests: ~150 tests (50%)
 - Verification tests: ~100 tests (33%)
@@ -295,14 +283,14 @@ Three persona reviews identified **critical gaps** in test coverage:
 **High-Value Conversions** (Convert verification → behavior):
 
 From `tests/integration/improvements-verification.test.js`:
+
 1. "should have withTimeout function defined" → "should timeout after specified milliseconds"
 2. "should have message queue array" → "should queue messages during CONNECTING state"
 3. "should have MAX_QUEUE_SIZE constant" → "should reject messages when queue exceeds 100"
 4. "should have reconnection attempts tracked" → "should increment reconnectAttempts on each failure"
 5. "should have exponential backoff logic exists" → "should delay 1s, 2s, 4s, 8s, 16s, 30s"
 
-From `tests/security/websocket-client-security.test.js`:
-6. All `.skip()` tests should become real behavior tests (7 tests)
+From `tests/security/websocket-client-security.test.js`: 6. All `.skip()` tests should become real behavior tests (7 tests)
 
 **Estimated Effort:** 16 hours to convert 12 tests
 
@@ -311,6 +299,7 @@ From `tests/security/websocket-client-security.test.js`:
 ## Implementation Order
 
 ### Week 1-2: Critical Runtime Verification
+
 1. Console output verification (8h)
 2. ACK spoofing prevention (12h)
 3. Command injection prevention (12h)
@@ -321,6 +310,7 @@ From `tests/security/websocket-client-security.test.js`:
 **Deliverable:** ~30 behavior tests, 2 P0 vulnerabilities tested
 
 ### Week 3-4: Security & Reliability
+
 7. Command origin validation (8h)
 8. Queue overflow (10h)
 9. Input validation (8h)
@@ -333,6 +323,7 @@ From `tests/security/websocket-client-security.test.js`:
 **Deliverable:** ~50 behavior tests, all security vulnerabilities tested
 
 ### Week 5-6: Infrastructure & Automation
+
 15. Chrome reload button behavior (16h) - E2E automation
 16. Keep-alive mechanism (6h)
 17. Test mocks & utilities (12h)
@@ -341,6 +332,7 @@ From `tests/security/websocket-client-security.test.js`:
 **Deliverable:** Automated E2E tests, reusable test infrastructure
 
 ### Week 7-8: Defense in Depth
+
 19. Resource leak prevention (10h)
 20. Permissions & CSP (6h)
 21. Compliance checklist (8h)
@@ -377,23 +369,27 @@ From `tests/security/websocket-client-security.test.js`:
 ### If Recommendations NOT Implemented
 
 **High Risk:**
+
 - ✗ Fix regression likely (no runtime verification)
 - ✗ Chrome reload button may disappear again (no automated test)
 - ✗ Remote Code Execution possible (ACK spoofing, command injection)
 - ✗ Future bugs slip through (low behavior test ratio)
 
 **Medium Risk:**
+
 - ✗ State machine bugs cause crashes
 - ✗ Timer leaks cause memory exhaustion
 - ✗ Queue overflow enables DoS attacks
 
 **Low Risk:**
+
 - ✗ Replay attacks possible
 - ✗ Resource leaks over time
 
 ### If Recommendations Implemented
 
 **Benefits:**
+
 - ✓ Regressions caught before production
 - ✓ Security vulnerabilities tested and fixed
 - ✓ Behavior test ratio >40% (goal achieved)
@@ -406,6 +402,7 @@ From `tests/security/websocket-client-security.test.js`:
 ## Resource Requirements
 
 ### Personnel
+
 - **Developer:** Implement test infrastructure (40h)
 - **QA Engineer:** Write behavior tests (60h)
 - **Security Engineer:** Write security tests (50h)
@@ -414,6 +411,7 @@ From `tests/security/websocket-client-security.test.js`:
 **Total:** 170 hours (4-5 weeks with 2 people)
 
 ### Tools
+
 - Jest (already installed)
 - Puppeteer (for E2E tests) - ~$0 (open source)
 - Coverage tools (Jest built-in) - ~$0
@@ -426,24 +424,28 @@ From `tests/security/websocket-client-security.test.js`:
 ## Success Criteria
 
 ### Phase 1 Complete (Week 2)
+
 - [ ] 30% behavior tests (from 21%)
 - [ ] 2 P0 vulnerabilities tested
 - [ ] Runtime console output verified
 - [ ] WebSocket state machine tested
 
 ### Phase 2 Complete (Week 4)
+
 - [ ] 40% behavior tests (goal achieved)
 - [ ] 75% security coverage
 - [ ] All 6 vulnerabilities tested
 - [ ] Jest coverage enabled (75% line, 70% branch)
 
 ### Phase 3 Complete (Week 6)
+
 - [ ] 50% behavior tests
 - [ ] 85% security coverage
 - [ ] E2E tests automated
 - [ ] Test infrastructure complete (mocks, utilities)
 
 ### Phase 4 Complete (Week 8)
+
 - [ ] 50%+ behavior tests
 - [ ] 95% security coverage
 - [ ] Attack simulation tools created

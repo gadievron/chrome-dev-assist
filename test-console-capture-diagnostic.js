@@ -43,23 +43,25 @@ ws.on('open', () => {
 
   console.log('📂 Opening data: URL with console capture...\n');
 
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: commandId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'openUrl',
-      params: {
-        url: dataUrl,
-        captureConsole: true,
-        duration: 2000,  // 2 seconds should be plenty
-        autoClose: true   // Clean up automatically
-      }
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: commandId,
+      targetExtensionId: EXTENSION_ID,
+      command: {
+        type: 'openUrl',
+        params: {
+          url: dataUrl,
+          captureConsole: true,
+          duration: 2000, // 2 seconds should be plenty
+          autoClose: true, // Clean up automatically
+        },
+      },
+    })
+  );
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.type === 'response') {
@@ -85,18 +87,10 @@ ws.on('message', (data) => {
     console.log('ANALYSIS');
     console.log('═══════════════════════════════════════════════════════════════════\n');
 
-    const extensionMessages = consoleLogs.filter(log =>
-      log.message.includes('[ChromeDevAssist]')
-    );
-    const pageMessages = consoleLogs.filter(log =>
-      log.message.includes('[TEST]')
-    );
-    const debugInjectMessages = consoleLogs.filter(log =>
-      log.message.includes('DEBUG INJECT')
-    );
-    const debugContentMessages = consoleLogs.filter(log =>
-      log.message.includes('DEBUG CONTENT')
-    );
+    const extensionMessages = consoleLogs.filter(log => log.message.includes('[ChromeDevAssist]'));
+    const pageMessages = consoleLogs.filter(log => log.message.includes('[TEST]'));
+    const debugInjectMessages = consoleLogs.filter(log => log.message.includes('DEBUG INJECT'));
+    const debugContentMessages = consoleLogs.filter(log => log.message.includes('DEBUG CONTENT'));
 
     console.log(`Extension messages: ${extensionMessages.length}`);
     console.log(`Page messages: ${pageMessages.length} (expected: 4)`);
@@ -119,7 +113,6 @@ ws.on('message', (data) => {
       ws.close();
       process.exit(1);
     }
-
   } else if (message.type === 'error') {
     console.error('❌ Command failed:', message.error);
     ws.close();
@@ -127,7 +120,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ WebSocket error:', err.message);
   console.error('\nIs the server running? Try: node server.js\n');
   process.exit(1);

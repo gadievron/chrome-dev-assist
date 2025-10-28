@@ -4,7 +4,6 @@
  */
 
 describe('Native Messaging Integration', () => {
-
   test('should send command through native host to extension', async () => {
     // This test requires:
     // 1. Extension installed

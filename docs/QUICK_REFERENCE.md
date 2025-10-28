@@ -33,6 +33,7 @@
 </details>
 
 **Actually Implemented Functions (10):**
+
 - getAllExtensions()
 - getExtensionInfo(extensionId)
 - reload(extensionId)
@@ -55,17 +56,20 @@
 Chrome Dev Assist extension now includes **automatic self-healing** to recover from connection failures.
 
 **Quick Facts:**
+
 - ⏱️ **60-second timeout** - Automatically reloads if disconnected for 60+ seconds
 - 🔄 **Auto-reconnect** - Attempts reconnection every 1 second
 - 🛡️ **Infinite loop protection** - Maximum 3 reload attempts
 - 🎯 **Smart recovery** - Cancels reload if reconnection succeeds
 
 **Why It Matters:**
+
 - Extension won't get stuck in bad state
 - Automatically recovers from server restarts
 - No manual intervention needed
 
 **Documentation:**
+
 - Implementation details: `.SESSION-SUMMARY-SELF-HEALING-2025-10-27.md`
 - Bug fixes: `.BUG-FIXES-PERSONA-REVIEW-2025-10-27.md`
 - User guide: `README.md` (Advanced Usage section)
@@ -76,12 +80,14 @@ Chrome Dev Assist extension now includes **automatic self-healing** to recover f
 **Critical bug fixed in captureScreenshot()** - API was accepting invalid inputs (NaN, Infinity, floats).
 
 **Quick Facts:**
+
 - 🐛 **Bug discovered by**: 5-persona code review (unanimous finding)
 - ✅ **Fix verified**: 37 validation tests passing (25 for captureScreenshot, 12 for getPageMetadata)
 - 🔒 **Security added**: Comprehensive warnings in README.md and API.md
 - 📊 **Coverage**: 100% validation coverage (7/7 checks)
 
 **What was fixed**:
+
 ```javascript
 // BEFORE: NaN, Infinity, 123.456 incorrectly passed validation
 if (typeof tabId !== 'number') throw...
@@ -98,6 +104,7 @@ if (tabId <= 0) throw...  // NaN <= 0 is FALSE (bug!)
 ```
 
 **Documentation:**
+
 - Complete fix summary: `.P0-VALIDATION-BUG-FIX-2025-10-27.md`
 - Multi-persona review: `.MULTI-PERSONA-REVIEW-SUMMARY-2025-10-27.md`
 - Individual reviews: `.PERSONA-*-REVIEW-2025-10-27.md` (5 files)
@@ -109,31 +116,31 @@ if (tabId <= 0) throw...  // NaN <= 0 is FALSE (bug!)
 
 ### Security Questions
 
-| Question | Document |
-|----------|----------|
-| Why HTTP instead of HTTPS? | [ADR-002](./decisions/002-http-vs-https-for-localhost.md) |
-| How does authentication work? | [ADR-001](./decisions/001-test-infrastructure-authentication.md) |
-| Complete security architecture | [SECURITY.md](./SECURITY.md) |
-| Future OAuth2 implementation | [ADR-003](./decisions/003-future-oauth2-strategy.md) |
-| Is token encrypted? | [SECURITY.md](./SECURITY.md#why-token-in-query-parameter) |
+| Question                       | Document                                                         |
+| ------------------------------ | ---------------------------------------------------------------- |
+| Why HTTP instead of HTTPS?     | [ADR-002](./decisions/002-http-vs-https-for-localhost.md)        |
+| How does authentication work?  | [ADR-001](./decisions/001-test-infrastructure-authentication.md) |
+| Complete security architecture | [SECURITY.md](./SECURITY.md)                                     |
+| Future OAuth2 implementation   | [ADR-003](./decisions/003-future-oauth2-strategy.md)             |
+| Is token encrypted?            | [SECURITY.md](./SECURITY.md#why-token-in-query-parameter)        |
 
 ### Implementation Details
 
-| What | File | Key Lines |
-|------|------|-----------|
-| **Token generation** | `server/websocket-server.js` | 33-44 |
-| **Token validation** | `server/websocket-server.js` | 88-100 |
-| **HTTP request handler** | `server/websocket-server.js` | 70-217 |
-| **Test URL helper** | `tests/integration/test-helpers.js` | 60-76 |
-| **Token cleanup** | `server/websocket-server.js` | 449-481 |
+| What                     | File                                | Key Lines |
+| ------------------------ | ----------------------------------- | --------- |
+| **Token generation**     | `server/websocket-server.js`        | 33-44     |
+| **Token validation**     | `server/websocket-server.js`        | 88-100    |
+| **HTTP request handler** | `server/websocket-server.js`        | 70-217    |
+| **Test URL helper**      | `tests/integration/test-helpers.js` | 60-76     |
+| **Token cleanup**        | `server/websocket-server.js`        | 449-481   |
 
 ### Test Information
 
-| Test Type | File | Purpose |
-|-----------|------|---------|
-| **Edge cases** | `tests/integration/edge-cases.test.js` | Memory limits, concurrency, special data |
-| **Dogfooding** | `tests/integration/dogfooding.test.js` | Extension testing itself |
-| **Test effectiveness** | `.claude-state/test-effectiveness-analysis.md` | Which tests catch most bugs |
+| Test Type              | File                                           | Purpose                                  |
+| ---------------------- | ---------------------------------------------- | ---------------------------------------- |
+| **Edge cases**         | `tests/integration/edge-cases.test.js`         | Memory limits, concurrency, special data |
+| **Dogfooding**         | `tests/integration/dogfooding.test.js`         | Extension testing itself                 |
+| **Test effectiveness** | `.claude-state/test-effectiveness-analysis.md` | Which tests catch most bugs              |
 
 ---
 
@@ -143,11 +150,11 @@ if (tabId <= 0) throw...  // NaN <= 0 is FALSE (bug!)
 
 Quick index of all decisions:
 
-| ADR | Title | Status | Quick Summary |
-|-----|-------|--------|---------------|
+| ADR                                                          | Title              | Status      | Quick Summary                             |
+| ------------------------------------------------------------ | ------------------ | ----------- | ----------------------------------------- |
 | [001](./decisions/001-test-infrastructure-authentication.md) | Test Auth Strategy | ✅ Accepted | Token-based auth with 4 layers of defense |
-| [002](./decisions/002-http-vs-https-for-localhost.md) | HTTP for Localhost | ✅ Accepted | HTTP is secure for localhost testing |
-| [003](./decisions/003-future-oauth2-strategy.md) | Future OAuth2 | 📋 Proposed | OAuth2 + PKCE when we need user auth |
+| [002](./decisions/002-http-vs-https-for-localhost.md)        | HTTP for Localhost | ✅ Accepted | HTTP is secure for localhost testing      |
+| [003](./decisions/003-future-oauth2-strategy.md)             | Future OAuth2      | 📋 Proposed | OAuth2 + PKCE when we need user auth      |
 
 **How to use**: When making decisions, check existing ADRs first. Create new ADR if needed.
 
@@ -178,11 +185,13 @@ Our test infrastructure has **4 layers of security**:
 ## 🚀 Quick Start Commands
 
 ### Start Test Server
+
 ```bash
 node server/websocket-server.js
 ```
 
 ### Run Tests
+
 ```bash
 # All tests
 npm test
@@ -198,6 +207,7 @@ USE_FILE_URLS=true npm test
 ```
 
 ### Verify Authentication
+
 ```bash
 # Test 1: No token (should fail with 401)
 curl http://localhost:9876/fixtures/basic-test.html
@@ -257,6 +267,7 @@ chrome-dev-assist/
 **When**: Changing URL generation, token handling, or environment variables
 
 **Remember to update**:
+
 - Both test files (`edge-cases.test.js`, `dogfooding.test.js`)
 - Documentation in ADR-001
 
@@ -265,6 +276,7 @@ chrome-dev-assist/
 **Don't**: Modify without reviewing security docs
 
 **Do**:
+
 1. Read [ADR-001](./decisions/001-test-infrastructure-authentication.md)
 2. Consider impact on all 4 security layers
 3. Update [SECURITY.md](./SECURITY.md)
@@ -280,6 +292,7 @@ chrome-dev-assist/
 **Cause**: Token missing or invalid
 
 **Fix**:
+
 ```bash
 # Check token exists
 cat .auth-token
@@ -294,6 +307,7 @@ node server/websocket-server.js
 **Cause**: Chrome extension not running
 
 **Fix**:
+
 1. Open Chrome
 2. Navigate to `chrome://extensions`
 3. Enable Developer Mode
@@ -305,6 +319,7 @@ node server/websocket-server.js
 **Cause**: Wrong URL or missing fixture file
 
 **Fix**:
+
 ```bash
 # List available fixtures
 ls tests/fixtures/
@@ -322,6 +337,7 @@ curl "http://localhost:9876/fixtures/basic-test.html?token=$TOKEN"
 **When**: HTTP server issues, debugging, CI/CD without server
 
 **How**:
+
 ```bash
 # Enable file:// URL mode
 USE_FILE_URLS=true npm test
@@ -335,16 +351,19 @@ USE_FILE_URLS=true npm test
 ## 📚 Deep Dives
 
 ### Security Architecture
+
 - **Start here**: [SECURITY.md](./SECURITY.md)
 - **Specific questions**: [ADR-001](./decisions/001-test-infrastructure-authentication.md), [ADR-002](./decisions/002-http-vs-https-for-localhost.md)
 - **Future planning**: [ADR-003](./decisions/003-future-oauth2-strategy.md)
 
 ### Test Strategy
+
 - **Which tests to run**: [test-effectiveness-analysis.md](../.claude-state/test-effectiveness-analysis.md)
 - **Test architecture**: `tests/integration/` directory
 - **URL modes**: [test-helpers.js](../tests/integration/test-helpers.js) comments
 
 ### Development Workflow
+
 1. Start server: `node server/websocket-server.js`
 2. Load extension in Chrome
 3. Run tests: `npm test`
@@ -362,6 +381,7 @@ USE_FILE_URLS=true npm test
 **Plan**: [ADR-003: OAuth2 + PKCE](./decisions/003-future-oauth2-strategy.md)
 
 **Key decisions already made**:
+
 - Use OAuth2 with PKCE (not custom auth)
 - Store tokens in `chrome.storage.session`
 - Keep refresh tokens server-side only
@@ -372,12 +392,14 @@ USE_FILE_URLS=true npm test
 ## 📞 Getting Help
 
 ### For Developers
+
 - Check this document first
 - Read relevant ADR
 - Search `docs/decisions/`
 - Check `docs/SECURITY.md`
 
 ### For Claude
+
 - Always read `docs/decisions/README.md` first when making architectural decisions
 - Check if decision already exists in ADR index
 - Create new ADR if needed (next number in sequence)
@@ -385,6 +407,7 @@ USE_FILE_URLS=true npm test
 - Link ADRs from code comments
 
 ### For Security Questions
+
 - Read [SECURITY.md](./SECURITY.md) first
 - Check [ADR-001](./decisions/001-test-infrastructure-authentication.md) for auth details
 - Check [ADR-002](./decisions/002-http-vs-https-for-localhost.md) for HTTP rationale
@@ -407,12 +430,14 @@ npm test
 ```
 
 **For Claude:**
+
 - **Decisions**: `docs/decisions/README.md`
 - **Security**: `docs/SECURITY.md`
 - **Why HTTP**: [ADR-002](./decisions/002-http-vs-https-for-localhost.md)
 - **Why Token Auth**: [ADR-001](./decisions/001-test-infrastructure-authentication.md)
 
 **For security auditors:**
+
 - Read [SECURITY.md](./SECURITY.md)
 - Review all ADRs in `docs/decisions/`
 - Check [test-effectiveness-analysis.md](../.claude-state/test-effectiveness-analysis.md)

@@ -38,6 +38,7 @@
 23. **verifyCleanup** - PHANTOM (confirmed in phantom list #16)
 
 ### Current Counts:
+
 - **IMPLEMENTED:** 8 (captureLogs, closeTab, getAllExtensions, getExtensionInfo, openUrl, reload, reloadAndCapture, reloadTab)
 - **PHANTOM:** 11 (from the 16 phantom list that appear in docs)
 - **UNKNOWN:** 4 (closeChromeInstance, connect, forceReload, freshStart, level4Reload)
@@ -49,22 +50,27 @@
 ## Task 1.2: Investigate UNKNOWN Functions ✅ COMPLETE
 
 ### closeChromeInstance
+
 - **Result:** ❌ NOT IMPLEMENTED (grep found nothing)
 - **Status:** Referenced in docs but doesn't exist
 
 ### connect
+
 - **Result:** ⚠️ PARTIAL - connectToServer() exists in extension/background.js:93
 - **Status:** Internal function, NOT public API
 
 ### forceReload
+
 - **Result:** ❌ NOT IMPLEMENTED (grep found nothing)
 - **Status:** Referenced in docs but doesn't exist
 
 ### freshStart
+
 - **Result:** ❌ NOT IMPLEMENTED (grep found nothing)
 - **Status:** Referenced in docs but doesn't exist
 
 ### level4Reload / level4ReloadCDP
+
 - **Result:** ✅ IMPLEMENTED but NOT EXPOSED
 - **Location:** claude-code/level4-reload-cdp.js:116
 - **Status:** Implemented and exported, but NOT in main index.js API
@@ -77,6 +83,7 @@
 **23 functions found in documentation, categorized as:**
 
 ### ✅ IMPLEMENTED (8 public APIs):
+
 1. captureLogs
 2. closeTab
 3. getAllExtensions
@@ -87,6 +94,7 @@
 8. reloadTab
 
 ### ❌ PHANTOM (11 of 16 found in docs):
+
 1. abortTest
 2. captureScreenshot
 3. disableExtension
@@ -100,12 +108,14 @@
 11. (5 more phantoms exist but not in general docs - test files only)
 
 ### ❌ DOCUMENTED BUT NOT IMPLEMENTED (4 new discoveries):
+
 1. closeChromeInstance - referenced in docs, doesn't exist
 2. forceReload - referenced in docs, doesn't exist
 3. freshStart - referenced in docs, doesn't exist
 4. connect - docs reference, but only connectToServer() internal function exists
 
 ### ⚠️ IMPLEMENTED BUT NOT INTEGRATED (1):
+
 1. level4ReloadCDP - exists in level4-reload-cdp.js but not exposed in main API
 
 ---
@@ -115,6 +125,7 @@
 **Next Task:** Phase 1.3 - Extract feature claims from COMPLETE-FUNCTIONALITY-MAP.md
 
 **Progress:**
+
 - Task 1.1 ✅ Complete
 - Task 1.2 ✅ Complete
 - Task 1.3 ⏳ Not started
@@ -122,9 +133,11 @@
 - Task 1.5 ⏳ Not started
 
 **Files Created:**
+
 - PHASE1-WORKING-NOTES.md (this file)
 
 **Key Findings So Far:**
+
 - 4 NEW phantom-like functions discovered (closeChromeInstance, forceReload, freshStart, connect)
 - These are referenced in documentation but don't exist (similar to the 16 phantom APIs)
 - Total documented-but-missing functions: 16 phantom APIs + 4 new = 20 total
@@ -142,11 +155,13 @@
 ### Extraction Strategy
 
 **Granularity Levels:**
+
 1. **Function-level claims** - Specific API functions (e.g., "getPageMetadata(tabId)")
 2. **Capability-level claims** - User-facing features (e.g., "Console Capture System")
 3. **Mechanism-level claims** - Internal behaviors (e.g., "Auto-Reconnect", "Memory Leak Prevention")
 
 **Categorization Schema:**
+
 - ✅ **IMPLEMENTED** - Exists in code, works as documented
 - ❌ **PHANTOM** - Documented but doesn't exist (16 known + 4 new = 20 total)
 - ⚠️ **PARTIAL** - Exists but incomplete/not integrated
@@ -154,6 +169,7 @@
 - 💀 **DEAD** - Code exists but unused/abandoned
 
 **Analysis Dimensions:**
+
 - Implementation status (exists? works? tested?)
 - Unused code integration (could HealthManager/ConsoleCapture/Level4CDP help?)
 - Duplication/redundancy (is this done multiple ways?)
@@ -167,6 +183,7 @@
 **Source:** Lines 67-362 in COMPLETE-FUNCTIONALITY-MAP.md
 
 #### 1.1 getAllExtensions()
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:84-92
 - **Handler:** extension/background.js:135
@@ -176,6 +193,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 1.2 getExtensionInfo(extensionId)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:99-109
 - **Handler:** extension/background.js:139
@@ -186,6 +204,7 @@
 - **Priority:** P2 (cleanup - unify validation approach)
 
 #### 1.3 reload(extensionId)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:44-57
 - **Handler:** extension/background.js:127
@@ -197,6 +216,7 @@
 - **Priority:** P1 (expose Level4 CDP as advanced option OR document as internal-only)
 
 #### 1.4 reloadAndCapture(extensionId, options)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:23-37
 - **Handler:** extension/background.js:127 (reload with captureConsole=true)
@@ -210,6 +230,7 @@
 - **Priority:** P1 (refactor to use ConsoleCapture class for testability + performance)
 
 #### 1.5 captureLogs(duration)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:64-78
 - **Handler:** extension/background.js:131
@@ -219,6 +240,7 @@
 - **Priority:** P1 (same refactoring opportunity)
 
 #### 1.6 openUrl(url, options)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:121-150
 - **Handler:** extension/background.js:143
@@ -229,6 +251,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 1.7 reloadTab(tabId, options)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:161-182
 - **Handler:** extension/background.js:147
@@ -239,6 +262,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 1.8 closeTab(tabId)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:189-205
 - **Handler:** extension/background.js:151
@@ -257,12 +281,14 @@
 **Tested:** 8/8 (100%)
 
 **Key Findings:**
+
 1. 🔄 **Duplication Found:** Extension ID validation (inline + validation.js)
 2. 🔄 **Duplication Found:** Console capture (inline + ConsoleCapture.js class)
 3. ⚠️ **Unused Integration:** ConsoleCapture.js (251 lines) - HIGH VALUE, not integrated
 4. ⚠️ **Unused Integration:** level4-reload-cdp.js (198 lines) - exists but not exposed
 
 **Refactoring Priorities:**
+
 - **P1:** Refactor console capture to use ConsoleCapture.js class (improves testability, performance)
 - **P1:** Expose level4ReloadCDP in API OR document as internal/advanced
 - **P2:** Unify validation (use validation.js consistently, not inline)
@@ -274,6 +300,7 @@
 **Source:** Lines 364-548 in COMPLETE-FUNCTIONALITY-MAP.md
 
 #### 2.1 getPageMetadata(tabId)
+
 - **Status:** ❌ PHANTOM
 - **Expected Location:** claude-code/index.js (NOT FOUND)
 - **Tests:** ✅ tests/unit/page-metadata.test.js (60+ security test cases)
@@ -284,6 +311,7 @@
 - **Priority:** P1 (implement to test spec - security-critical, well-tested)
 
 #### 2.2 startTest(testId, options)
+
 - **Status:** ❌ PHANTOM
 - **Expected Location:** claude-code/index.js (NOT FOUND)
 - **Tests:** tests/unit/test-orchestration.test.js
@@ -293,6 +321,7 @@
 - **Priority:** P2 (implement if test orchestration needed, or remove tests)
 
 #### 2.3 endTest(testId)
+
 - **Status:** ❌ PHANTOM
 - **Expected Location:** claude-code/index.js (NOT FOUND)
 - **Tests:** tests/unit/test-orchestration.test.js
@@ -301,6 +330,7 @@
 - **Priority:** P2 (pairs with startTest)
 
 #### 2.4 abortTest(testId, reason)
+
 - **Status:** ❌ PHANTOM
 - **Expected Location:** claude-code/index.js (NOT FOUND)
 - **Tests:** tests/unit/test-orchestration.test.js
@@ -309,6 +339,7 @@
 - **Priority:** P3 (nice-to-have)
 
 #### 2.5 getTestStatus()
+
 - **Status:** ⚠️ PHANTOM (or unclear)
 - **Referenced In:** scripts/diagnose-connection.js
 - **Tests:** N/A
@@ -316,6 +347,7 @@
 - **Priority:** P3 (clarify if exists in extension, or remove reference)
 
 #### 2.6 captureScreenshot(tabId, options)
+
 - **Status:** ❌ PHANTOM
 - **Expected Location:** claude-code/index.js (NOT FOUND)
 - **Tests:** tests/unit/screenshot.test.js
@@ -326,25 +358,29 @@
 - **Note:** See docs/PHASE-1.3-IMPLEMENTATION-PLAN.md (10 test cases ready)
 
 #### 2.7 captureServiceWorkerLogs()
+
 - **Status:** ❌ PHANTOM
 - **Tests:** tests/unit/service-worker-api.test.js
 - **Impact:** MEDIUM
 - **Priority:** P2 (implement if service worker monitoring needed)
 
 #### 2.8 getServiceWorkerStatus()
+
 - **Status:** ❌ PHANTOM
-- **Tests:** tests/unit/service-worker-*.test.js
+- **Tests:** tests/unit/service-worker-\*.test.js
 - **Impact:** MEDIUM
 - **Unused Code Integration:** ⚠️ Could use HealthManager for status monitoring
 - **Priority:** P1 (implement + integrate HealthManager)
 
 #### 2.9 wakeServiceWorker()
+
 - **Status:** ❌ PHANTOM
 - **Tests:** tests/unit/service-worker-lifecycle.test.js
 - **Impact:** MEDIUM
 - **Priority:** P2 (implement if service worker lifecycle control needed)
 
 #### 2.10 enableExtension(extensionId)
+
 - **Status:** ❌ PHANTOM
 - **Tests:** tests/unit/extension-discovery-validation.test.js
 - **Impact:** LOW
@@ -353,6 +389,7 @@
 - **Priority:** P2 (implement OR refactor reload to expose enable/disable separately)
 
 #### 2.11 disableExtension(extensionId)
+
 - **Status:** ❌ PHANTOM
 - **Tests:** tests/unit/extension-discovery-validation.test.js
 - **Impact:** LOW
@@ -360,6 +397,7 @@
 - **Priority:** P2 (same as above)
 
 #### 2.12 toggleExtension(extensionId)
+
 - **Status:** ❌ PHANTOM
 - **Tests:** Multiple test files
 - **Impact:** LOW
@@ -367,24 +405,28 @@
 - **Priority:** P3 (low value, implement only if enable/disable exist)
 
 #### 2.13 enableExternalLogging()
+
 - **Status:** ❌ PHANTOM
 - **Tests:** Multiple test files
 - **Impact:** LOW
 - **Priority:** P3 (unclear use case)
 
 #### 2.14 disableExternalLogging()
+
 - **Status:** ❌ PHANTOM
 - **Tests:** Multiple test files
 - **Impact:** LOW
 - **Priority:** P3 (unclear use case)
 
 #### 2.15 getExternalLoggingStatus()
+
 - **Status:** ❌ PHANTOM
 - **Tests:** Multiple test files
 - **Impact:** LOW
 - **Priority:** P3 (unclear use case)
 
 #### 2.16 verifyCleanup()
+
 - **Status:** ❌ PHANTOM
 - **Tests:** Multiple test files
 - **Impact:** LOW
@@ -399,12 +441,14 @@
 **Tests Exist:** 16/16 (100% - all have tests but no implementation)
 
 **Key Findings:**
+
 1. ❌ **16 phantom functions** - extensive tests, ZERO implementation
 2. ✅ **High-quality test specs** - Tests provide implementation specifications
 3. ⚠️ **Integration opportunity:** getServiceWorkerStatus() could use HealthManager
 4. 🔄 **Duplication risk:** enable/disable/toggle overlap with reload() functionality
 
 **Refactoring Priorities:**
+
 - **P1 (Implement - High Value):**
   - getPageMetadata() - Security-critical, 60+ tests, good spec
   - captureScreenshot() - Useful feature, tests exist, Chrome API available
@@ -429,6 +473,7 @@
 **Source:** Lines 700-1095 in COMPLETE-FUNCTIONALITY-MAP.md
 
 #### 3.1 Auto-Start Server
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** claude-code/index.js:280-306
 - **How:** sendCommand() → ECONNREFUSED → startServer() → retry
@@ -438,6 +483,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 3.2 Auto-Reconnect (Extension → Server)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** extension/background.js:190-194
 - **How:** ws.onclose → reconnect after 1s (exponential backoff)
@@ -447,12 +493,14 @@
 - **Priority:** P2 (integrate HealthManager to emit reconnection events)
 
 #### 3.3 Keep-Alive Mechanism
+
 - **Status:** ⚠️ DEPRECATED (not in v1.0.0)
 - **Note:** Service worker keep-alive was planned but not implemented
 - **Current:** WebSocket connection keeps service worker alive naturally
 - **Priority:** N/A (not needed)
 
 #### 3.4 Memory Leak Prevention: 10,000 Log Limit
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** extension/background.js:728-744
 - **Limit:** 10,000 logs per capture
@@ -463,6 +511,7 @@
 - **Priority:** P1 (unify via ConsoleCapture class)
 
 #### 3.5 Memory Leak Prevention: 10,000 Character Truncation (Dual-Layer)
+
 - **Status:** ✅ IMPLEMENTED (two enforcement points)
 - **Layer 1:** inject-console-capture.js:36-39 (MAIN world)
 - **Layer 2:** background.js:687-691 (Service worker backup)
@@ -473,6 +522,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 3.6 Periodic Cleanup of Old Captures
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** extension/background.js:22-37
 - **Interval:** 60 seconds
@@ -483,6 +533,7 @@
 - **Priority:** P1 (unify via ConsoleCapture class)
 
 #### 3.7 Console Capture Architecture: Three-Stage Pipeline
+
 - **Status:** ✅ IMPLEMENTED
 - **Stage 1:** inject-console-capture.js (MAIN world, document_start)
 - **Stage 2:** content-script.js (ISOLATED world, message relay)
@@ -493,6 +544,7 @@
 - **Priority:** P1 (refactor Stage 3 to use ConsoleCapture class)
 
 #### 3.8 Log Level Preservation (5 Levels)
+
 - **Status:** ✅ IMPLEMENTED
 - **Location:** inject-console-capture.js:53-73, background.js:694
 - **Levels:** log, warn, error, info, debug
@@ -502,6 +554,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 3.9 Tab Isolation (Dual-Index System)
+
 - **Status:** ✅ IMPLEMENTED
 - **Data Structures:**
   - captureState: Map<commandId, state>
@@ -514,6 +567,7 @@
 - **Priority:** P1 (unify via ConsoleCapture class - better tested, cleaner API)
 
 #### 3.10 Command ID System (Race Condition Prevention)
+
 - **Status:** ✅ IMPLEMENTED
 - **How:** UUID per API call: `cmd-{uuid}`
 - **Location:** claude-code/index.js (generateCommandId)
@@ -524,6 +578,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 3.11 Input Validation: Extension ID
+
 - **Status:** ✅ IMPLEMENTED (but duplicated)
 - **Format:** 32 lowercase letters (a-p only)
 - **Regex:** `/^[a-p]{32}$/`
@@ -534,6 +589,7 @@
 - **Priority:** P2 (unify - use validation.js consistently)
 
 #### 3.12 Input Validation: URL
+
 - **Status:** ✅ IMPLEMENTED
 - **Method:** `new URL(url)` (throws if invalid)
 - **Location:** claude-code/index.js:131-135
@@ -543,6 +599,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 3.13 Input Validation: Tab ID
+
 - **Status:** ✅ IMPLEMENTED
 - **Checks:** Type, non-negative, non-zero, integer
 - **Location:** claude-code/index.js (in reloadTab, closeTab)
@@ -552,6 +609,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 3.14 Input Validation: Duration
+
 - **Status:** ✅ IMPLEMENTED
 - **Range:** 1-60000 ms
 - **Location:** claude-code/index.js:65-67
@@ -561,6 +619,7 @@
 - **Priority:** N/A (working correctly)
 
 #### 3.15 Circular Reference Handling
+
 - **Status:** ⚠️ PARTIAL (Implementation Gap)
 - **Issue:** Objects with circular refs show as "[object Object]" in captured logs
 - **Root Cause:** inject-console-capture.js uses native JSON.stringify() (fails on circular)
@@ -581,6 +640,7 @@
 **Tested:** 12/15 (80%)
 
 **Key Findings:**
+
 1. 🔄 **Major Duplication:** Console capture logic (inline + ConsoleCapture.js class)
    - 10K log limit: Inline + ConsoleCapture.js
    - Periodic cleanup: Inline + ConsoleCapture.js
@@ -598,6 +658,7 @@
    - Periodic cleanup not explicitly tested
 
 **Refactoring Priorities:**
+
 - **P1 (High Impact):** Refactor console capture to use ConsoleCapture.js
   - Eliminates 3 duplication points
   - Improves testability (class has clean API)
@@ -617,6 +678,7 @@
 **Source:** Lines 1219-1487 in COMPLETE-FUNCTIONALITY-MAP.md
 
 #### 4.1 server/validation.js (6 functions + 2 constants)
+
 - **Status:** ✅ IMPLEMENTED & USED
 - **Purpose:** Security validation for WebSocket messages
 - **Location:** server/validation.js (153 lines)
@@ -624,6 +686,7 @@
 - **Tests:** ✅ tests/unit/validation.test.js
 
 **Functions:**
+
 1. `validateExtensionId(extensionId)` - Format validation (32 chars, a-p)
 2. `validateMetadata(metadata)` - Size limits (10KB max), DoS prevention
 3. `sanitizeManifest(manifest)` - Remove sensitive fields (key, oauth2, permissions)
@@ -632,12 +695,14 @@
 6. `validateVersion(version)` - Semantic versioning (X.Y.Z)
 
 **Security Features:**
+
 - 🔒 7 security validations
 - 🔒 XSS prevention
 - 🔒 DoS prevention
 - 🔒 Injection prevention
 
 **Duplication Analysis:**
+
 - ⚠️ validateExtensionId() exists here BUT inline validation also used in claude-code/index.js
 - **Priority:** P2 (unify - require validation.js in claude-code/index.js)
 
@@ -646,6 +711,7 @@
 ---
 
 #### 4.2 extension/lib/error-logger.js (4 methods)
+
 - **Status:** ✅ IMPLEMENTED & USED
 - **Purpose:** Prevent Chrome crash detection by distinguishing expected vs unexpected errors
 - **Location:** extension/lib/error-logger.js (120 lines)
@@ -653,10 +719,12 @@
 - **Tests:** ⚠️ Not explicitly tested (usage is implicit)
 
 **Why This Exists:**
+
 > **Problem:** Chrome crash detection monitors `console.error`. Too many → extension disabled
 > **Solution:** Use `console.warn` for operational errors, `console.error` only for bugs
 
 **Methods:**
+
 1. `logExpectedError(context, message, error)` - Uses `console.warn` (not monitored)
 2. `logUnexpectedError(context, message, error)` - Uses `console.error` (monitored)
 3. `logInfo(context, message, data)` - Uses `console.log`
@@ -665,6 +733,7 @@
 **Key Feature:** Prevents false-positive crash detection
 
 **Duplication Analysis:**
+
 - ✅ No duplication detected
 - ✅ Properly integrated (used throughout background.js)
 
@@ -676,6 +745,7 @@
 ---
 
 #### 4.3 extension/modules/ConsoleCapture.js (9 methods)
+
 - **Status:** 💀 IMPLEMENTED BUT NOT USED (POC only)
 - **Purpose:** Class-based console capture management
 - **Location:** extension/modules/ConsoleCapture.js (251 lines)
@@ -683,10 +753,12 @@
 - **Tests:** ⚠️ No explicit tests (POC)
 
 **Architecture:** Dual-index system for O(1) lookups
+
 - Primary index: `Map<captureId, CaptureState>`
 - Secondary index: `Map<tabId, Set<captureId>>`
 
 **Methods:**
+
 1. `start(captureId, options)` - Start capture session
 2. `stop(captureId)` - Stop capture (preserves logs)
 3. `addLog(tabId, logEntry)` - Add log to relevant captures
@@ -698,11 +770,13 @@
 9. `cleanupStale(thresholdMs)` - Clean up old captures
 
 **Why Not Used:**
+
 - Inline approach in background.js works fine
 - POC demonstrates alternative design
 - Refactoring working code = risk
 
 **Duplication Analysis:**
+
 - 🔄 **MAJOR DUPLICATION** - Background.js implements same logic inline
 - **Features duplicated:**
   - 10K log limit enforcement
@@ -711,12 +785,14 @@
   - Auto-stop timers
 
 **ConsoleCapture.js Advantages:**
+
 - ✅ Clean API (testable)
 - ✅ O(1) lookups (performance optimized)
 - ✅ Memory leak prevention (built-in)
 - ✅ Better separation of concerns
 
 **Current Inline Approach Disadvantages:**
+
 - ❌ Hard to test (embedded in background.js)
 - ❌ Mixed concerns (console capture + WebSocket handling + command routing)
 - ❌ No API for external use
@@ -724,6 +800,7 @@
 **Integration Status:** ❌ UNUSED - 251 lines of better code not integrated
 
 **Priority:** **P1 (HIGH VALUE)** - Refactor background.js to use ConsoleCapture class
+
 - Eliminates 3 major duplication points
 - Improves testability
 - Better architecture (separation of concerns)
@@ -732,6 +809,7 @@
 ---
 
 #### 4.4 src/health/health-manager.js (8 methods)
+
 - **Status:** ⚠️ IMPORTED BUT NOT USED
 - **Purpose:** WebSocket health monitoring and observability
 - **Location:** src/health/health-manager.js (292 lines)
@@ -740,6 +818,7 @@
 - **Tests:** ✅ tests/unit/health-manager.test.js
 
 **Grep Verification:**
+
 ```bash
 $ grep -n "HealthManager" server/websocket-server.js
 31:const HealthManager = require('../src/health/health-manager');
@@ -747,10 +826,12 @@ $ grep -n "HealthManager" server/websocket-server.js
 ```
 
 **Architecture:** Extends EventEmitter for observability
+
 - **Events:** `health-changed`, `connection-state-changed`, `issues-updated`
 - **State tracking:** Previous vs current state comparison (prevents noisy events)
 
 **Methods:**
+
 1. `setExtensionSocket(socket)` - Set extension WebSocket reference
 2. `setApiSocket(socket)` - Set API WebSocket reference
 3. `isExtensionConnected()` - Quick connection check
@@ -761,27 +842,32 @@ $ grep -n "HealthManager" server/websocket-server.js
 8. `_arraysEqual(arr1, arr2)` - Array comparison utility
 
 **Events Provided (If Used):**
+
 1. **health-changed** - Overall health status changes
 2. **connection-state-changed** - Extension connection state changes
 3. **issues-updated** - Issues array changes
 
 **Why Not Used:**
+
 - Server works without it
 - Manual health checking is simpler
 - Event-based observability not needed yet
 
 **Integration Opportunities:**
+
 - ⚠️ Auto-reconnect (3.2) could emit events via HealthManager
 - ⚠️ WebSocket server could expose /health endpoint using HealthManager
 - ⚠️ getServiceWorkerStatus() phantom API could use HealthManager
 
 **Duplication Analysis:**
+
 - ✅ No duplication (unique functionality)
 - ⚠️ Overlaps with manual health checking in server
 
 **Integration Status:** ❌ UNUSED - 292 lines imported but never instantiated
 
 **Priority:** **P2 (MEDIUM VALUE)** - Integrate for better observability
+
 - Option A: Use in server for /health endpoint
 - Option B: Use in auto-reconnect for event-based monitoring
 - Option C: Remove if not needed (reduce unused code)
@@ -791,6 +877,7 @@ $ grep -n "HealthManager" server/websocket-server.js
 ---
 
 #### 4.5 claude-code/level4-reload-cdp.js (3 functions)
+
 - **Status:** ⚠️ IMPLEMENTED BUT NOT EXPOSED
 - **Purpose:** Reload extension from disk using Chrome DevTools Protocol (CDP)
 - **Location:** claude-code/level4-reload-cdp.js (198 lines)
@@ -798,38 +885,44 @@ $ grep -n "HealthManager" server/websocket-server.js
 - **Tests:** ✅ tests/unit/level4-reload-cdp.test.js
 
 **Functions:**
+
 1. `getCDPWebSocketURL(port)` - Get CDP WebSocket endpoint
 2. `evaluateExpression(ws, expression)` - Execute JS via CDP
 3. `level4ReloadCDP(extensionId, options)` - Reload extension via CDP
 
 **What It Does:**
+
 - True Level 4 reload (disk-level, not just service worker restart)
 - Requires Chrome started with `--remote-debugging-port=9222`
 - More powerful than standard reload() (chrome.management.setEnabled)
 
 **Why Not Exposed:**
+
 - Requires Chrome special flag (--remote-debugging-port)
 - More complex than standard reload
 - Not needed for most use cases
 - Standard `reload()` works fine for typical scenarios
 
 **Current Public API:**
+
 - `reload(extensionId)` - Uses chrome.management.setEnabled (simpler)
 - `reloadAndCapture(extensionId, options)` - Same, with console capture
 
 **How To Use (If Needed):**
+
 ```javascript
 // NOT exposed in claude-code/index.js
 // Must require directly:
 const level4ReloadCDP = require('./claude-code/level4-reload-cdp');
 
 await level4ReloadCDP(extensionId, {
-  port: 9222,    // CDP port
-  delay: 200     // ms between disable/enable
+  port: 9222, // CDP port
+  delay: 200, // ms between disable/enable
 });
 ```
 
 **Duplication Analysis:**
+
 - 🔄 **REDUNDANT** - Two reload methods (standard + CDP)
 - Standard reload: Simple, works for 95% of cases
 - CDP reload: Advanced, requires setup, more powerful
@@ -837,6 +930,7 @@ await level4ReloadCDP(extensionId, {
 **Integration Status:** ⚠️ PARTIAL - Implemented and tested, not integrated into main API
 
 **Priority:** **P1 (DECISION NEEDED)** - Choose one:
+
 - **Option A:** Expose in main API as `level4Reload(extensionId, options)` (advanced users)
 - **Option B:** Keep as internal/undocumented (advanced power users can require directly)
 - **Option C:** Document as advanced feature (in docs but not in main exports)
@@ -858,6 +952,7 @@ await level4ReloadCDP(extensionId, {
 **Total Lines of Unused Code:** 741 lines (251 + 292 + 198)
 
 **Key Findings:**
+
 1. ✅ **Well-Integrated Modules (2):**
    - validation.js - Security functions, properly used
    - error-logger.js - Crash prevention, well-integrated
@@ -881,6 +976,7 @@ await level4ReloadCDP(extensionId, {
    - **Priority: P1 (DECISION NEEDED)** - Expose, document, or keep internal?
 
 **Refactoring Priorities:**
+
 - **P1:** Integrate ConsoleCapture.js (eliminates duplication, improves architecture)
 - **P1:** Decide on level4-reload-cdp exposure (expose, document, or keep internal)
 - **P2:** Integrate HealthManager OR remove unused import
@@ -894,17 +990,20 @@ await level4ReloadCDP(extensionId, {
 ### Overall Statistics
 
 **Total Items Analyzed:** 69
+
 - Public API Functions: 8
 - Phantom APIs: 16
 - Internal Mechanisms: 15
 - Utility Modules: 30 functions across 5 modules
 
 **Implementation Status:**
+
 - ✅ Implemented & Working: 31 items (45%)
 - ❌ Phantom (tested but not implemented): 16 items (23%)
 - ⚠️ Partial/Unused: 22 items (32%)
 
 **Code Volume:**
+
 - Working Production Code: ~2,700 lines
 - Unused But Valuable Code: 738 lines (ConsoleCapture 250, HealthManager 291, Level4 CDP 197)
 - Phantom API Test Code: ~500+ lines (tests without implementation)
@@ -916,6 +1015,7 @@ await level4ReloadCDP(extensionId, {
 #### 1. MAJOR DUPLICATION (High Impact)
 
 **Console Capture Logic - 🔄 REDUNDANT**
+
 - **Location 1:** extension/background.js (inline, 200+ lines)
 - **Location 2:** extension/modules/ConsoleCapture.js (class-based, 251 lines)
 - **Duplicate Features:**
@@ -927,12 +1027,14 @@ await level4ReloadCDP(extensionId, {
 - **Priority:** **P1 (CRITICAL)** - Refactor to use ConsoleCapture class
 
 **Extension ID Validation - 🔄 REDUNDANT**
+
 - **Location 1:** claude-code/index.js (inline regex)
 - **Location 2:** server/validation.js:validateExtensionId()
 - **Impact:** Inconsistent validation approach
 - **Priority:** **P2** - Unify using validation.js
 
 **Reload Methods - 🔄 REDUNDANT**
+
 - **Method 1:** reload() using chrome.management.setEnabled
 - **Method 2:** level4ReloadCDP() using Chrome DevTools Protocol
 - **Impact:** 198 lines of advanced code not exposed
@@ -943,12 +1045,14 @@ await level4ReloadCDP(extensionId, {
 #### 2. UNUSED HIGH-VALUE CODE (738 Lines Total)
 
 **ConsoleCapture.js (250 lines) - Priority: P1**
+
 - **Value:** HIGH - Eliminates 3 duplication points
 - **Advantages:** Testable, O(1) performance, clean API, separation of concerns
 - **Why Unused:** Inline approach works, refactoring = risk
 - **Recommendation:** **INTEGRATE** - Benefits outweigh refactoring risk
 
 **HealthManager (291 lines) - Priority: P2**
+
 - **Value:** MEDIUM - Better observability via events
 - **Integration Points:**
   - Auto-reconnect event emission
@@ -958,6 +1062,7 @@ await level4ReloadCDP(extensionId, {
 - **Recommendation:** **INTEGRATE** for observability OR **REMOVE** unused import
 
 **level4-reload-cdp.js (197 lines) - Priority: P1**
+
 - **Value:** MEDIUM - Advanced reload for power users
 - **Advantages:** Disk-level reload, more powerful than standard
 - **Why Not Exposed:** Requires --remote-debugging-port flag, complex setup
@@ -968,6 +1073,7 @@ await level4ReloadCDP(extensionId, {
 #### 3. PHANTOM APIs (16 Functions, ZERO Implementation)
 
 **High Priority to Implement (P1):**
+
 1. **getPageMetadata(tabId)** - 60+ security tests, critical feature
 2. **captureScreenshot(tabId, options)** - Useful, Chrome API available, 10 test cases ready
 3. **getServiceWorkerStatus()** - Could integrate HealthManager
@@ -977,8 +1083,7 @@ await level4ReloadCDP(extensionId, {
 10-12. Service worker APIs (captureServiceWorkerLogs, wakeServiceWorker)
 13-14. Extension control (enableExtension, disableExtension)
 
-**Low Priority (P3 - Consider Removing):**
-15. toggleExtension()
+**Low Priority (P3 - Consider Removing):** 15. toggleExtension()
 16-18. External logging APIs (enableExternalLogging, disableExternalLogging, getExternalLoggingStatus)
 
 **Total Test Code Without Implementation:** ~500+ lines
@@ -988,6 +1093,7 @@ await level4ReloadCDP(extensionId, {
 #### 4. IMPLEMENTATION GAPS
 
 **Circular Reference Handling - ⚠️ PARTIAL**
+
 - **Issue:** Circular refs show as "[object Object]" in captured logs
 - **Root Cause:** inject-console-capture.js uses JSON.stringify() (fails on circular)
 - **Solution Exists:** safeStringify() in background.js:355-371 (WeakSet tracking)
@@ -995,6 +1101,7 @@ await level4ReloadCDP(extensionId, {
 - **Priority:** **P2** - Apply safeStringify to captured console logs
 
 **Periodic Cleanup Not Tested - ⚠️ GAP**
+
 - **Issue:** Auto-cleanup runs every 60s but no explicit tests
 - **Impact:** LOW - Works implicitly
 - **Priority:** **P3** - Add explicit tests
@@ -1003,35 +1110,37 @@ await level4ReloadCDP(extensionId, {
 
 ### Duplication Summary Table
 
-| Feature | Implementation 1 | Implementation 2 | Lines Wasted | Priority |
-|---------|-----------------|------------------|--------------|----------|
-| Console Capture | background.js (inline) | ConsoleCapture.js (class) | 250 | **P1** |
-| Extension ID Validation | index.js (regex) | validation.js (function) | ~18 | P2 |
-| Reload | reload() (standard) | level4ReloadCDP() (advanced) | 197 | **P1** |
-| **TOTAL** | | | **~465 lines** | |
+| Feature                 | Implementation 1       | Implementation 2             | Lines Wasted   | Priority |
+| ----------------------- | ---------------------- | ---------------------------- | -------------- | -------- |
+| Console Capture         | background.js (inline) | ConsoleCapture.js (class)    | 250            | **P1**   |
+| Extension ID Validation | index.js (regex)       | validation.js (function)     | ~18            | P2       |
+| Reload                  | reload() (standard)    | level4ReloadCDP() (advanced) | 197            | **P1**   |
+| **TOTAL**               |                        |                              | **~465 lines** |          |
 
 ---
 
 ### Integration Opportunities Matrix
 
-| Unused Code | Integration Point | Benefit | Priority |
-|-------------|-------------------|---------|----------|
-| ConsoleCapture.js | background.js console capture | Testability, clean architecture, eliminates 3 duplications | **P1** |
-| HealthManager | Auto-reconnect events | Better observability, event-based monitoring | P2 |
-| HealthManager | /health HTTP endpoint | System health status API | P2 |
-| HealthManager | getServiceWorkerStatus() | Implements phantom API with existing code | **P1** |
-| level4-reload-cdp | Expose in main API | Advanced reload for power users | **P1** |
-| safeStringify() | inject-console-capture.js | Fix circular reference handling | P2 |
-| validation.js | claude-code/index.js | Unified validation approach | P2 |
+| Unused Code       | Integration Point             | Benefit                                                    | Priority |
+| ----------------- | ----------------------------- | ---------------------------------------------------------- | -------- |
+| ConsoleCapture.js | background.js console capture | Testability, clean architecture, eliminates 3 duplications | **P1**   |
+| HealthManager     | Auto-reconnect events         | Better observability, event-based monitoring               | P2       |
+| HealthManager     | /health HTTP endpoint         | System health status API                                   | P2       |
+| HealthManager     | getServiceWorkerStatus()      | Implements phantom API with existing code                  | **P1**   |
+| level4-reload-cdp | Expose in main API            | Advanced reload for power users                            | **P1**   |
+| safeStringify()   | inject-console-capture.js     | Fix circular reference handling                            | P2       |
+| validation.js     | claude-code/index.js          | Unified validation approach                                | P2       |
 
 ---
 
 ### Refactoring Priority Roadmap
 
 #### P0 - CRITICAL (Fix Immediately)
+
 - ❌ None identified (no production bugs)
 
 #### P1 - HIGH VALUE (Integrate Unused Code)
+
 1. **Refactor console capture to use ConsoleCapture.js**
    - Eliminates 3 major duplication points
    - Improves testability (class has clean API)
@@ -1063,6 +1172,7 @@ await level4ReloadCDP(extensionId, {
    - **Effort:** MEDIUM (2-3 hours) | **Value:** MEDIUM | **Risk:** LOW
 
 #### P2 - MEDIUM VALUE (Cleanup & Professionalization)
+
 6. **Fix circular reference handling**
    - Use safeStringify() in inject-console-capture.js
    - Better debugging experience
@@ -1087,6 +1197,7 @@ await level4ReloadCDP(extensionId, {
     - **Effort:** MEDIUM if implement, LOW if remove | **Decision Needed**
 
 #### P3 - LOW PRIORITY (Nice to Have)
+
 11. Add explicit tests for periodic cleanup
 12. Add tests for error-logger.js (already well-integrated)
 13. Remove low-value phantom APIs (external logging, toggleExtension, verifyCleanup)
@@ -1096,6 +1207,7 @@ await level4ReloadCDP(extensionId, {
 ### Decisions Needed (User Input Required)
 
 **Question 1: ConsoleCapture.js Integration**
+
 - **INTEGRATE** (recommended) - Refactor background.js to use class
   - PRO: Eliminates duplication, better architecture, testable
   - CON: Refactoring risk (3-4 hours work)
@@ -1104,6 +1216,7 @@ await level4ReloadCDP(extensionId, {
   - CON: Keeps duplication, harder to test
 
 **Question 2: HealthManager**
+
 - **INTEGRATE** (recommended) - Use for observability + phantom API
   - PRO: Better monitoring, implements getServiceWorkerStatus()
   - CON: More complexity
@@ -1112,6 +1225,7 @@ await level4ReloadCDP(extensionId, {
   - CON: Loses observability opportunity
 
 **Question 3: level4-reload-cdp**
+
 - **DOCUMENT** (recommended) - Document as advanced feature, don't expose
   - PRO: Available for power users, keeps main API simple
   - CON: Hidden feature (discoverability)
@@ -1123,6 +1237,7 @@ await level4ReloadCDP(extensionId, {
   - CON: Confusing (exists but not mentioned)
 
 **Question 4: Phantom APIs - Implement or Remove?**
+
 - **HIGH VALUE (implement):**
   - getPageMetadata() - 60+ tests, security-critical
   - captureScreenshot() - Useful, tests exist
@@ -1139,6 +1254,7 @@ await level4ReloadCDP(extensionId, {
   - toggleExtension() - Redundant
 
 **Question 5: Architecture Philosophy**
+
 - **PROFESSIONALIZE** (recommended) - Use unused code, unify patterns, clean architecture
   - Effort: HIGH (10-15 hours total)
   - Result: Professional codebase, no duplication, better tests
@@ -1151,11 +1267,13 @@ await level4ReloadCDP(extensionId, {
 ### Next Steps (Proposed)
 
 **Immediate (Task 1.4):**
+
 1. ✅ Task 1.3 Complete - All capability claims extracted and categorized
 2. ⏳ Task 1.4 - Reverse audit (find implemented functions NOT documented)
 3. ⏳ Task 1.5 - Consolidate into refactoring roadmap with user decisions
 
 **After Phase 1 Complete (Phase 2):**
+
 1. User decisions on 5 questions above
 2. Create detailed refactoring plan (test-first approach)
 3. Execute P1 priorities (high-value integrations)
@@ -1170,9 +1288,11 @@ await level4ReloadCDP(extensionId, {
 **Key Deliverable:** Complete duplication/unused code/phantom API analysis with prioritized roadmap
 
 **Files Updated:**
+
 - PHASE1-WORKING-NOTES.md (this file) - comprehensive analysis
 
 **Key Metrics:**
+
 - Duplication found: ~465 lines (ConsoleCapture 250, validation ~18, level4-reload 197)
 - Unused high-value code: 738 lines (ConsoleCapture 250, HealthManager 291, level4-reload 197)
 - Phantom APIs: 16 functions (500+ test lines)

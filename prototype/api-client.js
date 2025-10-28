@@ -23,9 +23,9 @@ ws.on('open', () => {
       type: 'reload',
       params: {
         extensionId: 'test-extension',
-        captureConsole: true
-      }
-    }
+        captureConsole: true,
+      },
+    },
   };
 
   console.log('[Prototype API] → Sending command:', command.id);
@@ -39,7 +39,7 @@ ws.on('open', () => {
   }, 5000);
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   clearTimeout(timeout);
   const response = JSON.parse(data.toString());
 
@@ -52,7 +52,7 @@ ws.on('message', (data) => {
   process.exit(0);
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   clearTimeout(timeout);
   console.error('[Prototype API] ✗ WebSocket error:', err.message);
   process.exit(1);

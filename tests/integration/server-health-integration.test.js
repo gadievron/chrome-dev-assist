@@ -12,7 +12,6 @@ const http = require('http');
 const HealthManager = require('../../src/health/health-manager');
 
 describe('WebSocket Server - HealthManager Integration', () => {
-
   let server;
   let wsServer;
   let healthManager;
@@ -26,7 +25,7 @@ describe('WebSocket Server - HealthManager Integration', () => {
     healthManager = new HealthManager();
   });
 
-  afterEach((done) => {
+  afterEach(done => {
     if (wsServer) {
       wsServer.close(() => {
         if (server) {
@@ -42,7 +41,7 @@ describe('WebSocket Server - HealthManager Integration', () => {
     }
   });
 
-  test('server should use healthManager.isExtensionConnected() for health checks', (done) => {
+  test('server should use healthManager.isExtensionConnected() for health checks', done => {
     wsServer = new WebSocket.Server({ server });
     let extensionSocket = null;
 
@@ -57,41 +56,47 @@ describe('WebSocket Server - HealthManager Integration', () => {
         // Verify health check works
         expect(healthManager.isExtensionConnected()).toBe(true);
 
-        socket.on('message', (data) => {
+        socket.on('message', data => {
           const msg = JSON.parse(data.toString());
 
           if (msg.type === 'register') {
-            socket.send(JSON.stringify({
-              type: 'registered',
-              message: 'Extension registered'
-            }));
+            socket.send(
+              JSON.stringify({
+                type: 'registered',
+                message: 'Extension registered',
+              })
+            );
           }
         });
       }
 
       if (role === 'api') {
         // Simulate API command routing
-        socket.on('message', (data) => {
+        socket.on('message', data => {
           const msg = JSON.parse(data.toString());
 
           // Use healthManager instead of manual check
           if (!healthManager.isExtensionConnected()) {
-            socket.send(JSON.stringify({
-              type: 'error',
-              id: msg.id,
-              error: {
-                message: 'Extension not connected',
-                code: 'EXTENSION_NOT_CONNECTED'
-              }
-            }));
+            socket.send(
+              JSON.stringify({
+                type: 'error',
+                id: msg.id,
+                error: {
+                  message: 'Extension not connected',
+                  code: 'EXTENSION_NOT_CONNECTED',
+                },
+              })
+            );
             return;
           }
 
           // Would route to extension here
-          socket.send(JSON.stringify({
-            type: 'success',
-            id: msg.id
-          }));
+          socket.send(
+            JSON.stringify({
+              type: 'success',
+              id: msg.id,
+            })
+          );
         });
       }
     });
@@ -103,13 +108,15 @@ describe('WebSocket Server - HealthManager Integration', () => {
       const extClient = new WebSocket(`ws://localhost:${port}?role=extension`);
 
       extClient.on('open', () => {
-        extClient.send(JSON.stringify({
-          type: 'register',
-          role: 'extension'
-        }));
+        extClient.send(
+          JSON.stringify({
+            type: 'register',
+            role: 'extension',
+          })
+        );
       });
 
-      extClient.on('message', (data) => {
+      extClient.on('message', data => {
         const msg = JSON.parse(data.toString());
 
         if (msg.type === 'registered') {
@@ -117,13 +124,15 @@ describe('WebSocket Server - HealthManager Integration', () => {
           const apiClient = new WebSocket(`ws://localhost:${port}?role=api`);
 
           apiClient.on('open', () => {
-            apiClient.send(JSON.stringify({
-              id: 'test-123',
-              type: 'test-command'
-            }));
+            apiClient.send(
+              JSON.stringify({
+                id: 'test-123',
+                type: 'test-command',
+              })
+            );
           });
 
-          apiClient.on('message', (data) => {
+          apiClient.on('message', data => {
             const response = JSON.parse(data.toString());
 
             // Should succeed because extension is connected
@@ -139,7 +148,7 @@ describe('WebSocket Server - HealthManager Integration', () => {
     });
   }, 5000);
 
-  test('server should detect extension disconnection via healthManager', (done) => {
+  test('server should detect extension disconnection via healthManager', done => {
     wsServer = new WebSocket.Server({ server });
     let extensionSocket = null;
 
@@ -173,7 +182,7 @@ describe('WebSocket Server - HealthManager Integration', () => {
     });
   }, 5000);
 
-  test('server should reject API commands when extension disconnected', (done) => {
+  test('server should reject API commands when extension disconnected', done => {
     wsServer = new WebSocket.Server({ server });
 
     wsServer.on('connection', (socket, req) => {
@@ -181,19 +190,21 @@ describe('WebSocket Server - HealthManager Integration', () => {
       const role = url.searchParams.get('role');
 
       if (role === 'api') {
-        socket.on('message', (data) => {
+        socket.on('message', data => {
           const msg = JSON.parse(data.toString());
 
           // Extension not connected (healthManager.extensionSocket is null)
           if (!healthManager.isExtensionConnected()) {
-            socket.send(JSON.stringify({
-              type: 'error',
-              id: msg.id,
-              error: {
-                message: 'Extension not connected',
-                code: 'EXTENSION_NOT_CONNECTED'
-              }
-            }));
+            socket.send(
+              JSON.stringify({
+                type: 'error',
+                id: msg.id,
+                error: {
+                  message: 'Extension not connected',
+                  code: 'EXTENSION_NOT_CONNECTED',
+                },
+              })
+            );
             return;
           }
         });
@@ -207,13 +218,15 @@ describe('WebSocket Server - HealthManager Integration', () => {
       const apiClient = new WebSocket(`ws://localhost:${port}?role=api`);
 
       apiClient.on('open', () => {
-        apiClient.send(JSON.stringify({
-          id: 'test-456',
-          type: 'test-command'
-        }));
+        apiClient.send(
+          JSON.stringify({
+            id: 'test-456',
+            type: 'test-command',
+          })
+        );
       });
 
-      apiClient.on('message', (data) => {
+      apiClient.on('message', data => {
         const response = JSON.parse(data.toString());
 
         // Should get error
@@ -225,11 +238,9 @@ describe('WebSocket Server - HealthManager Integration', () => {
       });
     });
   }, 5000);
-
 });
 
 describe('HealthManager - Standalone Behavior (Used by Server)', () => {
-
   test('server should use healthManager for consistent error messages', () => {
     const healthManager = new HealthManager();
 
@@ -263,5 +274,4 @@ describe('HealthManager - Standalone Behavior (Used by Server)', () => {
     healthManager.setExtensionSocket(null);
     expect(healthManager.isExtensionConnected()).toBe(false);
   });
-
 });

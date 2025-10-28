@@ -31,23 +31,25 @@ ws.on('open', () => {
   reloadCommandId = 'reload-errorlogger-' + Date.now();
 
   console.log('🔄 Sending reload command to extension...');
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: reloadCommandId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'reload',
-      params: {
-        extensionId: EXTENSION_ID,
-        captureConsole: false
-      }
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: reloadCommandId,
+      targetExtensionId: EXTENSION_ID,
+      command: {
+        type: 'reload',
+        params: {
+          extensionId: EXTENSION_ID,
+          captureConsole: false,
+        },
+      },
+    })
+  );
 
   console.log(`📤 Command sent (ID: ${reloadCommandId})`);
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.id === reloadCommandId) {
@@ -73,10 +75,14 @@ ws.on('message', (data) => {
       console.log('  console.log("");');
       console.log('  ');
       console.log('  // Test expected error (should be YELLOW warning)');
-      console.log('  ErrorLogger.logExpectedError("test", "Test expected error", new Error("This is expected"));');
+      console.log(
+        '  ErrorLogger.logExpectedError("test", "Test expected error", new Error("This is expected"));'
+      );
       console.log('  ');
       console.log('  // Test unexpected error (should be RED error)');
-      console.log('  ErrorLogger.logUnexpectedError("test", "Test programming bug", new Error("This is a bug"));');
+      console.log(
+        '  ErrorLogger.logUnexpectedError("test", "Test programming bug", new Error("This is a bug"));'
+      );
       console.log('  ');
       console.log('  console.log("");');
       console.log('  console.log("✅ Check above for:");');
@@ -84,7 +90,9 @@ ws.on('message', (data) => {
       console.log('  console.log("  - Unexpected: RED error (console.error)");');
       console.log('  console.log("  - Both should have structured data WITHOUT stack traces");');
       console.log('} else {');
-      console.log('  console.error("❌ ErrorLogger not found - check importScripts in background.js");');
+      console.log(
+        '  console.error("❌ ErrorLogger not found - check importScripts in background.js");'
+      );
       console.log('}');
       console.log('─'.repeat(70));
       console.log('\n5. Verify you see:');
@@ -98,7 +106,6 @@ ws.on('message', (data) => {
       setTimeout(() => {
         ws.close();
       }, 1000);
-
     } else if (message.type === 'error') {
       console.error('❌ Extension reload failed!');
       console.error('Error:', JSON.stringify(message.error, null, 2));
@@ -107,7 +114,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ WebSocket error:', err.message);
   process.exit(1);
 });

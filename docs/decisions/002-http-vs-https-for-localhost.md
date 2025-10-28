@@ -34,6 +34,7 @@ httpServer.listen(9876, '127.0.0.1');
 ## Consequences
 
 ### Positive ✅
+
 - **No Certificate Management**: No need to generate, store, rotate self-signed certs
 - **No Browser Warnings**: Avoids "Your connection is not private" warnings
 - **No Manual Trust Setup**: Users don't need to add cert to system keychain
@@ -42,10 +43,12 @@ httpServer.listen(9876, '127.0.0.1');
 - **Simpler Debugging**: No TLS errors, easier to inspect with curl/DevTools
 
 ### Negative ⚠️
+
 - **Not "Best Practice"**: Deviates from "HTTPS everywhere" guideline
 - **Education**: Need to explain why HTTP is OK for localhost
 
 ### Trade-offs
+
 - **Chose Developer Experience Over Theoretical Security**: HTTPS adds no security for localhost but significant friction
 - **Chose Standards Compliance**: Following test framework industry standards
 
@@ -54,6 +57,7 @@ httpServer.listen(9876, '127.0.0.1');
 ## Why HTTP is Secure for Localhost
 
 ### 1. Traffic Never Leaves Machine
+
 ```
 Extension → 127.0.0.1:9876 → Server
     ↑                             ↑
@@ -61,12 +65,14 @@ Extension → 127.0.0.1:9876 → Server
 ```
 
 Traffic on 127.0.0.1 uses the **loopback interface**:
+
 - Never touches network hardware
 - Never traverses any network (LAN, WAN, Internet)
 - Cannot be intercepted by network sniffing
 - OS kernel routes directly (no physical wire/wireless)
 
 ### 2. Network Binding Prevents External Access
+
 ```javascript
 httpServer.listen(9876, '127.0.0.1'); // NOT '0.0.0.0'
 ```
@@ -76,7 +82,9 @@ httpServer.listen(9876, '127.0.0.1'); // NOT '0.0.0.0'
 - Remote machines cannot connect even on same network
 
 ### 3. HTTPS Protects Against MitM - No MitM on Localhost
+
 HTTPS prevents:
+
 - ❌ Network eavesdropping (no network involved)
 - ❌ DNS spoofing (no DNS lookup for 127.0.0.1)
 - ❌ Router/ISP interception (traffic doesn't leave machine)
@@ -85,13 +93,16 @@ HTTPS prevents:
 **None of these threats apply to localhost.**
 
 ### 4. Defense-in-Depth Still Applies
+
 We still implement:
+
 - Layer 1: Network binding (127.0.0.1)
 - Layer 2: Host header validation
 - Layer 3: Token authentication
 - Layer 4: Directory traversal protection
 
 HTTPS would add:
+
 - Layer 5: TLS encryption (redundant for localhost)
 
 ---
@@ -101,17 +112,22 @@ HTTPS would add:
 ### 1. HTTPS with Self-Signed Certificate ❌
 
 **Implementation**:
+
 ```javascript
 const https = require('https');
 const fs = require('fs');
 
-const httpsServer = https.createServer({
-  key: fs.readFileSync('localhost-key.pem'),
-  cert: fs.readFileSync('localhost-cert.pem')
-}, handleHttpRequest);
+const httpsServer = https.createServer(
+  {
+    key: fs.readFileSync('localhost-key.pem'),
+    cert: fs.readFileSync('localhost-cert.pem'),
+  },
+  handleHttpRequest
+);
 ```
 
 **Rejected Because**:
+
 - ⚠️ Browser shows "Your connection is not private" warning
 - ⚠️ Tests fail with `CERT_INVALID` errors
 - ⚠️ Users must manually trust cert in system keychain
@@ -121,6 +137,7 @@ const httpsServer = https.createServer({
 - ✅ **Zero security benefit** (traffic already secure on localhost)
 
 **Example Pain**:
+
 ```bash
 # Without cert trust
 curl https://localhost:9876/fixtures/test.html
@@ -134,12 +151,14 @@ curl --insecure https://localhost:9876/fixtures/test.html
 ### 2. HTTPS with mkcert (Local CA) ❌
 
 **Implementation**:
+
 ```bash
 mkcert -install
 mkcert localhost 127.0.0.1
 ```
 
 **Rejected Because**:
+
 - ⚠️ Requires mkcert installation (extra dependency)
 - ⚠️ Setup instructions vary per OS
 - ⚠️ May not work in CI/CD environments
@@ -149,6 +168,7 @@ mkcert localhost 127.0.0.1
 ### 3. Dual Mode (HTTP + HTTPS) ❌
 
 **Rejected Because**:
+
 - ❌ Doubles complexity for no benefit
 - ❌ More test configurations to maintain
 - ❌ Still need to handle self-signed cert issues
@@ -160,6 +180,7 @@ mkcert localhost 127.0.0.1
 If any of these become true, revisit this decision:
 
 1. **Server accessible from network**:
+
    ```javascript
    httpServer.listen(9876, '0.0.0.0'); // BAD: network-accessible
    ```
@@ -181,38 +202,42 @@ If any of these become true, revisit this decision:
 All major test frameworks use HTTP for localhost:
 
 ### Jest (Facebook)
+
 ```javascript
 // jest.config.js
 module.exports = {
   testEnvironmentOptions: {
-    url: 'http://localhost'
-  }
+    url: 'http://localhost',
+  },
 };
 ```
 
 ### Playwright (Microsoft)
+
 ```javascript
 // playwright.config.js
 export default {
   webServer: {
     url: 'http://localhost:3000', // HTTP, not HTTPS
-  }
+  },
 };
 ```
 
 ### Cypress
+
 ```javascript
 // cypress.config.js
 export default {
-  baseUrl: 'http://localhost:8080'
+  baseUrl: 'http://localhost:8080',
 };
 ```
 
 ### WebdriverIO
+
 ```javascript
 // wdio.conf.js
 exports.config = {
-  baseUrl: 'http://localhost:3000'
+  baseUrl: 'http://localhost:3000',
 };
 ```
 
@@ -239,15 +264,20 @@ Even without HTTPS, verify:
 If we ever deploy a **production** server (not test infrastructure):
 
 **THEN use HTTPS**:
+
 ```javascript
 const https = require('https');
-const httpsServer = https.createServer({
-  key: fs.readFileSync('/path/to/privkey.pem'),   // From Let's Encrypt
-  cert: fs.readFileSync('/path/to/fullchain.pem')
-}, handleHttpRequest);
+const httpsServer = https.createServer(
+  {
+    key: fs.readFileSync('/path/to/privkey.pem'), // From Let's Encrypt
+    cert: fs.readFileSync('/path/to/fullchain.pem'),
+  },
+  handleHttpRequest
+);
 ```
 
 **Production requirements**:
+
 - Valid TLS certificate (Let's Encrypt, commercial CA)
 - HSTS headers
 - TLS 1.2+ only

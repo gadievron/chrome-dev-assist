@@ -17,20 +17,24 @@ The registration timeout issue was NOT a bug in Improvement 6 (Registration ACK)
 ## Investigation Timeline
 
 ### 1. Initial Report
+
 - User reported: `[ChromeDevAssist] Registration timeout, reconnecting...`
 - This error occurs at `background.js:335` when registration-ack not received within 5 seconds
 
 ### 2. Debug Logging Added
+
 - Added debug logging to extension `ws.onmessage` (lines 352-358)
 - Added debug logging to server registration-ack sending (lines 586-599)
 - Restarted server to pick up new logging (PID 71941 → 75422)
 
 ### 3. Extension Reload Attempt
+
 - Created test script `test-reload-extension.js` to reload extension via API
 - Test failed with: **"Error: No extensions connected"**
 - This was the KEY finding!
 
 ### 4. Root Cause Discovery
+
 - Server logs showed: **NO connections at all** since restart
 - Chrome was running (PID 30758) since 19:12:06
 - Extension connected to old server (PID 71941)
@@ -42,6 +46,7 @@ The registration timeout issue was NOT a bug in Improvement 6 (Registration ACK)
 ## Root Cause Analysis
 
 ### The Problem
+
 1. Extension established WebSocket connection to server (PID 71941)
 2. Developer restarted server for debugging (new PID 75422)
 3. Extension's WebSocket connection was broken (old server killed)
@@ -49,7 +54,9 @@ The registration timeout issue was NOT a bug in Improvement 6 (Registration ACK)
 5. **But extension did NOT reconnect to new server**
 
 ### Why Extension Didn't Reconnect
+
 Possible reasons (needs further investigation):
+
 1. **Service worker crashed/stopped** after server disconnect
 2. **Exponential backoff** delayed reconnection too long
 3. **WebSocket state machine issue** - connection stuck in CONNECTING state
@@ -60,17 +67,20 @@ Possible reasons (needs further investigation):
 ## What We Learned
 
 ### 1. The Registration ACK Implementation is Correct
+
 - Code in `background.js:354-361` correctly handles registration-ack
 - Code in `websocket-server.js:585-599` correctly sends registration-ack
 - Timeout mechanism (5 seconds) is working as designed
 
 ### 2. The Real Issue: Extension Doesn't Reconnect After Server Restart
+
 - Extension established initial connection successfully
 - When server restarted, extension lost connection
 - Extension did NOT successfully reconnect to new server instance
 - This is a DIFFERENT issue from registration-ack
 
 ### 3. Testing Methodology Issue
+
 - Cannot test WebSocket improvements by restarting server mid-session
 - Need to restart BOTH server AND extension together
 - Or need better mechanism to force extension reconnection
@@ -80,6 +90,7 @@ Possible reasons (needs further investigation):
 ## Recommended Actions
 
 ### P0 - IMMEDIATE
+
 1. **Investigate why extension doesn't reconnect after server restart**
    - Check `ws.onclose` handler (background.js:519-541)
    - Check `scheduleReconnect()` function
@@ -87,9 +98,12 @@ Possible reasons (needs further investigation):
    - Add logging to reconnection attempts
 
 2. **Add reconnection debugging**
+
    ```javascript
    function scheduleReconnect() {
-     console.log(`[ChromeDevAssist] 🔍 DEBUG: Scheduling reconnect attempt ${reconnectAttempts + 1}`);
+     console.log(
+       `[ChromeDevAssist] 🔍 DEBUG: Scheduling reconnect attempt ${reconnectAttempts + 1}`
+     );
      console.log(`[ChromeDevAssist] 🔍 DEBUG: Backoff delay: ${delay} seconds`);
      // ... existing code
    }
@@ -102,6 +116,7 @@ Possible reasons (needs further investigation):
    - Check for service worker crashes
 
 ### P1 - HIGH
+
 1. **Add health check / ping-pong**
    - Server sends periodic ping (every 30 seconds)
    - Extension responds with pong
@@ -118,7 +133,9 @@ Possible reasons (needs further investigation):
    - Clients can reduce backoff for expected restarts
 
 ### P2 - MEDIUM
+
 1. **Add integration test for server restart scenario**
+
    ```javascript
    test('extension reconnects when server restarts', async () => {
      // Start server
@@ -139,6 +156,7 @@ Possible reasons (needs further investigation):
 ## Testing Procedures (Lessons Learned)
 
 ### ❌ WRONG: Restart server mid-session
+
 ```bash
 # This breaks extension connection
 kill <old-server-pid>
@@ -149,6 +167,7 @@ npm run server  # New PID
 ```
 
 ### ✅ CORRECT: Restart both server and extension
+
 ```bash
 # Kill everything
 kill <chrome-pid>
@@ -162,6 +181,7 @@ npm run server
 ```
 
 ### ✅ ALTERNATIVE: Force extension reload
+
 ```bash
 # If server was restarted
 # Use API to reload extension
@@ -206,6 +226,6 @@ This is a SEPARATE issue from the Registration ACK implementation, which is work
 
 ---
 
-*Investigation Date: 2025-10-25*
-*Investigator: Claude Code*
-*Status: ROOT CAUSE IDENTIFIED - Needs separate fix*
+_Investigation Date: 2025-10-25_
+_Investigator: Claude Code_
+_Status: ROOT CAUSE IDENTIFIED - Needs separate fix_

@@ -74,9 +74,7 @@ describe('Resource Cleanup Verification', () => {
 
     it('should detect orphaned server processes', async () => {
       try {
-        const { stdout } = await execAsync(
-          'ps aux | grep "node.*websocket-server" | grep -v grep'
-        );
+        const { stdout } = await execAsync('ps aux | grep "node.*websocket-server" | grep -v grep');
 
         // If processes found, they should match current server only
         if (stdout.trim()) {
@@ -93,9 +91,7 @@ describe('Resource Cleanup Verification', () => {
 
     it('should detect background test processes', async () => {
       try {
-        const { stdout } = await execAsync(
-          'ps aux | grep "npm.*test" | grep -v grep'
-        );
+        const { stdout } = await execAsync('ps aux | grep "npm.*test" | grep -v grep');
 
         // If processes found, fail test
         if (stdout.trim()) {
@@ -113,12 +109,13 @@ describe('Resource Cleanup Verification', () => {
       const projectRoot = path.join(__dirname, '../..');
       const files = fs.readdirSync(projectRoot);
 
-      const tempTestFiles = files.filter(f =>
-        f.startsWith('test-') &&
-        f.endsWith('.js') &&
-        !f.includes('complete-features') && // Legitimate test files
-        !f.includes('basic-functionality') &&
-        !f.includes('live-dom-inspection')
+      const tempTestFiles = files.filter(
+        f =>
+          f.startsWith('test-') &&
+          f.endsWith('.js') &&
+          !f.includes('complete-features') && // Legitimate test files
+          !f.includes('basic-functionality') &&
+          !f.includes('live-dom-inspection')
       );
 
       if (tempTestFiles.length > 0) {
@@ -131,9 +128,7 @@ describe('Resource Cleanup Verification', () => {
       const projectRoot = path.join(__dirname, '../..');
       const files = fs.readdirSync(projectRoot);
 
-      const tempReloadFiles = files.filter(f =>
-        f.startsWith('reload-') && f.endsWith('.sh')
-      );
+      const tempReloadFiles = files.filter(f => f.startsWith('reload-') && f.endsWith('.sh'));
 
       expect(tempReloadFiles).toEqual([]);
     });
@@ -207,9 +202,10 @@ describe('Resource Cleanup Verification', () => {
       // Check for temp files
       const projectRoot = path.join(__dirname, '../..');
       const files = fs.readdirSync(projectRoot);
-      const tempFiles = files.filter(f =>
-        (f.startsWith('test-') || f.startsWith('reload-')) &&
-        (f.endsWith('.js') || f.endsWith('.sh'))
+      const tempFiles = files.filter(
+        f =>
+          (f.startsWith('test-') || f.startsWith('reload-')) &&
+          (f.endsWith('.js') || f.endsWith('.sh'))
       );
 
       if (tempFiles.length > 0) {
@@ -218,7 +214,8 @@ describe('Resource Cleanup Verification', () => {
 
       // ✅ FIX: Fail test if issues found (not just warn)
       if (issues.length > 0) {
-        const message = '⚠️  Resource cleanup issues detected:\n' +
+        const message =
+          '⚠️  Resource cleanup issues detected:\n' +
           issues.map(i => `   - ${i}`).join('\n') +
           '\n   Run: ./scripts/cleanup-test-session.sh';
 

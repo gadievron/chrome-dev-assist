@@ -9,6 +9,7 @@
 
 ```markdown
 ### [ID] - [Decision Title]
+
 **Date:** YYYY-MM-DD
 **Context:** What prompted this decision
 **Decision:** What we decided (YES/NO/DEFER)
@@ -22,10 +23,12 @@
 ## DEFERRED Features (Revisit Later)
 
 ### DEC-001 - Exponential Backoff for WebSocket Reconnection
+
 **Date:** 2025-10-25
 **Context:** Researching service worker keep-alive best practices
 **Decision:** NOT implementing exponential backoff for now
 **Rationale:**
+
 - Current: Fixed 1-second retry on disconnect
 - Use case: Local development tool (server on localhost:9876)
 - Local server rarely goes down for extended periods
@@ -35,6 +38,7 @@
 - Exponential backoff cost: Added complexity (state tracking, max delay logic)
 
 **When to Revisit:**
+
 - If we support remote servers (not localhost)
 - If we get user reports of "server hammering"
 - If we add production monitoring features
@@ -46,10 +50,12 @@
 ---
 
 ### DEC-002 - chrome.storage.session for State Persistence
+
 **Date:** 2025-10-25
 **Context:** Service worker lifecycle management
 **Decision:** NOT migrating from global variables to chrome.storage.session
 **Rationale:**
+
 - Current: Using `let ws = null` (lost on service worker restart)
 - Chrome 116+ behavior: Service worker wakes fast (<100ms) for alarms
 - Our reconnection is fast enough that state loss doesn't matter
@@ -59,6 +65,7 @@
 - Cost: Significantly more complex code (every variable access becomes async)
 
 **When to Revisit:**
+
 - If we need state to survive service worker restarts
 - If we implement complex state machines that need persistence
 - If users report connection issues due to state loss
@@ -70,10 +77,12 @@
 ---
 
 ### DEC-003 - Port-Based Keep-Alive (chrome.runtime.connect)
+
 **Date:** 2025-10-25
 **Context:** Alternative keep-alive mechanism research
 **Decision:** NOT implementing port-based keep-alive
 **Rationale:**
+
 - Alternative to WebSocket ping for keeping service worker alive
 - Uses chrome.runtime.connect() to create long-lived connections
 - Chrome considers ports as "active connections" → keeps worker alive
@@ -83,6 +92,7 @@
 - We HAVE a network connection (WebSocket), so use it
 
 **When to Revisit:**
+
 - If WebSocket ping proves insufficient (Chrome bug or behavior change)
 - If we need keep-alive without WebSocket connection
 
@@ -93,10 +103,12 @@
 ---
 
 ### DEC-004 - Content Script Heartbeat Backup
+
 **Date:** 2025-10-25
 **Context:** Additional keep-alive redundancy
 **Decision:** NOT implementing content script heartbeat
 **Rationale:**
+
 - Idea: Inject content script that pings service worker every 15s
 - Benefit: Backup keep-alive if alarms fail
 - Cost: Content scripts on every page (resource overhead)
@@ -105,6 +117,7 @@
 - If both fail, something is fundamentally broken (not fixable with more pings)
 
 **When to Revisit:**
+
 - If we see service worker terminations despite alarms + WebSocket ping
 - If Chrome changes alarm reliability
 
@@ -115,10 +128,12 @@
 ---
 
 ### DEC-005 - Puppeteer-Based Service Worker Log Capture
+
 **Date:** 2025-10-25
 **Context:** captureServiceWorkerLogs() implementation options
 **Decision:** DEFER - Implement manual helper instead of Puppeteer
 **Rationale:**
+
 - Puppeteer approach: Programmatic, automated, heavyweight (50MB+ dependency)
 - Manual helper: Instructions-only, lightweight, requires user action
 - Use case: Occasional debugging, not continuous monitoring
@@ -127,6 +142,7 @@
 - For occasional use, manual helper is better trade-off
 
 **When to Revisit:**
+
 - If automated service worker log capture becomes critical for CI/CD
 - If users frequently request this feature
 - If we build comprehensive test automation that needs it
@@ -134,6 +150,7 @@
 **Implementation Complexity:** HIGH (4-6 hours + 50MB dependency)
 
 **Related:**
+
 - FEATURE-SUGGESTIONS-TBD.md: CHROME-FEAT-20251025-002
 - docs/SERVICE-WORKER-LIFECYCLE-CAPABILITIES.md (ServiceWorkerInspector class documented)
 
@@ -142,10 +159,12 @@
 ## NOT Implementing (Architectural Decisions)
 
 ### DEC-006 - Separate Keep-Alive API Functions
+
 **Date:** 2025-10-25
 **Context:** Should keep-alive be exposed as public API?
 **Decision:** NO - Keep as internal infrastructure only
 **Rationale:**
+
 - Keep-alive is transparent/automatic
 - Users don't need to control it
 - Adding API increases surface area without value
@@ -155,6 +174,7 @@
 - Keep-alive should "just work" invisibly
 
 **When to Revisit:**
+
 - If users need fine-grained control (disable/enable/configure keep-alive)
 - If debugging requires exposing internals
 
@@ -163,10 +183,12 @@
 ---
 
 ### DEC-007 - Test File Organization: Combined vs Separate
+
 **Date:** 2025-10-25
 **Context:** Should service-worker-api.test.js and keep-alive.test.js be combined?
 **Decision:** NO - Keep separate
 **Rationale:**
+
 - Different purposes:
   - service-worker-api.test.js: PUBLIC API contract testing (fast, stable)
   - keep-alive.test.js: INTERNAL INFRASTRUCTURE testing (slow, timing-dependent)
@@ -182,10 +204,12 @@
   - Clear distinction between contract and implementation
 
 **Naming:**
+
 - ✓ service-worker-api.test.js (public API)
 - ✓ service-worker-lifecycle.test.js (internal infrastructure) - RENAME keep-alive.test.js to this
 
 **When to Revisit:**
+
 - If infrastructure tests become fast enough to merge
 - If separation creates too much duplication
 
@@ -196,6 +220,7 @@
 ## ASSUMPTIONS (May Need Validation)
 
 ### ASM-001 - Chrome 116+ WebSocket Behavior
+
 **Date:** 2025-10-25
 **Assumption:** "Sending or receiving messages across a WebSocket resets the service worker's idle timer"
 **Source:** Chrome official docs (developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
@@ -206,6 +231,7 @@
 ---
 
 ### ASM-002 - chrome.alarms Reliability
+
 **Date:** 2025-10-25
 **Assumption:** chrome.alarms reliably fire every 15 seconds even when service worker is suspended
 **Source:** Chrome documentation, common practice
@@ -216,6 +242,7 @@
 ---
 
 ### ASM-003 - Local Development Server Availability
+
 **Date:** 2025-10-25
 **Assumption:** WebSocket server (localhost:9876) is usually available, short downtime if any
 **Risk:** LOW - User controls the server
@@ -226,6 +253,7 @@
 ---
 
 ### ASM-004 - Service Worker Wakes Fast on Alarms
+
 **Date:** 2025-10-25
 **Assumption:** Chrome wakes service worker in <100ms when alarm fires
 **Source:** Chrome architecture (event-driven)
@@ -238,19 +266,23 @@
 ## EXPANSION OPPORTUNITIES (Future Features)
 
 ### EXP-001 - Remote Server Support
+
 **Date:** 2025-10-25
 **Idea:** Support WebSocket servers not on localhost (wss://remote-server.com)
 **Benefits:**
+
 - Distributed testing (CI/CD runs on remote machines)
 - Multi-developer setups
 - Cloud-hosted test infrastructure
 
 **Challenges:**
+
 - Security: Need authentication beyond local auth token
 - CORS/certificate issues with wss://
 - Network reliability (would need exponential backoff)
 
 **Prerequisites:**
+
 - Implement DEC-001 (exponential backoff)
 - Add authentication mechanism (API keys, OAuth)
 - SSL/TLS certificate handling
@@ -262,19 +294,23 @@
 ---
 
 ### EXP-002 - Multi-Extension Orchestration
+
 **Date:** 2025-10-25
 **Idea:** Coordinate testing across multiple Chrome extensions simultaneously
 **Benefits:**
+
 - Test extension interactions
 - Parallel test execution
 - Extension compatibility testing
 
 **Challenges:**
+
 - Phase 0 supports multi-extension connections (Map-based), but no orchestration
 - Need test routing by extension ID
 - Need per-extension state management
 
 **Prerequisites:**
+
 - Phase 0 complete (already is!)
 - API for selecting target extension
 - Test harness for multi-extension scenarios
@@ -286,19 +322,23 @@
 ---
 
 ### EXP-003 - Production Monitoring Integration
+
 **Date:** 2025-10-25
 **Idea:** Built-in Sentry/LogRocket/DataDog integration
 **Benefits:**
+
 - One-line setup for production monitoring
 - Pre-configured error tracking
 - Built-in performance metrics
 
 **Challenges:**
+
 - Adds dependencies (Sentry SDK, etc.)
 - Increases bundle size
 - Privacy concerns (user data)
 
 **Prerequisites:**
+
 - External logging API (already implemented!)
 - Partnership/approval from monitoring services
 - Privacy policy and user consent flow
@@ -314,6 +354,7 @@
 ## TECHNICAL DEBT (Known Issues)
 
 ### DEBT-001 - ISSUE-001: Data URI Iframe Metadata Leakage
+
 **Date:** 2025-10-25
 **Status:** VERIFIED FAILING (3 fix attempts)
 **Priority:** P0 (BLOCKS PRODUCTION)
@@ -321,6 +362,7 @@
 **Root Cause:** UNKNOWN (requires deep investigation)
 **Impact:** Security vulnerability, cross-origin isolation violated
 **Next Steps:**
+
 - Debug logging to identify frame context
 - Minimal reproduction case
 - Research Chrome executeScript API behavior
@@ -333,6 +375,7 @@
 ---
 
 ### DEBT-002 - Adversarial Test Timing Pattern
+
 **Date:** 2025-10-25
 **Status:** ROOT CAUSE IDENTIFIED
 **Priority:** P2 (test bug, not production bug)
@@ -350,10 +393,12 @@
 ## DOCUMENTATION NEEDS
 
 ### DOC-001 - Keep-Alive Internal Architecture
+
 **Date:** 2025-10-25
 **Status:** PLANNED
 **Location:** docs/SERVICE-WORKER-LIFECYCLE-CAPABILITIES.md (section to add)
 **Content:**
+
 - Decision tree diagram (when each mechanism activates)
 - Integration points table
 - Why we chose this architecture
@@ -364,10 +409,12 @@
 ---
 
 ### DOC-002 - Testing Guidelines for Keep-Alive
+
 **Date:** 2025-10-25
 **Status:** NEEDED
 **Location:** docs/TESTING-GUIDELINES-FOR-TESTERS.md (section to add)
 **Content:**
+
 - How to verify keep-alive is working
 - Expected behavior (service worker stays active >30s)
 - What to check in chrome://serviceworker-internals
@@ -380,6 +427,7 @@
 ## QUESTIONS FOR USER
 
 ### Q-001 - Remote Server Support Priority
+
 **Date:** 2025-10-25
 **Question:** Do you plan to use this with remote WebSocket servers, or always localhost?
 **Impact:** Affects whether we implement exponential backoff (DEC-001)
@@ -388,6 +436,7 @@
 ---
 
 ### Q-002 - Production vs. Development Use
+
 **Date:** 2025-10-25
 **Question:** Is this primarily for local development/testing, or will it be used in production?
 **Impact:** Affects monitoring features, error handling rigor, state persistence needs
@@ -396,6 +445,7 @@
 ---
 
 ### Q-003 - CI/CD Integration Plans
+
 **Date:** 2025-10-25
 **Question:** Will this run in automated CI/CD pipelines (GitHub Actions, Jenkins)?
 **Impact:** Affects Puppeteer decision (DEC-005), headless mode requirements
@@ -406,6 +456,7 @@
 ## VERSION HISTORY
 
 ### v1.0 (2025-10-25)
+
 - Initial creation
 - 7 deferred features documented
 - 1 architectural decision (not implementing)
@@ -427,6 +478,7 @@
 6. **When finding technical debt:** Add to "TECHNICAL DEBT"
 
 **Maintenance:**
+
 - Review quarterly
 - Update when Chrome behavior changes
 - Update when user requirements change
@@ -434,6 +486,6 @@
 
 ---
 
-*Document Created: 2025-10-25*
-*Template Version: 1.0*
-*Owner: Chrome Dev Assist Team*
+_Document Created: 2025-10-25_
+_Template Version: 1.0_
+_Owner: Chrome Dev Assist Team_

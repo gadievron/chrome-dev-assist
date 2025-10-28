@@ -37,12 +37,14 @@ npm run test:basic
 ```
 
 **What it tests:**
+
 - Extension info retrieval
 - URL opening with console capture
 - Test orchestration
 - Auto-cleanup
 
 **Expected result:**
+
 ```
 ✅ ALL TESTS PASSED
 The extension is working properly!
@@ -61,6 +63,7 @@ npm run test:complete
 ```
 
 **What it tests:**
+
 - Extension discovery (getAllExtensions, getExtensionInfo)
 - Extension reload (with and without console capture)
 - Console log capture (standalone)
@@ -72,6 +75,7 @@ npm run test:complete
 - Error handling
 
 **Expected result:**
+
 ```
 Test Suites: 1 passed, 1 total
 Tests:       40+ passed, 40+ total
@@ -90,6 +94,7 @@ npm run test:crash-recovery
 ```
 
 **What it tests:**
+
 - Crash detection
 - Test state recovery
 - Console capture recovery
@@ -97,6 +102,7 @@ npm run test:crash-recovery
 - Server notification
 
 **Process:**
+
 1. Script starts test with tracked resources
 2. You manually terminate service worker
 3. Script verifies automatic recovery
@@ -147,11 +153,13 @@ jest tests/integration/complete-system.test.js -t "Extension Discovery"
 ```
 
 **Tests:**
+
 - `getAllExtensions()` - List all installed extensions
 - `getExtensionInfo()` - Get detailed extension info
 - Invalid extension ID handling
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.getAllExtensions();
 // Returns: { extensions: [...], count: N }
@@ -166,15 +174,17 @@ jest tests/integration/complete-system.test.js -t "Extension Reload"
 ```
 
 **Tests:**
+
 - `reload()` - Reload without console capture
 - `reloadAndCapture()` - Reload WITH console capture
 - Capture duration timing
 - Console log structure validation
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.reloadAndCapture(extensionId, {
-  duration: 3000
+  duration: 3000,
 });
 // Reloads extension and captures console for 3 seconds
 ```
@@ -188,11 +198,13 @@ jest tests/integration/complete-system.test.js -t "Console Log Capture"
 ```
 
 **Tests:**
+
 - `captureLogs()` - Capture logs without reload
 - Duration validation
 - Log level filtering
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.captureLogs(2000);
 // Captures all console logs for 2 seconds
@@ -207,6 +219,7 @@ jest tests/integration/complete-system.test.js -t "Tab Management"
 ```
 
 **Tests:**
+
 - `openUrl()` - Open URL in new tab
 - `openUrl()` with console capture
 - `openUrl()` with autoClose
@@ -215,13 +228,14 @@ jest tests/integration/complete-system.test.js -t "Tab Management"
 - Invalid tab ID handling
 
 **Example:**
+
 ```javascript
 // Open URL with auto-close (no tab leaks!)
 const result = await chromeDevAssist.openUrl('https://example.com', {
   active: false,
   captureConsole: true,
   duration: 2000,
-  autoClose: true
+  autoClose: true,
 });
 // Tab opens, logs captured, tab closes automatically
 ```
@@ -235,12 +249,14 @@ jest tests/integration/complete-system.test.js -t "Page Metadata"
 ```
 
 **Tests:**
+
 - `getPageMetadata()` - Extract page metadata
 - Data attributes parsing
 - window.testMetadata extraction
 - Missing metadata handling
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.getPageMetadata(tabId);
 // Returns: { tabId, url, metadata: { title, readyState, ... } }
@@ -255,6 +271,7 @@ jest tests/integration/complete-system.test.js -t "Test Orchestration"
 ```
 
 **Tests:**
+
 - `startTest()` - Start test with tracking
 - `getTestStatus()` - Check active test
 - `endTest()` - End test with cleanup
@@ -264,6 +281,7 @@ jest tests/integration/complete-system.test.js -t "Test Orchestration"
 - Auto-cleanup
 
 **Example:**
+
 ```javascript
 await chromeDevAssist.startTest('my-test');
 
@@ -287,6 +305,7 @@ jest tests/integration/complete-system.test.js -t "Full Integration"
 **Real-world scenarios:**
 
 1. **Developer Workflow:** Reload extension + analyze logs
+
    ```javascript
    const result = await chromeDevAssist.reloadAndCapture(extensionId);
    const errors = result.consoleLogs.filter(log => log.level === 'error');
@@ -294,6 +313,7 @@ jest tests/integration/complete-system.test.js -t "Full Integration"
    ```
 
 2. **Automated Testing:** Load fixture + validate metadata
+
    ```javascript
    await chromeDevAssist.startTest('test-id');
    const tab = await chromeDevAssist.openUrl(fixtureUrl);
@@ -338,11 +358,13 @@ Located in `tests/fixtures/`:
 ### Accessing Fixtures
 
 Fixtures are served via HTTP server:
+
 ```
 http://localhost:9876/fixtures/[filename].html
 ```
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.openUrl(
   'http://localhost:9876/fixtures/console-logs-comprehensive.html',
@@ -359,6 +381,7 @@ const result = await chromeDevAssist.openUrl(
 **Cause:** Extension not loaded or wrong ID
 
 **Fix:**
+
 1. Open `chrome://extensions`
 2. Verify "Chrome Dev Assist" is loaded and enabled
 3. Copy extension ID (32 characters)
@@ -372,6 +395,7 @@ const result = await chromeDevAssist.openUrl(
 **Cause:** WebSocket server not running
 
 **Fix:**
+
 - Server should auto-start
 - Manual start: `npm run server`
 - Check for port conflicts: `lsof -i :9876`
@@ -383,6 +407,7 @@ const result = await chromeDevAssist.openUrl(
 **Cause:** Extension not responding
 
 **Fix:**
+
 1. Open service worker console: `chrome://extensions` → "service worker"
 2. Check for errors in console
 3. Reload extension manually
@@ -395,6 +420,7 @@ const result = await chromeDevAssist.openUrl(
 **Cause:** autoClose not working or tab already closed
 
 **Fix:**
+
 - Check extension console for tab cleanup errors
 - Verify Chrome permissions
 - Run cleanup manually: `npm run test:basic`
@@ -406,6 +432,7 @@ const result = await chromeDevAssist.openUrl(
 **Cause:** Service worker suspended
 
 **Fix:**
+
 1. Open service worker console (keeps it active)
 2. Or disable service worker inactivity:
    - Open DevTools for service worker
@@ -500,15 +527,15 @@ jobs:
 
 **Expected test durations:**
 
-| Test Suite | Duration | Tests |
-|------------|----------|-------|
-| Basic Functionality | ~10s | 4 |
-| Complete Integration | ~2-3min | 40+ |
-| Extension Discovery | ~5s | 3 |
-| Extension Reload | ~15s | 3 |
-| Tab Management | ~30s | 6 |
-| Test Orchestration | ~45s | 6 |
-| Full Workflows | ~60s | 3 |
+| Test Suite           | Duration | Tests |
+| -------------------- | -------- | ----- |
+| Basic Functionality  | ~10s     | 4     |
+| Complete Integration | ~2-3min  | 40+   |
+| Extension Discovery  | ~5s      | 3     |
+| Extension Reload     | ~15s     | 3     |
+| Tab Management       | ~30s     | 6     |
+| Test Orchestration   | ~45s     | 6     |
+| Full Workflows       | ~60s     | 3     |
 
 **Total:** ~3-4 minutes for complete test suite
 
@@ -524,6 +551,7 @@ Current coverage targets:
 - **Error Paths:** 80%+
 
 Run coverage report:
+
 ```bash
 npm run test:coverage
 ```
@@ -550,17 +578,20 @@ Before reporting issues, verify:
 After all tests pass:
 
 1. **Run in watch mode** for development:
+
    ```bash
    npm run test:watch
    ```
 
 2. **Generate coverage report**:
+
    ```bash
    npm run test:coverage
    open coverage/lcov-report/index.html
    ```
 
 3. **Test crash recovery**:
+
    ```bash
    npm run test:crash-recovery
    ```
@@ -579,6 +610,7 @@ After all tests pass:
 ✅ **CI/CD ready** with automated setup
 
 **Quick validation:**
+
 ```bash
 npm run test:basic        # 10 seconds - verify it works
 npm run test:complete     # 3 minutes - full validation

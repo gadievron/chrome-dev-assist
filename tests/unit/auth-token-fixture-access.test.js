@@ -13,7 +13,6 @@ const fs = require('fs');
 const path = require('path');
 
 describe('Auth Token for Fixture Access', () => {
-
   test('Server registration-ack includes authToken field', () => {
     // GIVEN: Server has generated an auth token
     const authToken = '88b9d811788785fe98b82ead46e96c6309f0aabf1b7695509ad73d26ed7f956b';
@@ -23,7 +22,7 @@ describe('Auth Token for Fixture Access', () => {
       type: 'registration-ack',
       extensionId: 'test-extension-id',
       timestamp: Date.now(),
-      authToken: authToken  // ← Token included
+      authToken: authToken, // ← Token included
     };
 
     // THEN: Message includes authToken
@@ -37,7 +36,7 @@ describe('Auth Token for Fixture Access', () => {
       type: 'registration-ack',
       extensionId: 'test-id',
       timestamp: Date.now(),
-      authToken: 'test-token-123'
+      authToken: 'test-token-123',
     };
 
     // WHEN: Extension processes the message
@@ -66,7 +65,9 @@ describe('Auth Token for Fixture Access', () => {
     }
 
     // THEN: Token is appended as query parameter
-    expect(finalUrl).toBe('http://127.0.0.1:9876/fixtures/test-console-simple.html?token=token-abc-123');
+    expect(finalUrl).toBe(
+      'http://127.0.0.1:9876/fixtures/test-console-simple.html?token=token-abc-123'
+    );
     expect(finalUrl).toContain('?token=');
     expect(finalUrl).toContain(serverAuthToken);
   });
@@ -112,13 +113,16 @@ describe('Auth Token for Fixture Access', () => {
     const serverAuthToken = 'test-token';
     const urls = [
       'http://127.0.0.1:9876/fixtures/test.html',
-      'http://localhost:9876/fixtures/test.html'
+      'http://localhost:9876/fixtures/test.html',
     ];
 
     // WHEN: Extension processes each URL
     const results = urls.map(url => {
       let finalUrl = url;
-      if (serverAuthToken && (url.includes('127.0.0.1:9876/fixtures/') || url.includes('localhost:9876/fixtures/'))) {
+      if (
+        serverAuthToken &&
+        (url.includes('127.0.0.1:9876/fixtures/') || url.includes('localhost:9876/fixtures/'))
+      ) {
         const urlObj = new URL(url);
         urlObj.searchParams.set('token', serverAuthToken);
         finalUrl = urlObj.toString();
@@ -159,7 +163,7 @@ describe('Auth Token for Fixture Access', () => {
       type: 'registration-ack',
       extensionId: 'test-ext',
       timestamp: Date.now(),
-      authToken: SERVER_TOKEN
+      authToken: SERVER_TOKEN,
     };
 
     // Step 2: Extension receives and stores token
@@ -181,7 +185,7 @@ describe('Auth Token for Fixture Access', () => {
     // Step 4: Server validates token from URL
     const urlObj = new URL(finalUrl);
     const clientToken = urlObj.searchParams.get('token');
-    const authValid = (clientToken === SERVER_TOKEN);
+    const authValid = clientToken === SERVER_TOKEN;
 
     // THEN: Server accepts the request
     expect(authValid).toBe(true);

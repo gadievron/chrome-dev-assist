@@ -3,7 +3,7 @@
  * Simpler approach without template literal nesting issues
  */
 
-(function() {
+(function () {
   'use strict';
 
   // Create the inline script as an array of strings to avoid template literal issues
@@ -62,7 +62,7 @@
     '  };',
     '  ',
     '  console.log("[ChromeDevAssist] Console capture initialized in main world");',
-    '})();'
+    '})();',
   ];
 
   const inlineScript = scriptLines.join('\n');
@@ -78,7 +78,7 @@
   }
 
   // Listen for events from main world
-  window.addEventListener('chromeDevAssist:consoleLog', function(event) {
+  window.addEventListener('chromeDevAssist:consoleLog', function (event) {
     const logData = event.detail;
 
     try {
@@ -87,11 +87,10 @@
         level: logData.level,
         message: logData.message,
         timestamp: logData.timestamp,
-        source: logData.source
+        source: logData.source,
       });
     } catch (err) {
       // Silently fail
     }
   });
-
 })();

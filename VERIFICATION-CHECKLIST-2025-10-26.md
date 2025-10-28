@@ -12,20 +12,20 @@
 
 **Method:** Line-by-line file reading using Read tool
 
-| File | Lines | Read? | Verified |
-|------|-------|-------|----------|
-| claude-code/index.js | 350 | ✅ | ✅ |
-| server/websocket-server.js | 583 | ✅ | ✅ |
-| server/validation.js | 142 | ✅ | ✅ |
-| extension/background.js | ~900 | ✅ | ✅ |
-| extension/content-script.js | 32 | ✅ | ✅ |
-| extension/inject-console-capture.js | 81 | ✅ | ✅ |
-| extension/popup/popup.js | 24 | ✅ | ✅ |
-| extension/lib/error-logger.js | 156 | ✅ | ✅ |
-| extension/modules/ConsoleCapture.js | 251 | ✅ | ✅ |
-| src/health/health-manager.js | 292 | ✅ | ✅ |
-| claude-code/level4-reload-cdp.js | 198 | ✅ | ✅ |
-| **TOTAL** | **3,009 lines** | **11/11** | **100%** |
+| File                                | Lines           | Read?     | Verified |
+| ----------------------------------- | --------------- | --------- | -------- |
+| claude-code/index.js                | 350             | ✅        | ✅       |
+| server/websocket-server.js          | 583             | ✅        | ✅       |
+| server/validation.js                | 142             | ✅        | ✅       |
+| extension/background.js             | ~900            | ✅        | ✅       |
+| extension/content-script.js         | 32              | ✅        | ✅       |
+| extension/inject-console-capture.js | 81              | ✅        | ✅       |
+| extension/popup/popup.js            | 24              | ✅        | ✅       |
+| extension/lib/error-logger.js       | 156             | ✅        | ✅       |
+| extension/modules/ConsoleCapture.js | 251             | ✅        | ✅       |
+| src/health/health-manager.js        | 292             | ✅        | ✅       |
+| claude-code/level4-reload-cdp.js    | 198             | ✅        | ✅       |
+| **TOTAL**                           | **3,009 lines** | **11/11** | **100%** |
 
 ---
 
@@ -34,11 +34,12 @@
 **Method:** Systematic grep for function calls
 
 **Verified:**
+
 - ✅ All require() statements
 - ✅ All module.exports
 - ✅ All function definitions
 - ✅ All function calls within each function
-- ✅ All Chrome API calls (chrome.*)
+- ✅ All Chrome API calls (chrome.\*)
 - ✅ All Node.js API calls (fs, path, crypto, etc.)
 - ✅ All callback/listener registrations
 - ✅ All setTimeout/setInterval calls
@@ -49,14 +50,14 @@
 
 **Method:** grep for 'const' declarations
 
-| File | Constants | Documented |
-|------|-----------|------------|
-| claude-code/index.js | 3 | ✅ |
-| server/websocket-server.js | 7 | ✅ |
-| server/validation.js | 2 | ✅ |
-| extension/background.js | 4 | ✅ |
-| extension/inject-console-capture.js | 6 | ✅ |
-| **TOTAL** | **22** | **22/22 ✅** |
+| File                                | Constants | Documented   |
+| ----------------------------------- | --------- | ------------ |
+| claude-code/index.js                | 3         | ✅           |
+| server/websocket-server.js          | 7         | ✅           |
+| server/validation.js                | 2         | ✅           |
+| extension/background.js             | 4         | ✅           |
+| extension/inject-console-capture.js | 6         | ✅           |
+| **TOTAL**                           | **22**    | **22/22 ✅** |
 
 ---
 
@@ -65,29 +66,30 @@
 **Method:** Systematic grep of ALL test files + cross-reference with implementation
 
 **Discovery Command:**
+
 ```bash
 grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*chromeDevAssist\.\([a-zA-Z]*\)(.*/\1/' | sort -u
 ```
 
-| Phantom API | Test File | Implementation | Status |
-|-------------|-----------|----------------|--------|
-| getPageMetadata() | page-metadata.test.js (60+ tests) | ❌ NOT FOUND | ✅ Documented |
-| startTest() | test-orchestration.test.js | ❌ NOT FOUND | ✅ Documented |
-| endTest() | test-orchestration.test.js | ❌ NOT FOUND | ✅ Documented |
-| abortTest() | test-orchestration.test.js | ❌ NOT FOUND | ✅ Documented |
-| getTestStatus() | (scripts reference) | ⚠️ UNCLEAR | ✅ Documented |
-| captureScreenshot() | screenshot.test.js | ❌ NOT FOUND | ✅ Documented |
-| captureServiceWorkerLogs() | service-worker-api.test.js | ❌ NOT FOUND | ✅ Documented |
-| getServiceWorkerStatus() | service-worker-*.test.js | ❌ NOT FOUND | ✅ Documented |
-| wakeServiceWorker() | service-worker-lifecycle.test.js | ❌ NOT FOUND | ✅ Documented |
-| enableExtension() | extension-discovery-validation.test.js | ❌ NOT FOUND | ✅ Documented |
-| disableExtension() | extension-discovery-validation.test.js | ❌ NOT FOUND | ✅ Documented |
-| toggleExtension() | (multiple) | ❌ NOT FOUND | ✅ Documented |
-| enableExternalLogging() | (multiple) | ❌ NOT FOUND | ✅ Documented |
-| disableExternalLogging() | (multiple) | ❌ NOT FOUND | ✅ Documented |
-| getExternalLoggingStatus() | (multiple) | ❌ NOT FOUND | ✅ Documented |
-| verifyCleanup() | (multiple) | ❌ NOT FOUND | ✅ Documented |
-| **TOTAL** | **16 phantom APIs** | **0 implemented** | **All documented ✅** |
+| Phantom API                | Test File                              | Implementation    | Status                |
+| -------------------------- | -------------------------------------- | ----------------- | --------------------- |
+| getPageMetadata()          | page-metadata.test.js (60+ tests)      | ❌ NOT FOUND      | ✅ Documented         |
+| startTest()                | test-orchestration.test.js             | ❌ NOT FOUND      | ✅ Documented         |
+| endTest()                  | test-orchestration.test.js             | ❌ NOT FOUND      | ✅ Documented         |
+| abortTest()                | test-orchestration.test.js             | ❌ NOT FOUND      | ✅ Documented         |
+| getTestStatus()            | (scripts reference)                    | ⚠️ UNCLEAR        | ✅ Documented         |
+| captureScreenshot()        | screenshot.test.js                     | ❌ NOT FOUND      | ✅ Documented         |
+| captureServiceWorkerLogs() | service-worker-api.test.js             | ❌ NOT FOUND      | ✅ Documented         |
+| getServiceWorkerStatus()   | service-worker-\*.test.js              | ❌ NOT FOUND      | ✅ Documented         |
+| wakeServiceWorker()        | service-worker-lifecycle.test.js       | ❌ NOT FOUND      | ✅ Documented         |
+| enableExtension()          | extension-discovery-validation.test.js | ❌ NOT FOUND      | ✅ Documented         |
+| disableExtension()         | extension-discovery-validation.test.js | ❌ NOT FOUND      | ✅ Documented         |
+| toggleExtension()          | (multiple)                             | ❌ NOT FOUND      | ✅ Documented         |
+| enableExternalLogging()    | (multiple)                             | ❌ NOT FOUND      | ✅ Documented         |
+| disableExternalLogging()   | (multiple)                             | ❌ NOT FOUND      | ✅ Documented         |
+| getExternalLoggingStatus() | (multiple)                             | ❌ NOT FOUND      | ✅ Documented         |
+| verifyCleanup()            | (multiple)                             | ❌ NOT FOUND      | ✅ Documented         |
+| **TOTAL**                  | **16 phantom APIs**                    | **0 implemented** | **All documented ✅** |
 
 ---
 
@@ -95,10 +97,10 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 
 **Method:** grep for require() then verify usage
 
-| Import | File | Line | Used? | Status |
-|--------|------|------|-------|--------|
-| HealthManager | server/websocket-server.js | 31 | ❌ NO | ✅ Documented |
-| (All others verified as used) | - | - | ✅ YES | ✅ |
+| Import                        | File                       | Line | Used?  | Status        |
+| ----------------------------- | -------------------------- | ---- | ------ | ------------- |
+| HealthManager                 | server/websocket-server.js | 31   | ❌ NO  | ✅ Documented |
+| (All others verified as used) | -                          | -    | ✅ YES | ✅            |
 
 **Total Unused Imports:** 1
 
@@ -109,6 +111,7 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 **Method:** grep for 'chrome\.' in all files
 
 **Chrome APIs Found:**
+
 1. chrome.scripting.getRegisteredContentScripts()
 2. chrome.scripting.registerContentScripts()
 3. chrome.scripting.unregisterContentScripts()
@@ -133,6 +136,7 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 ### 7. All Internal Function Relationships Mapped ✅
 
 **Verification:**
+
 - ✅ sendCommand() → generateCommandId() relationship
 - ✅ sendCommand() → startServer() relationship
 - ✅ sendCommand() → setTimeout() for timeout
@@ -151,15 +155,19 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 ### 8. All Callback/Listener Relationships ✅
 
 **setInterval:**
+
 - ✅ background.js:22 - Periodic cleanup → cleanupCapture()
 
 **chrome.runtime.onMessage:**
+
 - ✅ background.js:669 - Console message listener → captureState.entries()
 
 **window.addEventListener:**
+
 - ✅ content-script.js:6 - CustomEvent bridge → chrome.runtime.sendMessage()
 
 **document.addEventListener:**
+
 - ✅ popup.js:6 - DOMContentLoaded → chrome.storage.local.get()
 
 **Total Callbacks/Listeners:** 4
@@ -172,6 +180,7 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 **Method:** Read test files to find expected APIs
 
 **Test Files Checked:**
+
 - ✅ tests/unit/page-metadata.test.js → Found getPageMetadata() phantom
 - ✅ tests/unit/test-orchestration.test.js → Found startTest/endTest/abortTest phantoms
 - ✅ tests/integration/test-helpers.js → Found fs/path dependencies
@@ -182,12 +191,15 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 ### 10. All POC/Unused Code Identified ✅
 
 **POC Code:**
+
 - ✅ extension/modules/ConsoleCapture.js (10 methods, not used)
 
 **Unused Imports:**
+
 - ✅ HealthManager (imported but never instantiated)
 
 **Not Exposed in API:**
+
 - ✅ claude-code/level4-reload-cdp.js (3 functions, implemented but not exported)
 
 **Total Unused/POC:** 3 modules, 22 functions, 741 lines
@@ -247,67 +259,68 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 
 ### Items Counted
 
-| Category | Initial Count | Final Count | Verified |
-|----------|---------------|-------------|----------|
-| Functions | 93 → 95 | 69 | ✅ |
-| Listeners/Callbacks | Not counted → | 4 | ✅ |
-| Constants | Not counted → | 22 | ✅ |
-| **TOTAL ITEMS** | **93** | **95** | **✅** |
-| Phantom APIs | 4-5 → CORRECTED | **16** | ✅ |
-| Unused Modules | Not known → | 3 (22 functions) | ✅ |
-| **GRAND TOTAL** | **93** | **111** | **✅** |
+| Category            | Initial Count   | Final Count      | Verified |
+| ------------------- | --------------- | ---------------- | -------- |
+| Functions           | 93 → 95         | 69               | ✅       |
+| Listeners/Callbacks | Not counted →   | 4                | ✅       |
+| Constants           | Not counted →   | 22               | ✅       |
+| **TOTAL ITEMS**     | **93**          | **95**           | **✅**   |
+| Phantom APIs        | 4-5 → CORRECTED | **16**           | ✅       |
+| Unused Modules      | Not known →     | 3 (22 functions) | ✅       |
+| **GRAND TOTAL**     | **93**          | **111**          | **✅**   |
 
 **CRITICAL CORRECTION:** Phantom APIs initially reported as 4-5, actually **16** after systematic grep of ALL test files.
 
 ### Relationships Verified
 
-| Relationship Type | Count | Verified |
-|-------------------|-------|----------|
-| Function-to-Function | 100+ | ✅ |
-| Function-to-Chrome API | 50+ | ✅ |
-| Function-to-Node.js API | 20+ | ✅ |
-| Callback/Listener | 4 | ✅ |
-| Module Imports | 15+ | ✅ |
-| **TOTAL** | **189+** | **✅** |
+| Relationship Type       | Count    | Verified |
+| ----------------------- | -------- | -------- |
+| Function-to-Function    | 100+     | ✅       |
+| Function-to-Chrome API  | 50+      | ✅       |
+| Function-to-Node.js API | 20+      | ✅       |
+| Callback/Listener       | 4        | ✅       |
+| Module Imports          | 15+      | ✅       |
+| **TOTAL**               | **189+** | **✅**   |
 
 ### Previously Missed Items (Now Found)
 
-| Item | Initially Missed | Now Documented |
-|------|------------------|----------------|
-| DEFAULT_DURATION constant | ❌ | ✅ |
-| DEFAULT_TIMEOUT constant | ❌ | ✅ |
-| EXTENSION_ID_LENGTH constant | ❌ | ✅ |
-| MAX_LOGS_PER_CAPTURE constant | ❌ | ✅ |
-| CLEANUP_INTERVAL_MS constant | ❌ | ✅ |
-| MAX_CAPTURE_AGE_MS constant | ❌ | ✅ |
-| MAX_MESSAGE_LENGTH constant (background.js) | ❌ | ✅ |
-| setInterval callback | ❌ | ✅ |
-| chrome.runtime.onMessage listener | ❌ | ✅ |
-| test-helpers.js → fs dependency | ❌ | ✅ |
-| test-helpers.js → path dependency | ❌ | ✅ |
-| HealthManager unused import | ❌ | ✅ |
-| getPageMetadata() phantom API | ❌ | ✅ |
-| startTest() phantom API | ❌ | ✅ |
-| endTest() phantom API | ❌ | ✅ |
-| abortTest() phantom API | ❌ | ✅ |
-| captureScreenshot() phantom API | ❌ | ✅ |
-| captureServiceWorkerLogs() phantom API | ❌ | ✅ |
-| getServiceWorkerStatus() phantom API | ❌ | ✅ |
-| wakeServiceWorker() phantom API | ❌ | ✅ |
-| enableExtension() phantom API | ❌ | ✅ |
-| disableExtension() phantom API | ❌ | ✅ |
-| toggleExtension() phantom API | ❌ | ✅ |
-| enableExternalLogging() phantom API | ❌ | ✅ |
-| disableExternalLogging() phantom API | ❌ | ✅ |
-| getExternalLoggingStatus() phantom API | ❌ | ✅ |
-| verifyCleanup() phantom API | ❌ | ✅ |
-| **TOTAL PREVIOUSLY MISSED** | **28** | **✅ ALL FOUND** |
+| Item                                        | Initially Missed | Now Documented   |
+| ------------------------------------------- | ---------------- | ---------------- |
+| DEFAULT_DURATION constant                   | ❌               | ✅               |
+| DEFAULT_TIMEOUT constant                    | ❌               | ✅               |
+| EXTENSION_ID_LENGTH constant                | ❌               | ✅               |
+| MAX_LOGS_PER_CAPTURE constant               | ❌               | ✅               |
+| CLEANUP_INTERVAL_MS constant                | ❌               | ✅               |
+| MAX_CAPTURE_AGE_MS constant                 | ❌               | ✅               |
+| MAX_MESSAGE_LENGTH constant (background.js) | ❌               | ✅               |
+| setInterval callback                        | ❌               | ✅               |
+| chrome.runtime.onMessage listener           | ❌               | ✅               |
+| test-helpers.js → fs dependency             | ❌               | ✅               |
+| test-helpers.js → path dependency           | ❌               | ✅               |
+| HealthManager unused import                 | ❌               | ✅               |
+| getPageMetadata() phantom API               | ❌               | ✅               |
+| startTest() phantom API                     | ❌               | ✅               |
+| endTest() phantom API                       | ❌               | ✅               |
+| abortTest() phantom API                     | ❌               | ✅               |
+| captureScreenshot() phantom API             | ❌               | ✅               |
+| captureServiceWorkerLogs() phantom API      | ❌               | ✅               |
+| getServiceWorkerStatus() phantom API        | ❌               | ✅               |
+| wakeServiceWorker() phantom API             | ❌               | ✅               |
+| enableExtension() phantom API               | ❌               | ✅               |
+| disableExtension() phantom API              | ❌               | ✅               |
+| toggleExtension() phantom API               | ❌               | ✅               |
+| enableExternalLogging() phantom API         | ❌               | ✅               |
+| disableExternalLogging() phantom API        | ❌               | ✅               |
+| getExternalLoggingStatus() phantom API      | ❌               | ✅               |
+| verifyCleanup() phantom API                 | ❌               | ✅               |
+| **TOTAL PREVIOUSLY MISSED**                 | **28**           | **✅ ALL FOUND** |
 
 ---
 
 ## CONFIDENCE LEVEL
 
 ### Methodology
+
 - ✅ Line-by-line file reading (not just grep)
 - ✅ Systematic extraction of all function calls
 - ✅ Cross-reference with test files
@@ -355,31 +368,38 @@ grep -rh "chromeDevAssist\.[a-zA-Z]*(" tests --include="*.test.js" | sed 's/.*ch
 ### Audit Journey
 
 **Round 1 (Initial):** Claimed 93 items, 100% verified
+
 - Reality: 31% direct confirmation, 69% grep-only
 
 **Round 2 (User Challenge):** "how much confirmation?"
+
 - Found overcounting error
 
 **Round 3 (User Challenge):** "you still missed many files"
+
 - Found 3 extension files, 14 additional items
 
 **Round 4 (User Challenge):** "double check"
+
 - Found 9 missed constants/callbacks
 - Corrected to 95 items
 
 **Round 5 (Complete Audit):** "audit them all"
+
 - Found 10 unknown APIs
 - Found 4-5 phantom APIs
 - Found 3 unused modules
 - Created complete file index
 
 **Round 6-7 (Relationships):** "did you miss relationships?"
+
 - Found phantom APIs via test cross-reference
 - Found unused import (HealthManager)
 - Found test-helpers.js dependencies
 - Created complete relationship map
 
 **Round 8 (This Session):** "create relationship map, update all docs"
+
 - Created 4 new comprehensive documents
 - Updated existing documentation
 - Created TO-FIX.md

@@ -46,24 +46,26 @@ ws.on('open', () => {
   console.log(`URL: ${TEST_URL}\n`);
 
   // Send openUrl command with console capture
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: commandId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'openUrl',
-      params: {
-        url: TEST_URL,
-        captureConsole: true,
-        duration: 3000  // Capture for 3 seconds
-      }
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: commandId,
+      targetExtensionId: EXTENSION_ID,
+      command: {
+        type: 'openUrl',
+        params: {
+          url: TEST_URL,
+          captureConsole: true,
+          duration: 3000, // Capture for 3 seconds
+        },
+      },
+    })
+  );
 
   console.log('📤 Command sent, waiting for console output...\n');
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.id === commandId) {
@@ -121,7 +123,11 @@ ws.on('message', (data) => {
         }
 
         // Check for stack traces (should NOT exist)
-        if (message.includes('stack') || message.toLowerCase().includes('at /') || message.includes('at Object.')) {
+        if (
+          message.includes('stack') ||
+          message.toLowerCase().includes('at /') ||
+          message.includes('at Object.')
+        ) {
           stackTraceFound = true;
           console.log('   ❌ Stack trace found in logs (security issue!)');
         }
@@ -135,7 +141,7 @@ ws.on('message', (data) => {
         { test: 'ErrorLogger loaded', passed: errorLoggerFound },
         { test: 'Expected errors use console.warn', passed: expectedErrorFound },
         { test: 'Unexpected errors use console.error', passed: unexpectedErrorFound },
-        { test: 'No stack traces in logs', passed: !stackTraceFound }
+        { test: 'No stack traces in logs', passed: !stackTraceFound },
       ];
 
       results.forEach(({ test, passed }) => {
@@ -154,19 +160,20 @@ ws.on('message', (data) => {
 
       // Close tab
       console.log(`🧹 Closing test tab (ID: ${tabId})...\n`);
-      ws.send(JSON.stringify({
-        type: 'command',
-        id: 'close-tab-' + Date.now(),
-        targetExtensionId: EXTENSION_ID,
-        command: {
-          type: 'closeTab',
-          params: { tabId }
-        }
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'command',
+          id: 'close-tab-' + Date.now(),
+          targetExtensionId: EXTENSION_ID,
+          command: {
+            type: 'closeTab',
+            params: { tabId },
+          },
+        })
+      );
 
       setTimeout(() => ws.close(), 1000);
       process.exit(allPassed ? 0 : 1);
-
     } else if (message.type === 'error') {
       console.error('❌ Command failed:');
       console.error(JSON.stringify(message.error, null, 2));
@@ -176,7 +183,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ WebSocket error:', err.message);
   process.exit(1);
 });

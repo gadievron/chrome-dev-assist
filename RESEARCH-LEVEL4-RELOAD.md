@@ -1,6 +1,7 @@
 # Research: Level 4 Reload Implementation Options
 
 **Goal:** Implement automated Level 4 reload (load code from disk) in two modes:
+
 1. With Chrome debug mode (`--remote-debugging-port=9222`)
 2. Without Chrome debug mode (production/normal Chrome)
 
@@ -11,11 +12,13 @@
 ### What Requires Debug Mode
 
 **Chrome DevTools Protocol (CDP)** requires Chrome started with:
+
 ```bash
 --remote-debugging-port=9222
 ```
 
 **All CDP operations require this:**
+
 - ✅ `Runtime.evaluate()` - Execute JavaScript
 - ✅ `Target.getTargets()` - List tabs/workers
 - ✅ `Target.closeTarget()` - Close service worker
@@ -28,16 +31,19 @@
 ### What Works Without Debug Mode
 
 **Our existing infrastructure:**
+
 - ✅ WebSocket server (localhost:9876)
 - ✅ Extension connected to server
 - ✅ `chrome.management` API calls via extension
 - ✅ Toggle extension on/off (command completes, just times out waiting for response)
 
 **File system operations:**
+
 - ✅ Can touch manifest.json
 - ❌ Chrome doesn't reliably detect file changes without full reload
 
 **Chrome behavior on toggle:**
+
 - ✅ **VERIFIED:** On macOS Chrome, `chrome.management.setEnabled(id, false)` then `setEnabled(id, true)` DOES reload code from disk
 - ✅ Service worker completely restarts
 - ✅ Fresh code loaded (confirmed by testing)
@@ -71,6 +77,7 @@ TIMEOUT after 30s ❌
 ### Option A: CDP Method (Requires Debug Mode)
 
 **Architecture:**
+
 ```
 API (level4Reload)
   ↓
@@ -84,12 +91,14 @@ Return success
 ```
 
 **Pros:**
+
 - Most reliable
 - Direct control over Chrome
 - Can verify extension state
 - Proper error handling
 
 **Cons:**
+
 - Requires debug mode
 - Not suitable for production Chrome
 
@@ -100,6 +109,7 @@ Return success
 ### Option B: Fire-and-Forget Toggle (No Debug Mode)
 
 **Architecture:**
+
 ```
 API (hardReload)
   ↓
@@ -119,17 +129,20 @@ API returns success immediately (doesn't wait for response)
 **Implementation approaches:**
 
 **B1: Server-side fire-and-forget**
+
 - Server detects `noResponseExpected` flag
 - Sends command to extension
 - Returns success to API immediately
 - Doesn't wait for extension response
 
 **B2: API-side short timeout**
+
 - API sends toggle with 500ms timeout
 - Toggle completes before timeout
 - Ignore timeout error, return success
 
 **B3: Sequential commands without response**
+
 - Send disable command
 - Catch timeout error (expected)
 - Wait 200ms
@@ -146,6 +159,7 @@ API returns success immediately (doesn't wait for response)
 ### Tests to Write FIRST
 
 **1. CDP Method Tests** (`tests/unit/level4-reload-cdp.test.js`)
+
 - ✅ Test CDP connection
 - ✅ Test chrome.management.setEnabled via CDP
 - ✅ Test error handling (debug port not running)
@@ -153,6 +167,7 @@ API returns success immediately (doesn't wait for response)
 - ✅ Test success response format
 
 **2. Hard Reload Tests** (`tests/unit/hard-reload.test.js`)
+
 - ✅ Test fire-and-forget toggle
 - ✅ Test disable + enable sequence
 - ✅ Test timing (200ms delay)
@@ -160,12 +175,14 @@ API returns success immediately (doesn't wait for response)
 - ✅ Test success response format
 
 **3. Integration Tests** (`tests/integration/level4-reload.test.js`)
+
 - ✅ Test CDP method actually reloads code from disk
 - ✅ Test hard reload actually reloads code from disk
 - ✅ Verify service worker restarts with fresh code
 - ✅ Verify Phase 0 registration with new metadata
 
 **4. Edge Cases** (`tests/edge-cases/level4-reload-edge-cases.test.js`)
+
 - ✅ Extension already disabled
 - ✅ Extension doesn't exist
 - ✅ Debug port not running (CDP method)
@@ -179,24 +196,28 @@ API returns success immediately (doesn't wait for response)
 ### level4Reload(extensionId, options)
 
 **With debug mode:**
+
 ```javascript
 await chromeDevAssist.level4Reload(extensionId, { method: 'cdp' });
 // Uses CDP, requires --remote-debugging-port=9222
 ```
 
 **Without debug mode:**
+
 ```javascript
 await chromeDevAssist.level4Reload(extensionId, { method: 'toggle' });
 // Uses fire-and-forget toggle, works with normal Chrome
 ```
 
 **Auto-detect:**
+
 ```javascript
 await chromeDevAssist.level4Reload(extensionId);
 // Tries CDP first, falls back to toggle if debug port not available
 ```
 
 **Return format:**
+
 ```javascript
 {
   reloaded: true,
@@ -215,6 +236,7 @@ await chromeDevAssist.level4Reload(extensionId);
 ## 🔧 Implementation Plan
 
 ### Phase 1: Research & Design (CURRENT)
+
 - ✅ Research CDP requirements
 - ✅ Research toggle behavior
 - ✅ Design architecture
@@ -222,6 +244,7 @@ await chromeDevAssist.level4Reload(extensionId);
 - ✅ Design test strategy
 
 ### Phase 2: Write Tests (NEXT)
+
 1. Create test file structure
 2. Write unit tests for CDP method
 3. Write unit tests for hard reload method
@@ -230,6 +253,7 @@ await chromeDevAssist.level4Reload(extensionId);
 6. All tests should FAIL initially (no implementation yet)
 
 ### Phase 3: Implementation
+
 1. Implement CDP helper function
 2. Implement fire-and-forget toggle helper
 3. Implement level4Reload() with auto-detect
@@ -237,12 +261,14 @@ await chromeDevAssist.level4Reload(extensionId);
 5. Add logging/debugging
 
 ### Phase 4: Documentation
+
 1. Update API documentation in README.md
 2. Update EXTENSION-RELOAD-GUIDE.md with level4Reload()
 3. Update functionality maps
 4. Add usage examples
 
 ### Phase 5: Validation
+
 1. Run all tests (should pass)
 2. Test manually with both methods
 3. Verify code actually reloads from disk
@@ -253,16 +279,16 @@ await chromeDevAssist.level4Reload(extensionId);
 
 ## 🎯 Decision Matrix
 
-| Feature | CDP Method | Hard Reload Method |
-|---------|-----------|-------------------|
-| Requires debug mode | ✅ Yes | ❌ No |
-| Reloads code from disk | ✅ Yes | ✅ Yes (via toggle) |
-| Speed | ⚡ Fast (~500ms) | ⚡ Fast (~500ms) |
-| Reliability | ⭐⭐⭐⭐⭐ Highest | ⭐⭐⭐⭐ High |
-| Error handling | ⭐⭐⭐⭐⭐ Detailed | ⭐⭐⭐ Good |
-| Production suitable | ❌ No (debug mode) | ✅ Yes |
-| CI/CD suitable | ✅ Yes | ✅ Yes |
-| Implementation complexity | Medium | Low |
+| Feature                   | CDP Method          | Hard Reload Method  |
+| ------------------------- | ------------------- | ------------------- |
+| Requires debug mode       | ✅ Yes              | ❌ No               |
+| Reloads code from disk    | ✅ Yes              | ✅ Yes (via toggle) |
+| Speed                     | ⚡ Fast (~500ms)    | ⚡ Fast (~500ms)    |
+| Reliability               | ⭐⭐⭐⭐⭐ Highest  | ⭐⭐⭐⭐ High       |
+| Error handling            | ⭐⭐⭐⭐⭐ Detailed | ⭐⭐⭐ Good         |
+| Production suitable       | ❌ No (debug mode)  | ✅ Yes              |
+| CI/CD suitable            | ✅ Yes              | ✅ Yes              |
+| Implementation complexity | Medium              | Low                 |
 
 ---
 
@@ -286,6 +312,7 @@ await chromeDevAssist.level4Reload(extensionId);
    - Intelligent degradation
 
 **Default behavior:**
+
 ```javascript
 // User doesn't need to know which method
 await chromeDevAssist.level4Reload(extensionId);
@@ -324,11 +351,13 @@ await chromeDevAssist.level4Reload(extensionId);
 ## 📊 Risk Assessment
 
 **CDP Method Risks:**
+
 - ⚠️ Debug port not running (mitigated: auto-fallback)
 - ⚠️ CDP connection failure (mitigated: error handling)
 - ⚠️ Chrome version compatibility (mitigated: use stable CDP methods)
 
 **Hard Reload Method Risks:**
+
 - ⚠️ Toggle may not reload code on all platforms (mitigated: test on Windows/Linux)
 - ⚠️ Timing issues (mitigated: configurable delay)
 - ⚠️ Extension state confusion (mitigated: verify state after toggle)
@@ -342,11 +371,13 @@ await chromeDevAssist.level4Reload(extensionId);
 ### CDP WebSocket Protocol
 
 **Connection:**
+
 ```javascript
 const ws = new WebSocket('ws://localhost:9222/devtools/browser');
 ```
 
 **Message format:**
+
 ```javascript
 // Request
 {
@@ -370,6 +401,7 @@ const ws = new WebSocket('ws://localhost:9222/devtools/browser');
 ### Fire-and-Forget Architecture
 
 **Server modification needed:**
+
 ```javascript
 // In server/websocket-server.js
 function handleCommand(apiSocket, msg) {
@@ -378,11 +410,13 @@ function handleCommand(apiSocket, msg) {
     extensionSocket.send(JSON.stringify(msg));
 
     // Return success immediately (don't wait)
-    apiSocket.send(JSON.stringify({
-      type: 'response',
-      id: msg.id,
-      data: { sent: true, noResponseExpected: true }
-    }));
+    apiSocket.send(
+      JSON.stringify({
+        type: 'response',
+        id: msg.id,
+        data: { sent: true, noResponseExpected: true },
+      })
+    );
     return; // Don't track command
   }
 
@@ -395,6 +429,7 @@ function handleCommand(apiSocket, msg) {
 ## ⏭️ Next Step
 
 **Write tests FIRST** (Test-First Discipline - RULE 3):
+
 1. Create `tests/unit/level4-reload-cdp.test.js`
 2. Create `tests/unit/hard-reload.test.js`
 3. Write all test cases (they will fail - no implementation yet)

@@ -50,16 +50,19 @@ Before replacing ANY placeholder test, verify:
 
 **Total:** ~10 tests
 **Files:**
+
 - tests/integration/api-client.test.js (5 placeholders)
 - tests/integration/native-messaging.test.js (3 placeholders)
 - tests/integration/level4-reload.test.js (1 placeholder)
 
 **Why prioritize:**
+
 - Higher value (test real system integration)
 - More likely to catch real bugs
 - Closer to user-facing behavior
 
 **Replacement approach:**
+
 1. Check if API/feature is implemented
 2. If YES: Write real test calling actual API
 3. If NO: Mark as skip with TODO
@@ -70,15 +73,18 @@ Before replacing ANY placeholder test, verify:
 
 **Total:** ~60 tests
 **Files:**
+
 - tests/unit/level4-reload-auto-detect.test.js (24 placeholders)
 - tests/unit/level4-reload-cdp.test.js (~30 placeholders)
 
 **Why second priority:**
+
 - Large cluster of related tests
 - Testing specific feature (Level 4 reload)
 - Can be done systematically
 
 **Replacement approach:**
+
 1. Check if Level 4 reload is implemented
 2. Read implementation to understand behavior
 3. Replace placeholders with real tests of actual behavior
@@ -90,10 +96,12 @@ Before replacing ANY placeholder test, verify:
 
 **Total:** ~11 tests
 **Files:**
+
 - tests/unit/extension-discovery-validation.test.js
 - tests/unit/hard-reload.test.js
 
 **Replacement approach:**
+
 - Case-by-case based on implementation status
 
 ---
@@ -113,6 +121,7 @@ Line 201: should timeout long-running requests
 ```
 
 **Implementation check needed:**
+
 - [ ] Check if `api-client.js` exists
 - [ ] Check if connection logic exists
 - [ ] Check if retry/timeout logic exists
@@ -126,6 +135,7 @@ Line 134: should receive messages from native host
 ```
 
 **Implementation check needed:**
+
 - [ ] Check if native messaging is implemented
 - [ ] Check if `native-host/` directory exists
 
@@ -136,6 +146,7 @@ Line 156: should perform Level 4 reload via CDP when available
 ```
 
 **Implementation check needed:**
+
 - [ ] Check if Level 4 reload is implemented in `claude-code/index.js`
 
 ---
@@ -172,6 +183,7 @@ Line 556: should work in incognito mode
 ```
 
 **Implementation check needed:**
+
 - [ ] Check if auto-detection logic exists
 - [ ] Check if CDP availability detection exists
 - [ ] Check if browser version detection exists
@@ -197,6 +209,7 @@ Line 556: should work in incognito mode
 ## Replacement Workflow (For Each Test)
 
 ### Step 1: Pre-Replacement Check
+
 ```
 ✓ Read test description
 ✓ Identify what it's supposed to test
@@ -205,6 +218,7 @@ Line 556: should work in incognito mode
 ```
 
 ### Step 2A: If Implementation Exists → REPLACE
+
 ```
 ✓ Read implementation code
 ✓ Understand actual behavior
@@ -216,6 +230,7 @@ Line 556: should work in incognito mode
 ```
 
 ### Step 2B: If Implementation Missing → SKIP
+
 ```
 ✓ Replace placeholder with:
   it.skip('description', () => {
@@ -226,6 +241,7 @@ Line 556: should work in incognito mode
 ```
 
 ### Step 3: Reality Check
+
 ```
 ✓ Break implementation
 ✓ Run test
@@ -235,6 +251,7 @@ Line 556: should work in incognito mode
 ```
 
 ### Step 4: Document
+
 ```
 ✓ Add test to "Replaced" list
 ✓ Note any issues found
@@ -246,6 +263,7 @@ Line 556: should work in incognito mode
 ## Progress Tracking
 
 ### Category A: Integration Tests (10 tests)
+
 - [ ] api-client.test.js:89 - initialize client with valid extension ID
 - [ ] api-client.test.js:121 - handle connection errors gracefully
 - [ ] api-client.test.js:145 - retry failed requests with backoff
@@ -257,9 +275,11 @@ Line 556: should work in incognito mode
 - [ ] level4-reload.test.js:156 - perform Level 4 reload via CDP
 
 ### Category B: Unit Tests - Level 4 Reload (~60 tests)
+
 **Status:** Pending full inventory
 
 ### Category C: Unit Tests - Other (~11 tests)
+
 **Status:** Pending full inventory
 
 ---
@@ -269,6 +289,7 @@ Line 556: should work in incognito mode
 Before starting replacements, check these files exist:
 
 ### Core Implementation Files:
+
 - [ ] `claude-code/index.js` - Main API
 - [ ] `extension/background.js` - Extension logic
 - [ ] `api-client.js` - API client (if exists)
@@ -276,6 +297,7 @@ Before starting replacements, check these files exist:
 - [ ] `native-host/` - Native messaging (if exists)
 
 ### Check for Level 4 Reload:
+
 ```bash
 grep -r "level.*4.*reload" claude-code/
 grep -r "CDP" claude-code/
@@ -283,6 +305,7 @@ grep -r "chrome.debugger" claude-code/
 ```
 
 ### Check for Native Messaging:
+
 ```bash
 ls -la native-host/
 grep -r "nativeMessaging" extension/
@@ -295,6 +318,7 @@ grep -r "nativeMessaging" extension/
 For each replaced test, document:
 
 ### Test: [Description]
+
 **File:** [path:line]
 **Implementation:** [function/file]
 **Break method:** [how to break it]
@@ -306,18 +330,22 @@ For each replaced test, document:
 ## Risks and Mitigations
 
 ### Risk 1: Implementation doesn't exist
+
 **Impact:** Can't write real test
 **Mitigation:** Mark as skip with TODO
 
 ### Risk 2: Test too complex to implement quickly
+
 **Impact:** Delays overall progress
 **Mitigation:** Mark as skip, create issue for future
 
 ### Risk 3: Breaking implementation causes other tests to fail
+
 **Impact:** Reality check unclear
 **Mitigation:** Run full suite before/after, isolate changes
 
 ### Risk 4: 81 tests is too many for one session
+
 **Impact:** Incomplete work
 **Mitigation:** Prioritize integration tests, checkpoint frequently
 
@@ -326,16 +354,19 @@ For each replaced test, document:
 ## Success Criteria
 
 ### Minimum (Must Have):
+
 - ✅ All Category A (integration) tests replaced or skipped
 - ✅ Reality check performed on replaced tests
 - ✅ 0 placeholder tests passing (all either real or skipped)
 
 ### Target (Should Have):
+
 - ✅ All Category A + Category B tests replaced or skipped
 - ✅ Reality check on 100% of replaced tests
 - ✅ Documentation of implementation gaps found
 
 ### Stretch (Nice to Have):
+
 - ✅ All 81 tests replaced or skipped
 - ✅ Implementation gaps filled
 - ✅ All tests passing with real implementations

@@ -23,6 +23,7 @@ if (message.length > MAX_MESSAGE_LENGTH) {
 ```
 
 **Purpose:**
+
 - Prevent memory exhaustion at source
 - Reduce data sent through CustomEvent bridge
 - First line of defense
@@ -44,6 +45,7 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 ```
 
 **Purpose:**
+
 - Backup truncation (in case injection script bypassed)
 - Second line of defense
 - Ensures no long messages reach storage
@@ -89,10 +91,10 @@ Storage (captureState)
 
 ### Message Truncation (10K characters)
 
-| Location | File | Line | Purpose |
-|----------|------|------|---------|
-| **Layer 1** | inject-console-capture.js | 36-39 | Source truncation |
-| **Layer 2** | background.js | 687-691 | Service worker backup |
+| Location    | File                      | Line    | Purpose               |
+| ----------- | ------------------------- | ------- | --------------------- |
+| **Layer 1** | inject-console-capture.js | 36-39   | Source truncation     |
+| **Layer 2** | background.js             | 687-691 | Service worker backup |
 
 **Status:** ✅ TWO layers of enforcement
 
@@ -100,11 +102,12 @@ Storage (captureState)
 
 ### Log Count Limit (10K logs)
 
-| Location | File | Line | Purpose |
-|----------|------|------|---------|
+| Location         | File          | Line        | Purpose       |
+| ---------------- | ------------- | ----------- | ------------- |
 | **Single Layer** | background.js | 15, 728-744 | Storage limit |
 
 **Reasoning:** Only needs one layer because:
+
 - Log counting happens at storage
 - No data transfer involved
 - Memory is the only concern
@@ -126,23 +129,24 @@ const originalInfo = console.info;
 const originalDebug = console.debug;
 
 // Lines 53-65 - Override with level tracking
-console.log = function() {
+console.log = function () {
   originalLog.apply(console, arguments);
-  sendToExtension('log', arguments);  // ← level: 'log'
+  sendToExtension('log', arguments); // ← level: 'log'
 };
 
-console.error = function() {
+console.error = function () {
   originalError.apply(console, arguments);
-  sendToExtension('error', arguments);  // ← level: 'error'
+  sendToExtension('error', arguments); // ← level: 'error'
 };
 
-console.warn = function() {
+console.warn = function () {
   originalWarn.apply(console, arguments);
-  sendToExtension('warn', arguments);  // ← level: 'warn'
+  sendToExtension('warn', arguments); // ← level: 'warn'
 };
 ```
 
 **Captures:**
+
 - ✅ log
 - ✅ error
 - ✅ warn
@@ -161,17 +165,18 @@ if (!message.level || !message.message || !message.timestamp) {
 }
 
 const logEntry = {
-  level: message.level,  // ← Preserved from injection
+  level: message.level, // ← Preserved from injection
   message: truncatedMessage,
   timestamp: message.timestamp,
   source: message.source || 'unknown',
   url: sender.url || 'unknown',
   tabId: sender.tab.id,
-  frameId: sender.frameId
+  frameId: sender.frameId,
 };
 ```
 
 **Preserves:**
+
 - ✅ level (from injection)
 - ✅ message (truncated)
 - ✅ timestamp
@@ -191,20 +196,24 @@ const logEntry = {
 
 ```javascript
 // Safe JSON stringify (handles circular references)
-const safeStringify = (obj) => {
+const safeStringify = obj => {
   try {
     const seen = new WeakSet();
-    return JSON.stringify(obj, (key, value) => {
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return '[Circular]';  // ← Circular detected
+    return JSON.stringify(
+      obj,
+      (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular]'; // ← Circular detected
+          }
+          seen.add(value); // ← Track seen objects
         }
-        seen.add(value);  // ← Track seen objects
-      }
-      return value;
-    }, 2);
+        return value;
+      },
+      2
+    );
   } catch (err) {
-    return '[Unable to stringify]';  // ← Fallback
+    return '[Unable to stringify]'; // ← Fallback
   }
 };
 ```
@@ -219,6 +228,7 @@ const safeStringify = (obj) => {
 6. **Fallback** - `try/catch` for any stringify errors
 
 **Where Used:**
+
 - Line 373: `handleOpenUrlCommand` - logs params safely
 
 **Logical Question:** Is this used for CONSOLE logs or just debug logs?
@@ -236,10 +246,16 @@ Let me check...
 console.log('[ChromeDevAssist] handleOpenUrlCommand called with params:', safeStringify(params));
 
 // Line 444
-console.log('[ChromeDevAssist] Creating tab with URL:', url.substring(0, 100), 'tabId will be:', tabId);
+console.log(
+  '[ChromeDevAssist] Creating tab with URL:',
+  url.substring(0, 100),
+  'tabId will be:',
+  tabId
+);
 ```
 
 **Finding:** `safeStringify` is only used for:
+
 - ✅ Internal debug logging (our own logs)
 - ❌ NOT used for captured console logs
 
@@ -250,9 +266,9 @@ console.log('[ChromeDevAssist] Creating tab with URL:', url.substring(0, 100), '
 ```javascript
 if (typeof arg === 'object') {
   try {
-    return JSON.stringify(arg);  // ← NATIVE JSON.stringify!
+    return JSON.stringify(arg); // ← NATIVE JSON.stringify!
   } catch (e) {
-    return String(arg);  // ← Falls back to String()
+    return String(arg); // ← Falls back to String()
   }
 }
 ```
@@ -267,11 +283,13 @@ if (typeof arg === 'object') {
 **VERDICT:** ⚠️ Captured console logs with circular refs are NOT serialized nicely!
 
 They would show as:
+
 ```
 "[object Object]" // ← Not helpful
 ```
 
 Instead of:
+
 ```javascript
 { name: 'parent', self: '[Circular]' } // ← Better
 ```
@@ -283,6 +301,7 @@ Instead of:
 ### Current Behavior (Verified)
 
 **Test:** `edge-circular-ref.html`
+
 ```javascript
 const obj = { name: 'parent' };
 obj.self = obj;
@@ -290,12 +309,14 @@ console.log(obj);
 ```
 
 **What Actually Happens:**
+
 1. inject-console-capture.js tries `JSON.stringify(obj)`
 2. Throws error (circular reference)
 3. Falls back to `String(obj)` → `"[object Object]"`
 4. Captured message: `"[object Object]"` ← **Not useful!**
 
 **What We THOUGHT Happened:**
+
 - Captured as `{ name: 'parent', self: '[Circular]' }`
 
 ### Logical Conclusion
@@ -308,6 +329,7 @@ console.log(obj);
 - ⚠️ Circular refs in captured logs show as `"[object Object]"`
 
 **Test Passes Because:**
+
 - Test doesn't verify the CONTENT of the captured log
 - It just checks that the page doesn't crash
 - Chrome DevTools DOES handle circular refs (but we capture the stringified version)
@@ -318,25 +340,26 @@ console.log(obj);
 
 ### ✅ CONFIRMED Features (7 features)
 
-| Feature | Location | Actually Works As Described? |
-|---------|----------|------------------------------|
-| 10K log limit | background.js:728 | ✅ YES |
-| 10K char truncation (Layer 1) | inject-console-capture.js:36 | ✅ YES |
-| 10K char truncation (Layer 2) | background.js:687 | ✅ YES |
-| installType field | background.js:342 | ✅ YES |
-| mayDisable field | background.js:343 | ✅ YES |
-| Log level preservation | inject-console-capture.js:53-73 | ✅ YES |
-| Tab isolation | background.js:10-12 | ✅ YES |
+| Feature                       | Location                        | Actually Works As Described? |
+| ----------------------------- | ------------------------------- | ---------------------------- |
+| 10K log limit                 | background.js:728               | ✅ YES                       |
+| 10K char truncation (Layer 1) | inject-console-capture.js:36    | ✅ YES                       |
+| 10K char truncation (Layer 2) | background.js:687               | ✅ YES                       |
+| installType field             | background.js:342               | ✅ YES                       |
+| mayDisable field              | background.js:343               | ✅ YES                       |
+| Log level preservation        | inject-console-capture.js:53-73 | ✅ YES                       |
+| Tab isolation                 | background.js:10-12             | ✅ YES                       |
 
 ---
 
 ### ⚠️ PARTIAL/MISLEADING Feature (1 feature)
 
-| Feature | Code Exists? | Works As Expected? | Issue |
-|---------|--------------|-------------------|-------|
-| Circular ref handling | ✅ YES (background.js:355) | ❌ NO | Only for debug logs, NOT captured logs |
+| Feature               | Code Exists?               | Works As Expected? | Issue                                  |
+| --------------------- | -------------------------- | ------------------ | -------------------------------------- |
+| Circular ref handling | ✅ YES (background.js:355) | ❌ NO              | Only for debug logs, NOT captured logs |
 
 **Actual Behavior:**
+
 - Circular refs in captured console logs → `"[object Object]"`
 - Test passes because page doesn't crash
 - NOT nicely serialized like we thought
@@ -358,9 +381,9 @@ console.log(obj);
 // BEFORE (current)
 if (typeof arg === 'object') {
   try {
-    return JSON.stringify(arg);  // ← Fails on circular
+    return JSON.stringify(arg); // ← Fails on circular
   } catch (e) {
-    return String(arg);  // ← Returns "[object Object]"
+    return String(arg); // ← Returns "[object Object]"
   }
 }
 
@@ -409,6 +432,7 @@ Messages are truncated at TWO points for defense-in-depth:
 ## ✅ FINAL LOGIC-VERIFIED COUNT
 
 **Features That Work As Documented:**
+
 1. ✅ 10K log limit (1 layer - background.js)
 2. ✅ 10K char truncation (2 layers - inject + background)
 3. ✅ installType field
@@ -416,8 +440,7 @@ Messages are truncated at TWO points for defense-in-depth:
 5. ✅ Log level preservation (5 levels: log, error, warn, info, debug)
 6. ✅ Tab isolation (dual-index system)
 
-**Features With Issues:**
-7. ⚠️ Circular reference handling - Code exists but only for debug logs, NOT captured logs
+**Features With Issues:** 7. ⚠️ Circular reference handling - Code exists but only for debug logs, NOT captured logs
 
 **Total Verified:** 6/7 work correctly, 1/7 has gap
 
@@ -426,4 +449,3 @@ Messages are truncated at TWO points for defense-in-depth:
 **Analysis Complete:** 2025-10-26
 **Method:** Code Editor + Logic Personas, multi-file systematic review
 **Confidence:** 100% - Verified actual implementation across all files
-

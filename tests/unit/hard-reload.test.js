@@ -114,34 +114,29 @@ describe('Hard Reload - Fire-and-Forget Toggle Method', () => {
     // TODO: INCOMPLETE - Requires mocking or convert to integration test
     // Requires mocking chrome.management API or integration test setup
     // Skip until implementation or proper test setup available
-    it.skip('should include timing information', async () => {
-    });
+    it.skip('should include timing information', async () => {});
 
     // TODO: INCOMPLETE - Requires mocking or convert to integration test
     // Requires mocking chrome.management API or integration test setup
     // Skip until implementation or proper test setup available
-    it.skip('should indicate method as "toggle"', async () => {
-    });
+    it.skip('should indicate method as "toggle"', async () => {});
   });
 
   describe('Error Handling', () => {
     // TODO: INCOMPLETE - Requires mocking or convert to integration test
     // Requires mocking chrome.management API or integration test setup
     // Skip until implementation or proper test setup available
-    it.skip('should handle server not running error', async () => {
-    });
+    it.skip('should handle server not running error', async () => {});
 
     // TODO: INCOMPLETE - Requires mocking or convert to integration test
     // Requires mocking chrome.management API or integration test setup
     // Skip until implementation or proper test setup available
-    it.skip('should handle extension not connected error', async () => {
-    });
+    it.skip('should handle extension not connected error', async () => {});
 
     // TODO: INCOMPLETE - Requires mocking or convert to integration test
     // Requires mocking chrome.management API or integration test setup
     // Skip until implementation or proper test setup available
-    it.skip('should provide clear error messages', async () => {
-    });
+    it.skip('should provide clear error messages', async () => {});
   });
 
   describe('Server-Side Logic', () => {
@@ -162,8 +157,7 @@ describe('Hard Reload - Fire-and-Forget Toggle Method', () => {
   });
 
   describe('Configurable Delay', () => {
-    it('should use default 200ms delay', async () => {
-    });
+    it('should use default 200ms delay', async () => {});
 
     it('should accept custom delay in options', async () => {
       // Test custom delay option

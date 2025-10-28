@@ -46,7 +46,7 @@ describe('Level 4 Reload - Integration Tests', () => {
 
       // 3. Perform level4Reload with CDP method
       const result = await chromeDevAssist.level4Reload(TEST_EXTENSION_ID, {
-        method: 'cdp'
+        method: 'cdp',
       });
 
       // 4. Verify response
@@ -84,7 +84,7 @@ describe('Level 4 Reload - Integration Tests', () => {
 
       // 3. Perform level4Reload with toggle method
       const result = await chromeDevAssist.level4Reload(TEST_EXTENSION_ID, {
-        method: 'toggle'
+        method: 'toggle',
       });
 
       // 4. Verify response
@@ -171,9 +171,7 @@ describe('Level 4 Reload - Integration Tests', () => {
   describe('Error Recovery', () => {
     it('should handle reload failure gracefully', async () => {
       // Test with invalid extension ID
-      await expect(
-        chromeDevAssist.level4Reload('invalid-extension-id')
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.level4Reload('invalid-extension-id')).rejects.toThrow();
     });
 
     // TODO: INCOMPLETE - Test based on misunderstanding of Level 4 reload

@@ -78,7 +78,7 @@ describe('ConsoleCapture POC', () => {
       level: 'log',
       message: 'Test message',
       timestamp: new Date().toISOString(),
-      tabId: 123
+      tabId: 123,
     };
 
     consoleCapture.addLog(tabId, logEntry);
@@ -124,7 +124,7 @@ describe('ConsoleCapture POC', () => {
         level: 'log',
         message: `Message ${i}`,
         timestamp: new Date().toISOString(),
-        tabId: 124
+        tabId: 124,
       });
     }
 
@@ -134,7 +134,7 @@ describe('ConsoleCapture POC', () => {
     // Verify it returns a copy (not mutable reference)
     logs.push({ level: 'error', message: 'fake', timestamp: '', tabId: 124 });
     const logs2 = consoleCapture.getLogs(captureId);
-    expect(logs2.length).toBe(5);  // Should still be 5
+    expect(logs2.length).toBe(5); // Should still be 5
 
     console.log('✅ POC Test 4 passed: Can get logs from capture');
   });
@@ -155,7 +155,7 @@ describe('ConsoleCapture POC', () => {
       level: 'log',
       message: 'Before cleanup',
       timestamp: new Date().toISOString(),
-      tabId: 125
+      tabId: 125,
     });
 
     expect(consoleCapture.getLogs(captureId).length).toBe(1);
@@ -172,7 +172,7 @@ describe('ConsoleCapture POC', () => {
       level: 'log',
       message: 'After cleanup',
       timestamp: new Date().toISOString(),
-      tabId: 125
+      tabId: 125,
     });
 
     expect(consoleCapture.getLogs(captureId)).toEqual([]);
@@ -198,5 +198,5 @@ describe('ConsoleCapture POC', () => {
     expect(consoleCapture.isActive(captureId)).toBe(false);
 
     console.log('✅ POC Test BONUS passed: Auto-stop after duration');
-  }, 10000);  // 10s timeout for async test
+  }, 10000); // 10s timeout for async test
 });

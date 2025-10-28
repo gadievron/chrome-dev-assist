@@ -22,6 +22,7 @@
 ### Three Commands (No Redundancies)
 
 **1. getExtensionStatus** - Comprehensive status
+
 ```javascript
 // Request
 {
@@ -61,6 +62,7 @@
 ```
 
 **2. wakeServiceWorker** - Simple ping to wake if suspended
+
 ```javascript
 // Request
 {
@@ -118,17 +120,20 @@
 ## 📊 Why This is Better
 
 **Before (4 commands):**
+
 - `getExtensionStatus` - Comprehensive
 - `getServiceWorkerStatus` - Redundant (subset of above)
 - `wakeServiceWorker` - Unique
 - Service worker log capture - Unique
 
 **After (3 commands):**
+
 - `getExtensionStatus` - Comprehensive (includes service worker status)
 - `wakeServiceWorker` - Unique (simple wake)
 - Service worker log capture - Unique (console interception)
 
 **Benefits:**
+
 - ✅ No redundancies
 - ✅ Clear separation of concerns:
   - `getExtensionStatus`: Read all status
@@ -143,6 +148,7 @@
 ## 🎯 Use Cases
 
 **Use Case 1: Check if extension is healthy**
+
 ```javascript
 const status = await getExtensionStatus();
 if (status.hasUnexpectedErrors) {
@@ -154,6 +160,7 @@ if (!status.serviceWorker.running) {
 ```
 
 **Use Case 2: Debug extension behavior**
+
 ```javascript
 // Start capturing logs
 await startServiceWorkerLogCapture(5000);
@@ -167,6 +174,7 @@ console.log('Extension logs:', logs);
 ```
 
 **Use Case 3: Monitor service worker lifecycle**
+
 ```javascript
 const status1 = await getExtensionStatus();
 console.log('Initial state:', status1.serviceWorker.state);
@@ -184,15 +192,18 @@ console.log('Suspend count:', status2.serviceWorker.suspendCount);
 ## 🔧 Implementation Simplification
 
 **Removed:**
+
 - ❌ `getServiceWorkerStatus` command handler
 - ❌ Tests for redundant command (~6 tests saved)
 
 **Kept:**
+
 - ✅ `getExtensionStatus` (comprehensive)
 - ✅ `wakeServiceWorker` (simple)
 - ✅ Service worker log capture (unique capability)
 
 **Test count adjustment:**
+
 - Before: 47 new Jest tests
 - After: 41 new Jest tests (removed 6 redundant tests)
 - **Target: 94/94 tests passing (53 existing + 41 new)**
@@ -204,6 +215,7 @@ console.log('Suspend count:', status2.serviceWorker.suspendCount);
 **Remove `getServiceWorkerStatus`** - It's redundant with `getExtensionStatus`
 
 **Rationale:**
+
 - User is right: "everything should be in the API"
 - One comprehensive command is better than multiple overlapping commands
 - Simpler to use, test, and maintain

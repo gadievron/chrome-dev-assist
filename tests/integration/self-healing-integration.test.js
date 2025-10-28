@@ -27,7 +27,7 @@ describe('Self-Healing Integration Tests', () => {
     });
 
     // Mock clearTimeout to mark timers as cancelled
-    clearTimeoutSpy = jest.spyOn(global, 'clearTimeout').mockImplementation((timerId) => {
+    clearTimeoutSpy = jest.spyOn(global, 'clearTimeout').mockImplementation(timerId => {
       if (timerCallbacks[timerId]) {
         timerCallbacks[timerId].cancelled = true;
       }
@@ -41,23 +41,23 @@ describe('Self-Healing Integration Tests', () => {
       CONNECTING: 0,
       OPEN: 1,
       CLOSING: 2,
-      CLOSED: 3
+      CLOSED: 3,
     };
 
     // Mock Chrome APIs
     mockChrome = {
       runtime: {
         reload: jest.fn(),
-        id: 'test-extension-id'
+        id: 'test-extension-id',
       },
       management: {
         get: jest.fn(),
-        setEnabled: jest.fn()
+        setEnabled: jest.fn(),
       },
       scripting: {
         registerContentScripts: jest.fn(),
-        getRegisteredContentScripts: jest.fn().mockResolvedValue([])
-      }
+        getRegisteredContentScripts: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -114,7 +114,7 @@ describe('Self-Healing Integration Tests', () => {
       const selfExtensionId = 'test-extension-id';
       mockChrome.management.get.mockResolvedValue({
         id: selfExtensionId,
-        name: 'Test Extension'
+        name: 'Test Extension',
       });
 
       // Simulate: handleReloadCommand logic for self
@@ -135,7 +135,7 @@ describe('Self-Healing Integration Tests', () => {
       const otherExtensionId = 'other-extension-id';
       mockChrome.management.get.mockResolvedValue({
         id: otherExtensionId,
-        name: 'Other Extension'
+        name: 'Other Extension',
       });
 
       // Simulate: handleReloadCommand logic for other
@@ -232,20 +232,20 @@ describe('Self-Healing Integration Tests', () => {
       // Simulate: Error occurred, try to send error response
       let errorResponseSent = false;
       if (mockWebSocket.readyState === mockWebSocket.OPEN) {
-        mockWebSocket.send(JSON.stringify({type: 'error'}));
+        mockWebSocket.send(JSON.stringify({ type: 'error' }));
         errorResponseSent = true;
       }
 
       // Verify: Error response sent
       expect(errorResponseSent).toBe(true);
-      expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify({type: 'error'}));
+      expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify({ type: 'error' }));
     });
   });
 
   describe('Edge Case: Configuration Validation', () => {
     test('GIVEN invalid timeout WHEN extension loads THEN throw error', () => {
       // Simulate: Validation logic
-      const testValidation = (timeout) => {
+      const testValidation = timeout => {
         if (timeout < 5000) {
           throw new Error(`SELF_HEAL_TIMEOUT_MS must be at least 5000ms, got ${timeout}ms`);
         }

@@ -15,7 +15,7 @@ describe('Script Registration: Duplicate Prevention', () => {
     global.console = {
       log: jest.fn(),
       warn: jest.fn(),
-      error: jest.fn()
+      error: jest.fn(),
     };
 
     // Mock Chrome API
@@ -23,8 +23,8 @@ describe('Script Registration: Duplicate Prevention', () => {
       scripting: {
         registerContentScripts: jest.fn(),
         unregisterContentScripts: jest.fn(),
-        getRegisteredContentScripts: jest.fn()
-      }
+        getRegisteredContentScripts: jest.fn(),
+      },
     };
     global.chrome = mockChrome;
   });
@@ -35,9 +35,7 @@ describe('Script Registration: Duplicate Prevention', () => {
 
   test('should skip registration if script already registered', async () => {
     // Simulate script already registered
-    mockChrome.scripting.getRegisteredContentScripts.mockResolvedValue([
-      { id: 'console-capture' }
-    ]);
+    mockChrome.scripting.getRegisteredContentScripts.mockResolvedValue([{ id: 'console-capture' }]);
 
     await registerConsoleCaptureScript();
 
@@ -64,14 +62,16 @@ describe('Script Registration: Duplicate Prevention', () => {
     expect(mockChrome.scripting.getRegisteredContentScripts).toHaveBeenCalled();
 
     // Should register the script
-    expect(mockChrome.scripting.registerContentScripts).toHaveBeenCalledWith([{
-      id: 'console-capture',
-      matches: ['<all_urls>'],
-      js: ['inject-console-capture.js'],
-      runAt: 'document_start',
-      world: 'MAIN',
-      allFrames: true
-    }]);
+    expect(mockChrome.scripting.registerContentScripts).toHaveBeenCalledWith([
+      {
+        id: 'console-capture',
+        matches: ['<all_urls>'],
+        js: ['inject-console-capture.js'],
+        runAt: 'document_start',
+        world: 'MAIN',
+        allFrames: true,
+      },
+    ]);
 
     // Should log success
     expect(global.console.log).toHaveBeenCalledWith(
@@ -84,7 +84,7 @@ describe('Script Registration: Duplicate Prevention', () => {
     mockChrome.scripting.getRegisteredContentScripts.mockResolvedValue([]);
     mockChrome.scripting.registerContentScripts
       .mockRejectedValueOnce(new Error('Duplicate script ID'))
-      .mockResolvedValueOnce();  // Second attempt succeeds
+      .mockResolvedValueOnce(); // Second attempt succeeds
     mockChrome.scripting.unregisterContentScripts.mockResolvedValue();
 
     await registerConsoleCaptureScript();
@@ -94,7 +94,7 @@ describe('Script Registration: Duplicate Prevention', () => {
 
     // Should have unregistered the duplicate
     expect(mockChrome.scripting.unregisterContentScripts).toHaveBeenCalledWith({
-      ids: ['console-capture']
+      ids: ['console-capture'],
     });
 
     // Should log the retry
@@ -105,9 +105,7 @@ describe('Script Registration: Duplicate Prevention', () => {
 
   test('should log error if registration fails for non-duplicate reason', async () => {
     mockChrome.scripting.getRegisteredContentScripts.mockResolvedValue([]);
-    mockChrome.scripting.registerContentScripts.mockRejectedValue(
-      new Error('Permission denied')
-    );
+    mockChrome.scripting.registerContentScripts.mockRejectedValue(new Error('Permission denied'));
 
     await registerConsoleCaptureScript();
 
@@ -164,8 +162,8 @@ describe('Script Registration: Duplicate Prevention', () => {
   test('should handle multiple scripts already registered', async () => {
     mockChrome.scripting.getRegisteredContentScripts.mockResolvedValue([
       { id: 'other-script-1' },
-      { id: 'console-capture' },  // Our script is in the middle
-      { id: 'other-script-2' }
+      { id: 'console-capture' }, // Our script is in the middle
+      { id: 'other-script-2' },
     ]);
 
     await registerConsoleCaptureScript();

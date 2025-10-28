@@ -9,19 +9,23 @@
 ## Executive Summary
 
 **Goal**: Complete Phase 1.3 by adding the missing features:
+
 1. DOM Inspection API (`getPageMetadata(tabId)`)
 2. Screenshot Capture API (`captureScreenshot(tabId)`)
 
 **Already Complete** (from previous work):
+
 - ✅ Content script injection (MAIN world + ISOLATED world)
 - ✅ Console interception (before page load)
 - ✅ Message bridge (CustomEvent → background)
 
 **Remaining Work**:
+
 - ⏳ DOM inspection API (read test metadata from pages)
 - ⏳ Screenshot capture API (visual validation)
 
 **Estimated Time**: 2-3 hours total
+
 - DOM Inspection: 1-1.5 hours (test + implement)
 - Screenshot Capture: 1-1.5 hours (test + implement)
 
@@ -46,9 +50,11 @@
 **Purpose**: Read test metadata from web pages for test fixture validation
 
 **Input**:
+
 - `tabId` (number, required): Chrome tab ID to inspect
 
 **Output**:
+
 ```javascript
 {
   tabId: 123,
@@ -76,6 +82,7 @@
 ```
 
 **Error Cases**:
+
 - `tabId` missing → "tabId is required"
 - `tabId` not a number → "tabId must be a number"
 - Tab doesn't exist → "No tab with id: X"
@@ -86,6 +93,7 @@
 ### 1.2 Implementation Strategy
 
 **Architecture**:
+
 ```
 API Client (Node.js)
     ↓ WebSocket command
@@ -99,6 +107,7 @@ Return metadata
 ```
 
 **Files to Modify**:
+
 1. `claude-code/index.js` - Add `getPageMetadata()` API function
 2. `extension/background.js` - Add `handleGetPageMetadataCommand()`
 3. `extension/content-script.js` - Add metadata extraction logic
@@ -110,17 +119,20 @@ Return metadata
 ### 1.3 Security Considerations
 
 **Input Validation**:
+
 - ✅ Validate `tabId` is number
 - ✅ Validate `tabId` is positive integer
 - ✅ Validate `tabId` is safe integer
 
 **Data Sanitization**:
+
 - ✅ Limit metadata object size (max 1MB serialized)
 - ✅ Limit string lengths (max 10k chars per field)
 - ✅ No executable code in metadata
 - ✅ Safe JSON serialization (handle circular refs)
 
 **Permission Requirements**:
+
 - ✅ `activeTab` or `tabs` permission (already have)
 - ✅ `scripting` permission (already have)
 
@@ -153,6 +165,7 @@ Return metadata
    - ✓ truncates very large metadata objects
 
 **Test Fixtures Needed**:
+
 - `tests/fixtures/metadata-test.html` - Page with full metadata
 - `tests/fixtures/metadata-minimal.html` - Page with minimal metadata
 
@@ -167,12 +180,14 @@ Return metadata
 **Purpose**: Capture screenshots of tabs for visual validation
 
 **Input**:
+
 - `tabId` (number, required): Chrome tab ID to capture
 - `options` (object, optional):
   - `format` (string): "png" or "jpeg" (default: "png")
   - `quality` (number): 0-100 for JPEG (default: 90)
 
 **Output**:
+
 ```javascript
 {
   tabId: 123,
@@ -188,6 +203,7 @@ Return metadata
 ```
 
 **Error Cases**:
+
 - `tabId` missing → "tabId is required"
 - `tabId` not a number → "tabId must be a number"
 - Invalid format → "format must be 'png' or 'jpeg'"
@@ -200,6 +216,7 @@ Return metadata
 ### 2.2 Implementation Strategy
 
 **Architecture**:
+
 ```
 API Client (Node.js)
     ↓ WebSocket command
@@ -211,6 +228,7 @@ Return base64 image data
 ```
 
 **Files to Modify**:
+
 1. `claude-code/index.js` - Add `captureScreenshot()` API function
 2. `extension/background.js` - Add `handleCaptureScreenshotCommand()`
 
@@ -223,17 +241,20 @@ Return base64 image data
 ### 2.3 Security Considerations
 
 **Input Validation**:
+
 - ✅ Validate `tabId` is number
 - ✅ Validate `format` is "png" or "jpeg"
 - ✅ Validate `quality` is 0-100
 - ✅ Reject chrome:// and other restricted URLs
 
 **Data Size**:
+
 - ✅ Screenshots can be large (up to 10MB)
 - ✅ Add timeout for capture (max 10 seconds)
 - ✅ Document size limits in API
 
 **Permission Requirements**:
+
 - ✅ `activeTab` permission (already have)
 - ✅ Tab must be visible and in active window
 
@@ -268,31 +289,37 @@ Return base64 image data
 ### Step 1: DOM Inspection API (1-1.5 hours)
 
 **1.1 Create Test Fixtures** (10 min)
+
 - Create `tests/fixtures/metadata-test.html`
 - Create `tests/fixtures/metadata-minimal.html`
 
 **1.2 Write Tests FIRST** (20 min)
+
 - Create `tests/unit/page-metadata.test.js`
 - Write all 12 test cases
 - Run tests (should fail - not implemented yet)
 
 **1.3 Implement API Function** (10 min)
+
 - Add `getPageMetadata()` to `claude-code/index.js`
 - Input validation
 - Call sendCommand()
 
 **1.4 Implement Extension Handler** (15 min)
+
 - Add `handleGetPageMetadataCommand()` to `extension/background.js`
 - Use chrome.scripting.executeScript()
 - Extract metadata from page
 
 **1.5 Add Content Script Logic** (10 min)
+
 - Add metadata extraction to `extension/content-script.js`
 - Read data attributes
 - Read window.testMetadata
 - Return combined object
 
 **1.6 Run Tests & Validate** (5 min)
+
 - Run `npm test -- page-metadata.test.js`
 - All 12 tests should pass
 - Fix any failures
@@ -302,23 +329,27 @@ Return base64 image data
 ### Step 2: Screenshot Capture API (1-1.5 hours)
 
 **2.1 Write Tests FIRST** (20 min)
+
 - Create `tests/unit/screenshot-capture.test.js`
 - Write all 10 test cases
 - Run tests (should fail - not implemented yet)
 
 **2.2 Implement API Function** (10 min)
+
 - Add `captureScreenshot()` to `claude-code/index.js`
 - Input validation
 - Options parsing
 - Call sendCommand()
 
 **2.3 Implement Extension Handler** (15 min)
+
 - Add `handleCaptureScreenshotCommand()` to `extension/background.js`
 - Use chrome.tabs.captureVisibleTab()
 - Handle format and quality options
 - Return screenshot data
 
 **2.4 Run Tests & Validate** (5 min)
+
 - Run `npm test -- screenshot-capture.test.js`
 - All 10 tests should pass
 - Fix any failures
@@ -328,6 +359,7 @@ Return base64 image data
 ### Step 3: Integration Testing (15 min)
 
 **3.1 Manual End-to-End Test**
+
 ```javascript
 const chromeDevAssist = require('./claude-code/index.js');
 
@@ -345,6 +377,7 @@ await chromeDevAssist.closeTab(tab.tabId);
 ```
 
 **3.2 Run Full Test Suite**
+
 ```bash
 npm test
 ```
@@ -356,6 +389,7 @@ All existing tests should still pass (no regressions).
 ## Success Criteria
 
 ### Feature 1: DOM Inspection ✅
+
 - [ ] 12/12 unit tests passing
 - [ ] Can read data attributes from test fixtures
 - [ ] Can read window.testMetadata
@@ -363,6 +397,7 @@ All existing tests should still pass (no regressions).
 - [ ] Clear error messages for all failure cases
 
 ### Feature 2: Screenshot Capture ✅
+
 - [ ] 10/10 unit tests passing
 - [ ] Can capture PNG screenshots
 - [ ] Can capture JPEG screenshots with quality
@@ -370,6 +405,7 @@ All existing tests should still pass (no regressions).
 - [ ] Clear error messages for all failure cases
 
 ### Integration ✅
+
 - [ ] Both APIs work together
 - [ ] No regressions in existing functionality
 - [ ] All existing tests still pass
@@ -409,6 +445,7 @@ If any tests fail or issues arise:
 ## Documentation
 
 After implementation, create:
+
 1. `docs/PHASE-1.3-COMPLETE.md` - Completion summary
 2. Update `README.md` with new API functions
 3. Add usage examples
@@ -418,6 +455,7 @@ After implementation, create:
 ## Ready to Proceed
 
 **Next Steps**:
+
 1. ✅ Plan created (this document)
 2. ⏳ Create test fixtures
 3. ⏳ Write tests for Feature 1 (DOM Inspection)

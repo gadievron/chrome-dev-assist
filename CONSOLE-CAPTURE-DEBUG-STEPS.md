@@ -8,6 +8,7 @@
 ## Background
 
 We've implemented all P0 fixes:
+
 - ✅ Removed debug logging pollution from inject/content scripts
 - ✅ Made state update atomic
 - ✅ Changed buffer key from tabId to commandId
@@ -27,6 +28,7 @@ But console capture still returns 0 messages.
 4. Keep this window open
 
 **Run the test:**
+
 ```bash
 node test-verify-inject-script.js
 ```
@@ -34,6 +36,7 @@ node test-verify-inject-script.js
 **What to look for in service worker console:**
 
 Expected if working:
+
 ```
 [ChromeDevAssist DEBUG BACKGROUND] Received console message: log TEST 1: console.log test from tab: 168353895
 [ChromeDevAssist DEBUG BACKGROUND] Received console message: warn TEST 2: console.warn test from tab: 168353895
@@ -48,22 +51,24 @@ If you DON'T see these → Messages NOT reaching background.js (problem is earli
 ### Step 2: Check Inject Script Registration
 
 In the service worker console, run:
+
 ```javascript
-chrome.scripting.getRegisteredContentScripts()
+chrome.scripting.getRegisteredContentScripts();
 ```
 
 **Expected output:**
+
 ```javascript
 [
   {
-    id: "console-capture",
-    matches: ["<all_urls>"],
-    js: ["inject-console-capture.js"],
-    runAt: "document_start",
-    world: "MAIN",
-    allFrames: true
-  }
-]
+    id: 'console-capture',
+    matches: ['<all_urls>'],
+    js: ['inject-console-capture.js'],
+    runAt: 'document_start',
+    world: 'MAIN',
+    allFrames: true,
+  },
+];
 ```
 
 If this is empty → Inject script NOT registered (registration failed)
@@ -82,6 +87,7 @@ The test script opens tab 168353895 (number will vary).
 **What to look for:**
 
 Expected if inject script loaded:
+
 ```
 [ChromeDevAssist] Console capture initialized in main world
 ```
@@ -94,8 +100,9 @@ If you DON'T see this → Inject script did NOT run
 ### Step 4: Check Inject Script Loaded
 
 In the page console (test tab DevTools), run:
+
 ```javascript
-window.__chromeDevAssistInjected
+window.__chromeDevAssistInjected;
 ```
 
 **Expected:** `true`
@@ -108,11 +115,13 @@ If undefined → Inject script NOT loaded
 ### Step 5: Check Console Wrapping
 
 In the page console, run:
+
 ```javascript
-console.log.toString()
+console.log.toString();
 ```
 
 **Expected output (if wrapped):**
+
 ```javascript
 "function() {
   originalLog.apply(console, arguments);
@@ -121,8 +130,9 @@ console.log.toString()
 ```
 
 **Unwrapped output (NOT working):**
+
 ```javascript
-"function log() { [native code] }"
+'function log() { [native code] }';
 ```
 
 If wrapped → Console interception IS working
@@ -133,11 +143,13 @@ If native → Console NOT wrapped (inject script failed)
 ### Step 6: Manual Console Test
 
 In the page console, type:
+
 ```javascript
 console.log('[MANUAL TEST] This is a test message');
 ```
 
 Then go to service worker console and check if you see:
+
 ```
 [ChromeDevAssist DEBUG BACKGROUND] Received console message: log [MANUAL TEST] This is a test message
 ```
@@ -190,6 +202,7 @@ Q6: Manual console.log() works but page console.log() doesn't?
 Based on expert analysis, most likely issue is:
 
 **Inject Script Timing Problem**
+
 - Inject script runs at document_start
 - But inline `<script>` tags in page run FIRST
 - By the time console is wrapped, page scripts already executed
@@ -197,6 +210,7 @@ Based on expert analysis, most likely issue is:
 - No messages captured
 
 **Evidence:**
+
 - Only 1 message captured in previous tests ("[ChromeDevAssist] Console capture initialized")
 - This message is from inject script itself, NOT from page
 - Proves inject script IS running, but TOO LATE
@@ -206,6 +220,7 @@ Based on expert analysis, most likely issue is:
 ## Next Actions Based on Findings
 
 ### If Q1 fails (script not registered):
+
 ```javascript
 // Check background.js startup for errors
 // Look for registerConsoleCaptureScript() call
@@ -213,18 +228,21 @@ Based on expert analysis, most likely issue is:
 ```
 
 ### If Q2-Q4 fail (script not executing):
+
 ```javascript
 // Check Chrome version: chrome://version/
 // Must be 109+ for MAIN world injection
 ```
 
 ### If Q5 fails (messages not forwarding):
+
 ```javascript
 // Check content-script.js is loaded
 // Manifest shows it should be: content_scripts with <all_urls>
 ```
 
 ### If Q6 (timing issue):
+
 ```javascript
 // This is the expected finding
 // Solution: Test fixtures need setTimeout() or defer (already done)
@@ -238,24 +256,26 @@ Based on expert analysis, most likely issue is:
 Run these in the appropriate consoles:
 
 **Service Worker Console:**
+
 ```javascript
 // Check registration
-chrome.scripting.getRegisteredContentScripts()
+chrome.scripting.getRegisteredContentScripts();
 
 // Check captures
-Array.from(captureState.entries())
+Array.from(captureState.entries());
 
 // Check message buffer
-Array.from(messageBuffer.entries())
+Array.from(messageBuffer.entries());
 ```
 
 **Page Console:**
+
 ```javascript
 // Check inject loaded
-window.__chromeDevAssistInjected
+window.__chromeDevAssistInjected;
 
 // Check console wrapped
-console.log.toString().includes('originalLog')
+console.log.toString().includes('originalLog');
 
 // Manual test
 console.log('[MANUAL TEST] Message');

@@ -30,16 +30,16 @@ gate, stop, prevent, block
 
 ### In docs/API.md
 
-| Line | Restriction/Limitation | Status |
-|------|----------------------|--------|
-| 613 | Section header: "## Limitations" | ✅ Section exists |
-| 617-621 | 10,000 log limit per capture | ✅ Documented |
-| 623-656 | 10,000 char truncation (dual-layer) | ✅ Documented |
-| 715-741 | Circular reference handling gap | ✅ Documented |
-| 746 | Cannot reload self (security) | ✅ Documented |
-| 748 | Localhost-only (127.0.0.1) | ✅ Documented |
-| 750 | Message size 10K max | ✅ Documented |
-| 751 | Circular objects limitation | ✅ Documented |
+| Line    | Restriction/Limitation              | Status            |
+| ------- | ----------------------------------- | ----------------- |
+| 613     | Section header: "## Limitations"    | ✅ Section exists |
+| 617-621 | 10,000 log limit per capture        | ✅ Documented     |
+| 623-656 | 10,000 char truncation (dual-layer) | ✅ Documented     |
+| 715-741 | Circular reference handling gap     | ✅ Documented     |
+| 746     | Cannot reload self (security)       | ✅ Documented     |
+| 748     | Localhost-only (127.0.0.1)          | ✅ Documented     |
+| 750     | Message size 10K max                | ✅ Documented     |
+| 751     | Circular objects limitation         | ✅ Documented     |
 
 **Total in API.md:** 8 restrictions documented
 
@@ -47,19 +47,19 @@ gate, stop, prevent, block
 
 ### In COMPLETE-FUNCTIONALITY-MAP.md
 
-| Line | Restriction/Limitation | Status |
-|------|----------------------|--------|
-| 381-483 | Memory leak prevention section | ✅ Documented |
-| 383-407 | 10,000 log limit | ✅ Documented |
-| 411-465 | 10,000 char truncation (dual-layer) | ✅ Documented |
-| 469-483 | Periodic cleanup (5 min) | ✅ Documented |
-| 580 | Prevent race conditions (dual-index) | ✅ Documented |
-| 622 | Prevent race conditions (command ID system) | ✅ Documented |
-| 666-733 | Known Limitations section | ✅ Section exists |
-| 668-720 | Circular reference gap | ✅ Documented |
-| 787-797 | Security Model section | ✅ Section exists |
-| 867-918 | Security validations (validation.js) | ✅ Documented |
-| 924-970 | Crash detection prevention | ✅ Documented |
+| Line    | Restriction/Limitation                      | Status            |
+| ------- | ------------------------------------------- | ----------------- |
+| 381-483 | Memory leak prevention section              | ✅ Documented     |
+| 383-407 | 10,000 log limit                            | ✅ Documented     |
+| 411-465 | 10,000 char truncation (dual-layer)         | ✅ Documented     |
+| 469-483 | Periodic cleanup (5 min)                    | ✅ Documented     |
+| 580     | Prevent race conditions (dual-index)        | ✅ Documented     |
+| 622     | Prevent race conditions (command ID system) | ✅ Documented     |
+| 666-733 | Known Limitations section                   | ✅ Section exists |
+| 668-720 | Circular reference gap                      | ✅ Documented     |
+| 787-797 | Security Model section                      | ✅ Section exists |
+| 867-918 | Security validations (validation.js)        | ✅ Documented     |
+| 924-970 | Crash detection prevention                  | ✅ Documented     |
 
 **Total in COMPLETE-FUNCTIONALITY-MAP.md:** 11 restrictions/limitations documented
 
@@ -67,17 +67,17 @@ gate, stop, prevent, block
 
 ### In docs/SECURITY.md
 
-| Line | Security Feature | Status |
-|------|----------------|--------|
-| 13 | Prevent unauthorized local apps | ✅ Documented |
-| 47 | DNS rebinding prevention | ✅ Documented |
-| 67 | Prevent cross-localhost attacks | ✅ Documented |
-| 79 | Prevent directory traversal | ✅ Documented |
-| 155 | Prevent accidental commits (git-ignore) | ✅ Documented |
-| 202 | PKCE prevents auth code interception | ✅ Documented |
-| 299 | CSP prevents inline scripts | ⚠️ Future |
-| 300 | Block hardcoded secrets | ⚠️ Future |
-| 328 | Prevent downgrade attacks | ⚠️ Future |
+| Line | Security Feature                        | Status        |
+| ---- | --------------------------------------- | ------------- |
+| 13   | Prevent unauthorized local apps         | ✅ Documented |
+| 47   | DNS rebinding prevention                | ✅ Documented |
+| 67   | Prevent cross-localhost attacks         | ✅ Documented |
+| 79   | Prevent directory traversal             | ✅ Documented |
+| 155  | Prevent accidental commits (git-ignore) | ✅ Documented |
+| 202  | PKCE prevents auth code interception    | ✅ Documented |
+| 299  | CSP prevents inline scripts             | ⚠️ Future     |
+| 300  | Block hardcoded secrets                 | ⚠️ Future     |
+| 328  | Prevent downgrade attacks               | ⚠️ Future     |
 
 **Total in SECURITY.md:** 9 security features/restrictions documented
 
@@ -87,20 +87,20 @@ gate, stop, prevent, block
 
 ### 🔴 HIGH PRIORITY (Never Mentioned - 12 restrictions)
 
-| # | Restriction | Impact | Priority |
-|---|------------|--------|----------|
-| 1 | Cannot reload mayDisable:false extensions | ❌ Runtime error for users | HIGH |
-| 2 | getAllExtensions() excludes self | ⚠️ Confusing for users | HIGH |
-| 3 | getAllExtensions() excludes Chrome Apps | ℹ️ Info only | MEDIUM |
-| 4 | javascript: protocol blocked | ❌ Runtime error | HIGH |
-| 5 | data: protocol blocked | ❌ Runtime error | HIGH |
-| 6 | vbscript: protocol blocked | ❌ Runtime error | HIGH |
-| 7 | file: protocol blocked | ❌ Runtime error | HIGH |
-| 8 | chrome:// URLs blocked | ❌ Likely runtime error | HIGH |
-| 9 | Extension ID: a-p only (not a-z!) | ❌ Common user mistake | HIGH |
-| 10 | Duration: NaN blocked | ❌ Runtime error | MEDIUM |
-| 11 | Duration: Infinity blocked | ❌ Runtime error | MEDIUM |
-| 12 | Duration: negative blocked | ❌ Runtime error | MEDIUM |
+| #   | Restriction                               | Impact                     | Priority |
+| --- | ----------------------------------------- | -------------------------- | -------- |
+| 1   | Cannot reload mayDisable:false extensions | ❌ Runtime error for users | HIGH     |
+| 2   | getAllExtensions() excludes self          | ⚠️ Confusing for users     | HIGH     |
+| 3   | getAllExtensions() excludes Chrome Apps   | ℹ️ Info only               | MEDIUM   |
+| 4   | javascript: protocol blocked              | ❌ Runtime error           | HIGH     |
+| 5   | data: protocol blocked                    | ❌ Runtime error           | HIGH     |
+| 6   | vbscript: protocol blocked                | ❌ Runtime error           | HIGH     |
+| 7   | file: protocol blocked                    | ❌ Runtime error           | HIGH     |
+| 8   | chrome:// URLs blocked                    | ❌ Likely runtime error    | HIGH     |
+| 9   | Extension ID: a-p only (not a-z!)         | ❌ Common user mistake     | HIGH     |
+| 10  | Duration: NaN blocked                     | ❌ Runtime error           | MEDIUM   |
+| 11  | Duration: Infinity blocked                | ❌ Runtime error           | MEDIUM   |
+| 12  | Duration: negative blocked                | ❌ Runtime error           | MEDIUM   |
 
 **User Impact:** Users WILL encounter these errors without documentation
 
@@ -108,16 +108,16 @@ gate, stop, prevent, block
 
 ### 🟡 MEDIUM PRIORITY (Partially Mentioned - 8 restrictions)
 
-| # | Restriction | Mentioned Where | Gap |
-|---|------------|----------------|-----|
-| 13 | Requires "management" permission | Mentioned in manifest | Not explained in API docs |
-| 14 | Requires <all_urls> permission | Mentioned in manifest | Not explained in API docs |
-| 15 | Tab ID must be >0 | Error message only | No examples |
-| 16 | URL must be non-empty | Error message only | No examples |
-| 17 | extensionId must be string | Error message only | No examples |
-| 18 | extensionId must be 32 chars | Input Validation section | No examples |
-| 19 | HTTP only (not HTTPS) | SECURITY.md | Not in API.md |
-| 20 | Localhost binding = no remote access | "localhost-only" mentioned | Not explained what this means |
+| #   | Restriction                          | Mentioned Where            | Gap                           |
+| --- | ------------------------------------ | -------------------------- | ----------------------------- |
+| 13  | Requires "management" permission     | Mentioned in manifest      | Not explained in API docs     |
+| 14  | Requires <all_urls> permission       | Mentioned in manifest      | Not explained in API docs     |
+| 15  | Tab ID must be >0                    | Error message only         | No examples                   |
+| 16  | URL must be non-empty                | Error message only         | No examples                   |
+| 17  | extensionId must be string           | Error message only         | No examples                   |
+| 18  | extensionId must be 32 chars         | Input Validation section   | No examples                   |
+| 19  | HTTP only (not HTTPS)                | SECURITY.md                | Not in API.md                 |
+| 20  | Localhost binding = no remote access | "localhost-only" mentioned | Not explained what this means |
 
 **User Impact:** Users may not understand the implications
 
@@ -125,15 +125,15 @@ gate, stop, prevent, block
 
 ### 🟢 LOW PRIORITY (Internal/Edge Cases - 7 restrictions)
 
-| # | Restriction | Why Low Priority |
-|---|------------|-----------------|
-| 21 | Metadata 10KB limit | Internal registration only |
-| 22 | Manifest sanitization | Internal security only |
-| 23 | Metadata field whitelist | Internal security only |
-| 24 | One extension connection | Design choice, acceptable |
-| 25 | Manifest immutable at runtime | Chrome API limitation |
-| 26 | Content scripts run at document_start | Implementation detail |
-| 27 | chrome-extension:// URLs | Edge case |
+| #   | Restriction                           | Why Low Priority           |
+| --- | ------------------------------------- | -------------------------- |
+| 21  | Metadata 10KB limit                   | Internal registration only |
+| 22  | Manifest sanitization                 | Internal security only     |
+| 23  | Metadata field whitelist              | Internal security only     |
+| 24  | One extension connection              | Design choice, acceptable  |
+| 25  | Manifest immutable at runtime         | Chrome API limitation      |
+| 26  | Content scripts run at document_start | Implementation detail      |
+| 27  | chrome-extension:// URLs              | Edge case                  |
 
 **User Impact:** Minimal - unlikely to encounter
 
@@ -261,7 +261,7 @@ const self = extensions.find(ext => ext.name === 'Chrome Dev Assist');
 
 **Location:** After line 315 (after closeTab example)
 
-```markdown
+````markdown
 ---
 
 ## Extension Reload Restrictions
@@ -275,8 +275,10 @@ For security and stability, Chrome Dev Assist cannot reload itself:
 await chromeDevAssist.reload(chrome.runtime.id);
 // Error: "Cannot reload self"
 ```
+````
 
 **Why:**
+
 - Prevents infinite reload loops
 - Prevents self-destruction mid-operation
 - Chrome API limitation
@@ -302,11 +304,13 @@ await chromeDevAssist.reload(extensionId);
 ```
 
 **Why:**
+
 - Enterprise admins can force-install extensions
 - Chrome respects `mayDisable: false` policy
 - Security: Users cannot disable mandatory security tools
 
 **Detection:**
+
 - Check `installType === 'admin'` and `mayDisable === false`
 
 ---
@@ -323,9 +327,11 @@ const result = await chromeDevAssist.getAllExtensions();
 ```
 
 **Why:**
+
 - Cannot reload self (see above)
 - Chrome Apps use different APIs
-```
+
+````
 
 ---
 
@@ -358,7 +364,7 @@ await chromeDevAssist.openUrl('vbscript:MsgBox("test")');
 // ❌ Local file access:
 await chromeDevAssist.openUrl('file:///etc/passwd');
 // Error: "Dangerous URL protocol not allowed: file"
-```
+````
 
 ### Likely Blocked by Chrome
 
@@ -378,12 +384,14 @@ await chromeDevAssist.openUrl('https://example.com');
 ```
 
 **Why These Restrictions?**
+
 - **javascript:** Code injection attacks
 - **data:** XSS via data URLs
 - **vbscript:** Legacy IE attacks
 - **file:** Local file access (security risk)
 - **chrome:** Prevents extension privilege escalation
-```
+
+````
 
 ---
 
@@ -406,10 +414,11 @@ Chrome extension IDs use a **restricted alphabet**:
 
 // ✅ Valid - only letters a-p:
 'gnojocphflllgichkehjhkojkihcihfn'
-```
+````
 
 **Reason:** Chrome generates IDs from base16-encoded public keys, using a-p instead of 0-9,a-f
-```
+
+````
 
 ---
 
@@ -433,10 +442,11 @@ await chromeDevAssist.captureLogs('5000');   // Error: must be number
 await chromeDevAssist.captureLogs(1);        // 1ms (minimum)
 await chromeDevAssist.captureLogs(5000);     // 5 seconds
 await chromeDevAssist.captureLogs(60000);    // 60 seconds (maximum)
-```
+````
 
 **Note:** Extension has 10-minute hard limit, but API restricts to 60 seconds for safety
-```
+
+````
 
 ---
 
@@ -462,11 +472,12 @@ curl http://192.168.1.100:9876/fixtures/test.html
 
 # ❌ This does NOT work (0.0.0.0 not bound):
 curl http://0.0.0.0:9876/fixtures/test.html
-```
+````
 
 **Why:** Prevents remote network access (security)
 
 **Remote Access Workaround:**
+
 - **Recommended:** Use SSH port forwarding
   ```bash
   ssh -L 9876:127.0.0.1:9876 user@remote-machine
@@ -474,11 +485,13 @@ curl http://0.0.0.0:9876/fixtures/test.html
 - **Not Recommended:** Change `HOST = '127.0.0.1'` to `'0.0.0.0'` (security risk)
 
 **HTTP vs HTTPS:**
+
 - Test fixtures served over **HTTP** (not HTTPS)
 - HTTPS provides zero security benefit for localhost
 - Industry standard: Jest, Playwright, Cypress all use HTTP
 - See: `docs/decisions/002-http-vs-https-for-localhost.md`
-```
+
+````
 
 ---
 
@@ -541,7 +554,7 @@ Chrome Dev Assist requires two powerful permissions:
 - Chrome Dev Assist only runs when you explicitly call API functions
 - Content scripts are passive until capture is started
 - All code is open source and auditable
-```
+````
 
 ---
 
@@ -555,6 +568,7 @@ Chrome Dev Assist requires two powerful permissions:
 ---
 
 **Next Steps:**
+
 1. ✅ Update docs/API.md with 6 recommended sections
 2. ⚠️ Update COMPLETE-FUNCTIONALITY-MAP.md with enterprise restriction details
 3. ℹ️ Add cross-references between docs/API.md and docs/SECURITY.md

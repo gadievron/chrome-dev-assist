@@ -20,38 +20,44 @@ describe('API Client Integration', () => {
     return new Promise((resolve, reject) => {
       mockExtensionWs.on('open', () => {
         // Register as extension
-        mockExtensionWs.send(JSON.stringify({
-          type: 'register',
-          client: 'extension',
-          extensionId: 'test-extension-id'
-        }));
+        mockExtensionWs.send(
+          JSON.stringify({
+            type: 'register',
+            client: 'extension',
+            extensionId: 'test-extension-id',
+          })
+        );
 
         // Handle incoming commands
-        mockExtensionWs.on('message', (data) => {
+        mockExtensionWs.on('message', data => {
           const msg = JSON.parse(data.toString());
 
           if (msg.type === 'command') {
             // Simulate command execution
             setTimeout(() => {
-              mockExtensionWs.send(JSON.stringify({
-                type: 'response',
-                id: msg.id,
-                data: {
-                  extensionId: msg.command.params?.extensionId || 'test-ext',
-                  extensionName: 'Test Extension',
-                  reloadSuccess: true,
-                  consoleLogs: msg.command.params?.captureConsole ? [
-                    {
-                      level: 'log',
-                      message: 'Test log message',
-                      timestamp: new Date().toISOString(),
-                      source: 'test.js:10',
-                      url: 'https://example.com',
-                      tabId: 1
-                    }
-                  ] : []
-                }
-              }));
+              mockExtensionWs.send(
+                JSON.stringify({
+                  type: 'response',
+                  id: msg.id,
+                  data: {
+                    extensionId: msg.command.params?.extensionId || 'test-ext',
+                    extensionName: 'Test Extension',
+                    reloadSuccess: true,
+                    consoleLogs: msg.command.params?.captureConsole
+                      ? [
+                          {
+                            level: 'log',
+                            message: 'Test log message',
+                            timestamp: new Date().toISOString(),
+                            source: 'test.js:10',
+                            url: 'https://example.com',
+                            tabId: 1,
+                          },
+                        ]
+                      : [],
+                  },
+                })
+              );
             }, 100);
           }
         });
@@ -72,11 +78,7 @@ describe('API Client Integration', () => {
   test('API module exports expected functions', () => {
     // This will test that API module has correct interface
     // Implementation will be tested in later tests
-    const expectedFunctions = [
-      'reload',
-      'reloadAndCapture',
-      'captureLogs'
-    ];
+    const expectedFunctions = ['reload', 'reloadAndCapture', 'captureLogs'];
 
     // This test documents expected API shape
     // Will be implemented in Phase 3

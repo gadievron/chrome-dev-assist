@@ -8,12 +8,14 @@
 ## 🚨 The Problem We Solved
 
 **What happened:**
+
 ```javascript
 // extension/background.js
-const ConsoleCapture = require('./modules/ConsoleCapture');  // ❌ BROKEN
+const ConsoleCapture = require('./modules/ConsoleCapture'); // ❌ BROKEN
 ```
 
 **Why it broke:**
+
 - `require()` is Node.js only
 - Chrome service workers don't support `require()`
 - Extension failed to load with "require is not defined"
@@ -33,17 +35,20 @@ We've implemented **3 layers of automated protection** to catch this class of bu
 **What:** Scans extension files for Node.js-only syntax
 **When:** Before commit, before declaring work complete
 **Catches:**
+
 - `require()` calls
 - `module.exports` assignments
 - `process.env` references
 - `__dirname`, `__filename`
 
 **Usage:**
+
 ```bash
 npm run validate:syntax
 ```
 
 **Example output:**
+
 ```
 🔍 Validating Chrome Extension Syntax...
 
@@ -67,17 +72,20 @@ Scanning: extension/
 **What:** Verifies extension is loaded, connected, and responding
 **When:** After loading extension, before integration tests, before declaring complete
 **Catches:**
+
 - Extension not loaded in Chrome
 - Service worker failed to start
 - WebSocket connection failed
 - Basic API calls failing
 
 **Usage:**
+
 ```bash
 npm run validate:health
 ```
 
 **Example output:**
+
 ```
 🏥 Chrome Extension Health Check
 
@@ -98,6 +106,7 @@ Timeout: 5000ms
 ```
 
 **If it fails:**
+
 ```
 ❌ HEALTH CHECK FAILED
 
@@ -121,11 +130,13 @@ Summary:
 **What:** Comprehensive validation before git commit
 **When:** Manually before commit, or automated via git hook
 **Runs:**
+
 1. Syntax validation (Layer 1)
 2. Unit tests
 3. Extension health check (Layer 2, optional)
 
 **Usage:**
+
 ```bash
 npm run validate:all
 
@@ -137,6 +148,7 @@ npm run validate:all
 ```
 
 **Example output:**
+
 ```
 🔒 Pre-Commit Validation
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -169,11 +181,13 @@ Safe to commit! 🚀
 ### During Development
 
 **After modifying extension code:**
+
 ```bash
 npm run validate:syntax  # Quick syntax check
 ```
 
 **After loading extension in Chrome:**
+
 ```bash
 npm run validate:health  # Verify it's working
 ```
@@ -181,11 +195,13 @@ npm run validate:health  # Verify it's working
 ### Before Committing
 
 **Mandatory before git commit:**
+
 ```bash
 npm run validate:all
 ```
 
 Or manually:
+
 ```bash
 npm run validate:syntax  # Layer 1
 npm test                 # Unit tests
@@ -253,12 +269,14 @@ npx husky add .git/hooks/pre-commit "npm run validate:all --skip-health"
 ### Problem: Manual Verification Fails
 
 **Human error:**
+
 - Forget to check service worker console
 - Assume unit tests = working code
 - Test in wrong environment
 - Skip verification steps when rushed
 
 **Solution: Automated verification**
+
 - Scripts don't forget
 - Scripts always run
 - Scripts check correct environment
@@ -276,16 +294,17 @@ If one layer misses something, another layer catches it.
 
 ## 🔍 What Each Layer Catches
 
-| Bug Type | Syntax | Health | Tests |
-|----------|--------|--------|-------|
-| `require()` in Chrome | ✅ | ✅ | ❌ |
-| Extension not loaded | ❌ | ✅ | ✅ |
-| WebSocket disconnected | ❌ | ✅ | ✅ |
-| Logic errors | ❌ | ❌ | ✅ |
-| Race conditions | ❌ | ⚠️ | ✅ |
-| Memory leaks | ❌ | ❌ | ✅ |
+| Bug Type               | Syntax | Health | Tests |
+| ---------------------- | ------ | ------ | ----- |
+| `require()` in Chrome  | ✅     | ✅     | ❌    |
+| Extension not loaded   | ❌     | ✅     | ✅    |
+| WebSocket disconnected | ❌     | ✅     | ✅    |
+| Logic errors           | ❌     | ❌     | ✅    |
+| Race conditions        | ❌     | ⚠️     | ✅    |
+| Memory leaks           | ❌     | ❌     | ✅    |
 
 **Legend:**
+
 - ✅ Reliably catches
 - ⚠️ May catch
 - ❌ Won't catch
@@ -360,6 +379,7 @@ npm run validate:health     # Layer 2: Health
 **This system will evolve as we discover new failure modes.**
 
 **When you find a bug that these layers missed:**
+
 1. Document it
 2. Add detection to appropriate layer
 3. Update this document

@@ -8,6 +8,7 @@
 ## Overview
 
 The Test Orchestration Protocol ensures Claude can safely run tests with:
+
 - Clear test identification (project name, test ID, version)
 - State tracking (prevent overlapping tests)
 - Resource management (detect orphaned tabs)
@@ -18,11 +19,13 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ## Protocol Messages
 
 ### 1. Start Test
+
 **Direction**: Claude → Extension
 
 **Command**: `startTest`
 
 **Parameters**:
+
 ```javascript
 {
   projectName: string,      // e.g., "chrome-dev-assist"
@@ -36,6 +39,7 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 **Response**:
+
 ```javascript
 {
   testId: string,
@@ -50,11 +54,13 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 ### 2. End Test
+
 **Direction**: Claude → Extension
 
 **Command**: `endTest`
 
 **Parameters**:
+
 ```javascript
 {
   testId: string,
@@ -64,6 +70,7 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 **Response**:
+
 ```javascript
 {
   testId: string,
@@ -78,6 +85,7 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 ### 3. Get Test Status
+
 **Direction**: Claude → Extension
 
 **Command**: `getTestStatus`
@@ -85,6 +93,7 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 **Parameters**: (none)
 
 **Response**:
+
 ```javascript
 {
   activeTest: {
@@ -109,11 +118,13 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 ### 4. Abort Test
+
 **Direction**: Claude → Extension
 
 **Command**: `abortTest`
 
 **Parameters**:
+
 ```javascript
 {
   testId: string,
@@ -122,6 +133,7 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 **Response**:
+
 ```javascript
 {
   testId: string,
@@ -135,11 +147,13 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 ### 5. Verify Cleanup
+
 **Direction**: Claude → Extension
 
 **Command**: `verifyCleanup`
 
 **Parameters**:
+
 ```javascript
 {
   expectedClosedTabs: number[]  // Tabs that should be closed
@@ -147,6 +161,7 @@ The Test Orchestration Protocol ensures Claude can safely run tests with:
 ```
 
 **Response**:
+
 ```javascript
 {
   verified: boolean,
@@ -169,6 +184,7 @@ RUNNING
 ```
 
 **State Transitions**:
+
 - Only one test can run at a time
 - Starting a new test while one is active → Error (must abort or end first)
 - Ending a test triggers automatic cleanup (if autoCleanup: true)
@@ -183,19 +199,21 @@ Every test HTML page should include:
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Test: {testName}</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test: {testName}</title>
 
-  <!-- Test Metadata (machine-readable) -->
-  <meta name="test-project" content="{projectName}">
-  <meta name="test-id" content="{testId}">
-  <meta name="test-version" content="{version}">
-  <meta name="test-name" content="{testName}">
-</head>
-<body>
-  <!-- Visual Test Banner (human-readable) -->
-  <div id="test-banner" style="
+    <!-- Test Metadata (machine-readable) -->
+    <meta name="test-project" content="{projectName}" />
+    <meta name="test-id" content="{testId}" />
+    <meta name="test-version" content="{version}" />
+    <meta name="test-name" content="{testName}" />
+  </head>
+  <body>
+    <!-- Visual Test Banner (human-readable) -->
+    <div
+      id="test-banner"
+      style="
     position: fixed;
     top: 0;
     left: 0;
@@ -209,58 +227,60 @@ Every test HTML page should include:
     display: flex;
     justify-content: space-between;
     align-items: center;
-  ">
-    <div>
-      <div style="font-size: 14px; font-weight: 600;">
-        🧪 {projectName} Test Suite
+  "
+    >
+      <div>
+        <div style="font-size: 14px; font-weight: 600;">🧪 {projectName} Test Suite</div>
+        <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">
+          {testName} (ID: {testId}) • v{version}
+        </div>
       </div>
-      <div style="font-size: 12px; opacity: 0.9; margin-top: 2px;">
-        {testName} (ID: {testId}) • v{version}
-      </div>
-    </div>
-    <div id="test-status" style="
+      <div
+        id="test-status"
+        style="
       background: rgba(255,255,255,0.2);
       padding: 4px 12px;
       border-radius: 12px;
       font-size: 12px;
       font-weight: 500;
-    ">
-      ⏳ RUNNING
+    "
+      >
+        ⏳ RUNNING
+      </div>
     </div>
-  </div>
 
-  <!-- Test Content (offset to avoid banner overlap) -->
-  <div style="margin-top: 80px; padding: 20px;">
-    <!-- Your test content here -->
-  </div>
+    <!-- Test Content (offset to avoid banner overlap) -->
+    <div style="margin-top: 80px; padding: 20px;">
+      <!-- Your test content here -->
+    </div>
 
-  <!-- Test Metadata (for getPageMetadata API) -->
-  <script>
-    window.testMetadata = {
-      projectName: '{projectName}',
-      testName: '{testName}',
-      testId: '{testId}',
-      version: '{version}',
-      startTime: Date.now(),
-      status: 'running'
-    };
-
-    // Helper: Update test status visually
-    window.updateTestStatus = function(status) {
-      const statusEl = document.getElementById('test-status');
-      const statusMap = {
-        running: { text: '⏳ RUNNING', color: 'rgba(255,255,255,0.2)' },
-        passed: { text: '✅ PASSED', color: 'rgba(76,175,80,0.9)' },
-        failed: { text: '❌ FAILED', color: 'rgba(244,67,54,0.9)' }
+    <!-- Test Metadata (for getPageMetadata API) -->
+    <script>
+      window.testMetadata = {
+        projectName: '{projectName}',
+        testName: '{testName}',
+        testId: '{testId}',
+        version: '{version}',
+        startTime: Date.now(),
+        status: 'running',
       };
 
-      const config = statusMap[status] || statusMap.running;
-      statusEl.textContent = config.text;
-      statusEl.style.background = config.color;
-      window.testMetadata.status = status;
-    };
-  </script>
-</body>
+      // Helper: Update test status visually
+      window.updateTestStatus = function (status) {
+        const statusEl = document.getElementById('test-status');
+        const statusMap = {
+          running: { text: '⏳ RUNNING', color: 'rgba(255,255,255,0.2)' },
+          passed: { text: '✅ PASSED', color: 'rgba(76,175,80,0.9)' },
+          failed: { text: '❌ FAILED', color: 'rgba(244,67,54,0.9)' },
+        };
+
+        const config = statusMap[status] || statusMap.running;
+        statusEl.textContent = config.text;
+        statusEl.style.background = config.color;
+        window.testMetadata.status = status;
+      };
+    </script>
+  </body>
 </html>
 ```
 
@@ -285,15 +305,13 @@ async function runDOMInspectionTest() {
       version: '1.0.0',
       expectedTabs: 1,
       expectedDuration: 5000,
-      autoCleanup: true
+      autoCleanup: true,
     });
 
     console.log(`✓ Test started: ${testContext.testId}`);
 
     // 2. RUN TEST OPERATIONS
-    const result = await chromeDevAssist.openUrl(
-      'http://localhost:9876/fixtures/dom-001.html'
-    );
+    const result = await chromeDevAssist.openUrl('http://localhost:9876/fixtures/dom-001.html');
 
     const tabId = result.tabId;
 
@@ -306,18 +324,17 @@ async function runDOMInspectionTest() {
     // 3. END TEST (triggers cleanup)
     await chromeDevAssist.endTest(testContext.testId, {
       result: 'passed',
-      message: 'All checks passed'
+      message: 'All checks passed',
     });
 
     console.log('✓ Test completed and cleaned up');
-
   } catch (error) {
     console.error('Test failed:', error);
 
     // 4. ABORT TEST (emergency cleanup)
     if (testContext) {
       await chromeDevAssist.abortTest(testContext.testId, {
-        reason: error.message
+        reason: error.message,
       });
     }
 
@@ -338,13 +355,13 @@ if (status.activeTest) {
   // Option 1: Wait for it to complete
   // Option 2: Abort it
   await chromeDevAssist.abortTest(status.activeTest.testId, {
-    reason: 'Starting new test'
+    reason: 'Starting new test',
   });
 }
 
 // Verify no orphaned tabs
 const cleanup = await chromeDevAssist.verifyCleanup({
-  expectedClosedTabs: [tabId1, tabId2]
+  expectedClosedTabs: [tabId1, tabId2],
 });
 
 if (cleanup.orphans.length > 0) {
@@ -358,27 +375,32 @@ if (cleanup.orphans.length > 0) {
 ## Benefits
 
 ### 1. **Clear Test Identification**
+
 - Every test page visually shows project name, test ID, version
 - Prevents confusion about what's being tested
 - Easy to debug by looking at browser tabs
 
 ### 2. **State Tracking**
+
 - Extension knows what test is active
 - Prevents overlapping tests
 - Tracks resources (tabs) per test
 
 ### 3. **Resource Safety**
+
 - Automatic cleanup on test end
 - Orphan detection (tabs not cleaned up)
 - Emergency abort capability
 
 ### 4. **Communication Protocol**
+
 - Claude tells extension: "Test X is starting"
 - Extension confirms: "Test X started, tracking resources"
 - Claude signals: "Test X done"
 - Extension responds: "Cleaned up N tabs, 0 orphans"
 
 ### 5. **Mistake Prevention**
+
 - Can't start test while another is running
 - Can't close tabs prematurely (tracked by test context)
 - Can verify cleanup before next test
@@ -389,18 +411,20 @@ if (cleanup.orphans.length > 0) {
 ## Extension State Management
 
 **Storage**:
+
 ```javascript
 // In extension background.js
 let testState = {
-  activeTest: null,  // Current test or null
-  history: [],       // Last 10 tests
+  activeTest: null, // Current test or null
+  history: [], // Last 10 tests
   resources: {
-    tabs: []         // Tab IDs created during test
-  }
+    tabs: [], // Tab IDs created during test
+  },
 };
 ```
 
 **State Updates**:
+
 - `startTest()` → Set activeTest, reset resources
 - Tab created → Add to resources.tabs
 - Tab closed → Remove from resources.tabs
@@ -412,6 +436,7 @@ let testState = {
 ## Error Handling
 
 ### Overlapping Tests
+
 ```javascript
 // Request
 startTest({ testId: 'dom-002', ... })
@@ -427,6 +452,7 @@ startTest({ testId: 'dom-002', ... })
 ```
 
 ### Orphaned Resources
+
 ```javascript
 // After test ends with orphaned tabs
 {
@@ -442,6 +468,7 @@ startTest({ testId: 'dom-002', ... })
 ```
 
 ### Test Timeout
+
 ```javascript
 // If test exceeds expectedDuration by 2x
 {

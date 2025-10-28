@@ -31,16 +31,19 @@ Chrome Dev Assist includes a comprehensive crash recovery system that gracefully
 State is persisted to `chrome.storage.session` in multiple scenarios:
 
 **Periodic Persistence:**
+
 - Every 30 seconds automatically
 - Ensures minimal data loss
 
 **Event-Driven Persistence:**
+
 - After starting a console capture
 - After completing a console capture
 - After test start/end operations
 - After tab tracking changes
 
 **Persisted Data:**
+
 ```javascript
 {
   testState: {
@@ -86,12 +89,14 @@ On service worker startup:
 After crash detection, recovery process begins:
 
 **Test State Recovery:**
+
 1. Load `testState` from storage
 2. Validate tracked tabs still exist
 3. Remove orphaned tabs (closed during crash)
 4. Restore test context
 
 **Capture State Recovery:**
+
 1. Load `captureState` array from storage
 2. Filter expired captures (endTime < now)
 3. Recreate setTimeout for remaining duration
@@ -99,6 +104,7 @@ After crash detection, recovery process begins:
 5. Resume console log collection
 
 **Recovery Output:**
+
 ```
 ✅ Restored active test: test-email-validation
 ✅ Tracked tabs: 3
@@ -134,6 +140,7 @@ On WebSocket reconnection, extension sends recovery metadata:
 ```
 
 Server logs recovery status:
+
 ```
 [Server] 🔄 CRASH RECOVERY DETECTED for Chrome Dev Assist
 [Server]   Recovery count: 2
@@ -240,11 +247,13 @@ Server logs recovery status:
 ### Scenario 1: Service Worker Crash During Test
 
 **Before Crash:**
+
 - Active test: `test-login`
 - Tracked tabs: [100, 101, 102]
 - Console capture: `cmd-123` (3s remaining)
 
 **After Crash:**
+
 - ✅ Test state restored
 - ✅ Tabs validated (102 closed → removed)
 - ✅ Capture resumed with 3s remaining
@@ -257,9 +266,11 @@ Server logs recovery status:
 ### Scenario 2: Service Worker Crash with Expired Captures
 
 **Before Crash:**
+
 - Capture: `cmd-456` (5s duration, started 10s ago)
 
 **After Crash:**
+
 - ⚠️ Capture expired (5s ago)
 - ✅ Capture NOT restored
 - ✅ Cleanup occurs automatically
@@ -271,9 +282,11 @@ Server logs recovery status:
 ### Scenario 3: Clean Restart (No Crash)
 
 **Before Restart:**
+
 - Clean shutdown marked: `lastShutdown = 1729850400000`
 
 **After Restart:**
+
 - ✅ No crash detected
 - ✅ State still loaded (if any)
 - ✅ Normal startup message
@@ -285,11 +298,13 @@ Server logs recovery status:
 ## Data Retention
 
 **Session Storage Duration:**
+
 - Data persists until browser/tab closes
 - Service worker restarts do NOT clear session storage
 - Perfect for crash recovery
 
 **Cleanup Policy:**
+
 - Expired captures: Not restored
 - Orphaned tabs: Removed from tracking
 - Stale tests: No automatic cleanup (manual abort required)
@@ -299,11 +314,13 @@ Server logs recovery status:
 ## Performance Impact
 
 **Storage Operations:**
+
 - Persist state: ~10-50ms (async, non-blocking)
 - Restore state: ~50-200ms (on startup only)
 - Periodic persist: Every 30s (minimal impact)
 
 **Memory Usage:**
+
 - Test state: ~1KB
 - Capture state: ~1KB per capture + logs
 - Session metadata: <1KB
@@ -316,11 +333,12 @@ Server logs recovery status:
 ### Manual Test
 
 1. **Start a test with tracked tabs:**
+
    ```javascript
    await chromeDevAssist.startTest('test-crash-recovery');
    const result = await chromeDevAssist.openUrl('https://example.com', {
      captureConsole: true,
-     duration: 10000
+     duration: 10000,
    });
    ```
 
@@ -339,6 +357,7 @@ Server logs recovery status:
 ### Automated Tests
 
 Run crash recovery test suite:
+
 ```bash
 npm test -- tests/crash-recovery.test.js
 ```
@@ -350,12 +369,14 @@ npm test -- tests/crash-recovery.test.js
 ### Enable Debug Logging
 
 **Extension:**
+
 ```javascript
 // Open extension service worker console
 // All recovery messages logged by default
 ```
 
 **Server:**
+
 ```bash
 DEBUG=true node server/websocket-server.js
 ```
@@ -363,6 +384,7 @@ DEBUG=true node server/websocket-server.js
 ### Recovery Logs
 
 **Extension Console:**
+
 ```
 ⚠️ CRASH DETECTED - Service worker restarted unexpectedly
 Previous session started: 2025-10-25T10:30:00.000Z
@@ -377,6 +399,7 @@ Active captures: 1
 ```
 
 **Server Console:**
+
 ```
 [Server] 🔄 CRASH RECOVERY DETECTED for Chrome Dev Assist
 [Server]   Recovery count: 1
@@ -414,11 +437,13 @@ Active captures: 1
 ### For Test Authors
 
 1. **Use Test Orchestration API**
+
    ```javascript
    await chromeDevAssist.startTest('test-id');
    // ... operations ...
    await chromeDevAssist.endTest('test-id');
    ```
+
    Enables automatic recovery tracking.
 
 2. **Set Reasonable Capture Durations**
@@ -456,15 +481,18 @@ Active captures: 1
 ### Issue: State Not Recovered
 
 **Symptoms:**
+
 - Crash detected but state is empty
 - No recovery messages
 
 **Causes:**
+
 1. State never persisted (operation too fast)
 2. Session storage cleared
 3. Extension reloaded (not just service worker)
 
 **Fix:**
+
 - Verify `persistState()` called after operations
 - Check if browser/tab was restarted (clears session storage)
 
@@ -473,15 +501,18 @@ Active captures: 1
 ### Issue: Orphaned Tabs Accumulate
 
 **Symptoms:**
+
 - Recovery reports many orphaned tabs
 - Tabs closed but still tracked
 
 **Causes:**
+
 1. Tabs closed during crash
 2. autoCleanup disabled
 3. Test never ended properly
 
 **Fix:**
+
 ```javascript
 // Always end tests properly
 await chromeDevAssist.endTest('test-id');
@@ -495,16 +526,19 @@ await chromeDevAssist.abortTest('test-id', 'reason');
 ### Issue: Recovery Count Increasing
 
 **Symptoms:**
+
 - Recovery count > 3
 - Frequent crash detection
 
 **Causes:**
+
 1. Service worker crashing repeatedly
 2. Memory leak
 3. Infinite loop
 4. Extension bug
 
 **Fix:**
+
 1. Check extension console for errors
 2. Reduce concurrent operations
 3. Report bug with recovery logs
@@ -518,12 +552,14 @@ await chromeDevAssist.abortTest('test-id', 'reason');
 Saves current state to chrome.storage.session.
 
 **Called Automatically:**
+
 - Every 30 seconds
 - After capture start
 - After capture end
 - After test start/end
 
 **Manual Call:**
+
 ```javascript
 await persistState();
 ```
@@ -537,6 +573,7 @@ Detects if service worker crashed.
 **Returns:** `Promise<boolean>`
 
 **Example:**
+
 ```javascript
 const crashed = await detectCrash();
 if (crashed) {
@@ -553,6 +590,7 @@ Restores state after crash.
 **Returns:** `Promise<void>`
 
 **Example:**
+
 ```javascript
 await restoreState();
 ```
@@ -572,6 +610,7 @@ Marks clean shutdown to prevent false crash detection.
 ## Future Enhancements
 
 🔮 **Planned Features:**
+
 - [ ] Persistent storage across browser restarts
 - [ ] State export/import for debugging
 - [ ] Recovery statistics dashboard

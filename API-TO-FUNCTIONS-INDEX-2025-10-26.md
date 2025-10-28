@@ -9,6 +9,7 @@
 ## HOW TO READ THIS INDEX
 
 **Format:**
+
 ```
 PUBLIC_API_FUNCTION()
   → Internal Function 1
@@ -17,6 +18,7 @@ PUBLIC_API_FUNCTION()
 ```
 
 **Symbols:**
+
 - `→` Direct function call
 - `[Line X]` Source code line number
 - `⚠️` Security validation
@@ -31,11 +33,13 @@ PUBLIC_API_FUNCTION()
 ### 1. getAllExtensions()
 
 **User Call:**
+
 ```javascript
 const result = await chromeDevAssist.getAllExtensions();
 ```
 
 **Complete Call Chain:**
+
 ```
 getAllExtensions() [claude-code/index.js:84]
   → generateCommandId() [Line 86]
@@ -66,6 +70,7 @@ getAllExtensions() [claude-code/index.js:84]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.management.getAll()` - List all extensions
 - `chrome.runtime.id` - Get own extension ID
 
@@ -74,11 +79,13 @@ getAllExtensions() [claude-code/index.js:84]
 ### 2. getExtensionInfo(extensionId)
 
 **User Call:**
+
 ```javascript
 const info = await chromeDevAssist.getExtensionInfo('abcdefghijklmnopqrstuvwxyzabcdef');
 ```
 
 **Complete Call Chain:**
+
 ```
 getExtensionInfo(extensionId) [claude-code/index.js:99]
   ⚠️ → validateExtensionId(extensionId) [Line 100]
@@ -101,9 +108,11 @@ getExtensionInfo(extensionId) [claude-code/index.js:99]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.management.get(extensionId)` - Get extension details
 
 **Validations:**
+
 - Extension ID format (32 lowercase letters)
 - Extension existence check
 
@@ -114,11 +123,13 @@ getExtensionInfo(extensionId) [claude-code/index.js:99]
 ### 3. reload(extensionId)
 
 **User Call:**
+
 ```javascript
 const result = await chromeDevAssist.reload('abcdefghijklmnopqrstuvwxyzabcdef');
 ```
 
 **Complete Call Chain:**
+
 ```
 reload(extensionId) [claude-code/index.js:44]
   ⚠️ → validateExtensionId(extensionId) [Line 45]
@@ -147,12 +158,14 @@ reload(extensionId) [claude-code/index.js:44]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.management.get(extensionId)` - Get extension info
 - `chrome.management.setEnabled(extensionId, false)` - Disable extension
 - `chrome.management.setEnabled(extensionId, true)` - Enable extension
 - `chrome.runtime.id` - Self-identification
 
 **Critical Safety:**
+
 - 🔒 Self-reload protection prevents crash
 - ⏱️ 100ms delay prevents race conditions
 
@@ -161,11 +174,13 @@ reload(extensionId) [claude-code/index.js:44]
 ### 4. reloadAndCapture(extensionId, options)
 
 **User Call:**
+
 ```javascript
 const result = await chromeDevAssist.reloadAndCapture('abcd...', { duration: 5000 });
 ```
 
 **Complete Call Chain:**
+
 ```
 reloadAndCapture(extensionId, options) [claude-code/index.js:23]
   ⚠️ → validateExtensionId(extensionId) [Line 24]
@@ -209,6 +224,7 @@ reloadAndCapture(extensionId, options) [claude-code/index.js:23]
 ```
 
 **Console Capture Flow:**
+
 ```
 [Page JavaScript]
 console.log('Hello')
@@ -231,6 +247,7 @@ console.log('Hello')
 ```
 
 **Chrome APIs Used:**
+
 - Same as reload() plus:
 - `chrome.runtime.onMessage` - Receive console logs
 - `chrome.runtime.sendMessage` - Forward logs from content script
@@ -240,11 +257,13 @@ console.log('Hello')
 ### 5. captureLogs(duration)
 
 **User Call:**
+
 ```javascript
 const result = await chromeDevAssist.captureLogs(5000);
 ```
 
 **Complete Call Chain:**
+
 ```
 captureLogs(duration) [claude-code/index.js:64]
   ⚠️ → if (duration <= 0 || duration > 60000) throw new Error(...) [Line 66]
@@ -276,10 +295,12 @@ captureLogs(duration) [claude-code/index.js:64]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.runtime.onMessage` - Receive logs
 - `chrome.runtime.sendMessage` - Forward logs
 
 **Key Difference from reloadAndCapture:**
+
 - No reload operation
 - Just captures logs from all tabs for specified duration
 
@@ -290,16 +311,18 @@ captureLogs(duration) [claude-code/index.js:64]
 ### 6. openUrl(url, options)
 
 **User Call:**
+
 ```javascript
 const result = await chromeDevAssist.openUrl('https://example.com', {
   active: true,
   captureConsole: true,
   duration: 5000,
-  autoClose: true
+  autoClose: true,
 });
 ```
 
 **Complete Call Chain:**
+
 ```
 openUrl(url, options) [claude-code/index.js:121]
   ⚠️ → if (!url || url === '') throw new Error('url is required') [Line 123]
@@ -355,6 +378,7 @@ openUrl(url, options) [claude-code/index.js:121]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.tabs.create({ url, active })` - Open new tab
 - `chrome.tabs.get(tabId)` - Check if tab still exists
 - `chrome.tabs.remove(tabId)` - Close tab (if autoClose)
@@ -362,6 +386,7 @@ openUrl(url, options) [claude-code/index.js:121]
 - `chrome.runtime.sendMessage` - Forward logs
 
 **Security Validations (11 total):**
+
 1. URL required check
 2. URL type check
 3. URL format validation (new URL())
@@ -375,6 +400,7 @@ openUrl(url, options) [claude-code/index.js:121]
 11. Duration range check
 
 **Key Feature:**
+
 - Tab-specific capture (only logs from THIS tab, unlike reload/captureLogs which capture ALL tabs)
 
 ---
@@ -382,15 +408,17 @@ openUrl(url, options) [claude-code/index.js:121]
 ### 7. reloadTab(tabId, options)
 
 **User Call:**
+
 ```javascript
 const result = await chromeDevAssist.reloadTab(123, {
   bypassCache: true,
   captureConsole: true,
-  duration: 5000
+  duration: 5000,
 });
 ```
 
 **Complete Call Chain:**
+
 ```
 reloadTab(tabId, options) [claude-code/index.js:161]
   ⚠️ → if (typeof tabId !== 'number') throw new Error(...) [Line 163]
@@ -421,15 +449,18 @@ reloadTab(tabId, options) [claude-code/index.js:161]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.tabs.reload(tabId, { bypassCache })` - Reload tab
 - `chrome.runtime.onMessage` - Receive logs
 - `chrome.runtime.sendMessage` - Forward logs
 
 **bypassCache Behavior:**
+
 - `false` - Normal reload (Cmd+R)
 - `true` - Hard reload (Cmd+Shift+R), clears HTTP cache, service workers, app cache
 
 **Key Timing:**
+
 - Capture starts BEFORE reload (captures unload events, document_start scripts)
 
 ---
@@ -437,11 +468,13 @@ reloadTab(tabId, options) [claude-code/index.js:161]
 ### 8. closeTab(tabId)
 
 **User Call:**
+
 ```javascript
 const result = await chromeDevAssist.closeTab(123);
 ```
 
 **Complete Call Chain:**
+
 ```
 closeTab(tabId) [claude-code/index.js:189]
   ⚠️ → if (typeof tabId !== 'number') throw new Error(...) [Line 191]
@@ -468,9 +501,11 @@ closeTab(tabId) [claude-code/index.js:189]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.tabs.remove(tabId)` - Close tab
 
 **Error Handling:**
+
 - Uses ErrorLogger.logExpectedError (console.warn) instead of console.error
 - Prevents Chrome crash detection
 
@@ -534,6 +569,7 @@ console.log('Hello')
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.runtime.sendMessage()` - Content script → Extension
 - `chrome.runtime.onMessage` - Extension listener
 - `chrome.scripting.registerContentScripts()` - Register inject script
@@ -566,6 +602,7 @@ sendCommand(command) [claude-code/index.js:212]
 ```
 
 **Node.js APIs Used:**
+
 - `child_process.spawn()` - Start server process
 - `path.join()` - Build server path
 
@@ -588,6 +625,7 @@ connectToServer() [Line 82]
 ```
 
 **Chrome APIs Used:**
+
 - `chrome.storage.local.set()` - Persist status
 
 ---
@@ -614,16 +652,16 @@ setInterval(() => {
 
 ## SUMMARY: API → Chrome API Mapping
 
-| Public API | Chrome APIs Used | Node.js APIs |
-|------------|------------------|--------------|
-| getAllExtensions() | chrome.management.getAll() | crypto.randomUUID() |
-| getExtensionInfo() | chrome.management.get() | crypto.randomUUID() |
-| reload() | chrome.management.get()<br>chrome.management.setEnabled() (x2) | crypto.randomUUID() |
-| reloadAndCapture() | Same as reload()<br>chrome.runtime.onMessage | crypto.randomUUID() |
-| captureLogs() | chrome.runtime.onMessage | crypto.randomUUID() |
-| openUrl() | chrome.tabs.create()<br>chrome.tabs.get()<br>chrome.tabs.remove()<br>chrome.runtime.onMessage | crypto.randomUUID() |
-| reloadTab() | chrome.tabs.reload()<br>chrome.runtime.onMessage | crypto.randomUUID() |
-| closeTab() | chrome.tabs.remove() | crypto.randomUUID() |
+| Public API         | Chrome APIs Used                                                                              | Node.js APIs        |
+| ------------------ | --------------------------------------------------------------------------------------------- | ------------------- |
+| getAllExtensions() | chrome.management.getAll()                                                                    | crypto.randomUUID() |
+| getExtensionInfo() | chrome.management.get()                                                                       | crypto.randomUUID() |
+| reload()           | chrome.management.get()<br>chrome.management.setEnabled() (x2)                                | crypto.randomUUID() |
+| reloadAndCapture() | Same as reload()<br>chrome.runtime.onMessage                                                  | crypto.randomUUID() |
+| captureLogs()      | chrome.runtime.onMessage                                                                      | crypto.randomUUID() |
+| openUrl()          | chrome.tabs.create()<br>chrome.tabs.get()<br>chrome.tabs.remove()<br>chrome.runtime.onMessage | crypto.randomUUID() |
+| reloadTab()        | chrome.tabs.reload()<br>chrome.runtime.onMessage                                              | crypto.randomUUID() |
+| closeTab()         | chrome.tabs.remove()                                                                          | crypto.randomUUID() |
 
 **Total Unique Chrome APIs:** 16
 **Total Unique Node.js APIs:** 6 (crypto, http, fs, path, child_process, events)

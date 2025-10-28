@@ -23,33 +23,37 @@ ws.on('open', () => {
 
   // Register as test client
   console.log('📝 Registering as test client...');
-  ws.send(JSON.stringify({
-    type: 'register',
-    client: 'test-client',
-    clientId: 'errorlogger-test-' + Date.now(),
-    name: 'ErrorLogger Verification Script',
-    capabilities: ['send-commands']
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'register',
+      client: 'test-client',
+      clientId: 'errorlogger-test-' + Date.now(),
+      name: 'ErrorLogger Verification Script',
+      capabilities: ['send-commands'],
+    })
+  );
 
   // Wait a bit for registration, then send reload command
   setTimeout(() => {
     console.log(`\n🔄 Sending reload command for extension: ${EXTENSION_ID}`);
 
-    ws.send(JSON.stringify({
-      type: 'command',
-      id: 'test-reload-' + Date.now(),
-      command: {
-        type: 'reload',
-        params: {
-          extensionId: EXTENSION_ID,
-          captureConsole: false
-        }
-      }
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'command',
+        id: 'test-reload-' + Date.now(),
+        command: {
+          type: 'reload',
+          params: {
+            extensionId: EXTENSION_ID,
+            captureConsole: false,
+          },
+        },
+      })
+    );
   }, 1000);
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   console.log('\n📥 Received message:', message.type);
@@ -87,7 +91,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ WebSocket error:', err.message);
   process.exit(1);
 });

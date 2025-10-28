@@ -18,11 +18,11 @@ describe('Boundary: URL Length Limits', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -36,7 +36,7 @@ describe('Boundary: URL Length Limits', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://a.b',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -49,7 +49,7 @@ describe('Boundary: URL Length Limits', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url,
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -62,7 +62,7 @@ describe('Boundary: URL Length Limits', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url,
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     }).catch(err => ({ error: err }));
 
     // Should handle (either accept or reject gracefully)
@@ -76,7 +76,7 @@ describe('Boundary: URL Length Limits', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url,
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     }).catch(err => ({ error: err }));
 
     // Should reject or truncate
@@ -94,11 +94,11 @@ describe('Boundary: Duration Limits', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -113,7 +113,7 @@ describe('Boundary: Duration Limits', () => {
       url: 'https://example.com',
       duration: 0,
       captureConsole: true,
-      autoClose: true
+      autoClose: true,
     });
 
     expect(result.tabId).toBeDefined();
@@ -125,7 +125,7 @@ describe('Boundary: Duration Limits', () => {
       url: 'https://example.com',
       duration: 1,
       captureConsole: true,
-      autoClose: true
+      autoClose: true,
     });
 
     expect(result.tabId).toBeDefined();
@@ -136,34 +136,40 @@ describe('Boundary: Duration Limits', () => {
       url: 'https://example.com',
       duration: 60000,
       captureConsole: false,
-      autoClose: true
+      autoClose: true,
     });
 
     expect(result.tabId).toBeDefined();
   }, 65000);
 
   test('duration at Number.MAX_SAFE_INTEGER', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: Number.MAX_SAFE_INTEGER,
-      captureConsole: false
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: Number.MAX_SAFE_INTEGER,
+        captureConsole: false,
+      })
+    ).rejects.toThrow();
   });
 
   test('duration at Number.MIN_SAFE_INTEGER', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: Number.MIN_SAFE_INTEGER,
-      captureConsole: false
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: Number.MIN_SAFE_INTEGER,
+        captureConsole: false,
+      })
+    ).rejects.toThrow();
   });
 
   test('duration: -1 (just below zero)', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: -1,
-      captureConsole: false
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: -1,
+        captureConsole: false,
+      })
+    ).rejects.toThrow();
   });
 
   test('duration: 0.5 (fractional)', async () => {
@@ -171,7 +177,7 @@ describe('Boundary: Duration Limits', () => {
       url: 'https://example.com',
       duration: 0.5,
       captureConsole: true,
-      autoClose: true
+      autoClose: true,
     });
 
     expect(result.tabId).toBeDefined();
@@ -188,11 +194,11 @@ describe('Boundary: Tab ID Limits', () => {
       tabs: {
         create: jest.fn(),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn()
+        get: jest.fn(),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -209,7 +215,7 @@ describe('Boundary: Tab ID Limits', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBe(0);
@@ -223,7 +229,7 @@ describe('Boundary: Tab ID Limits', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBe(1);
@@ -237,7 +243,7 @@ describe('Boundary: Tab ID Limits', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBe(maxId);
@@ -246,12 +252,12 @@ describe('Boundary: Tab ID Limits', () => {
 
   test('tab ID: -1 (invalid)', async () => {
     mockChrome.tabs.create.mockResolvedValue({ id: -1, url: 'https://example.com' });
-    mockChrome.tabs.get.mockResolvedValue(null);  // Tab doesn't exist
+    mockChrome.tabs.get.mockResolvedValue(null); // Tab doesn't exist
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Should handle invalid tab ID
@@ -270,11 +276,11 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -288,7 +294,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabClosed).toBe(true);
@@ -298,7 +304,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: false,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabClosed).toBe(false);
@@ -308,7 +314,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: 1,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Should coerce to boolean
@@ -319,7 +325,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: 0,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabClosed).toBe(false);
@@ -329,7 +335,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: 'true',
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Truthy string
@@ -339,8 +345,8 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
   test('autoClose: string "false"', async () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      autoClose: 'false',  // Truthy! (non-empty string)
-      captureConsole: false
+      autoClose: 'false', // Truthy! (non-empty string)
+      captureConsole: false,
     });
 
     // String "false" is truthy in JavaScript
@@ -351,7 +357,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: '',
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabClosed).toBe(false);
@@ -361,7 +367,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: null,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabClosed).toBe(false);
@@ -371,7 +377,7 @@ describe('Boundary: Boolean Parameter Edge Cases', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: undefined,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabClosed).toBe(false);
@@ -388,11 +394,11 @@ describe('Boundary: Empty and Null Values', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -404,12 +410,12 @@ describe('Boundary: Empty and Null Values', () => {
 
   test('empty params object (except url)', async () => {
     const result = await handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com'
+      url: 'https://example.com',
     });
 
     // Should use defaults
     expect(result.tabId).toBeDefined();
-    expect(result.tabClosed).toBe(false);  // default autoClose=false
+    expect(result.tabClosed).toBe(false); // default autoClose=false
   });
 
   test('all params at default values explicitly', async () => {
@@ -418,7 +424,7 @@ describe('Boundary: Empty and Null Values', () => {
       active: true,
       captureConsole: false,
       duration: 5000,
-      autoClose: false
+      autoClose: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -430,7 +436,7 @@ describe('Boundary: Empty and Null Values', () => {
       autoClose: true,
       unknownField1: 'value',
       unknownField2: 123,
-      __proto__: null
+      __proto__: null,
     });
 
     // Should ignore unknown fields
@@ -448,11 +454,11 @@ describe('Boundary: Command ID Edge Cases', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -466,7 +472,7 @@ describe('Boundary: Command ID Edge Cases', () => {
     const result = await handleOpenUrlCommand('', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -478,7 +484,7 @@ describe('Boundary: Command ID Edge Cases', () => {
     const result = await handleOpenUrlCommand(longId, {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -490,7 +496,7 @@ describe('Boundary: Command ID Edge Cases', () => {
     const result = await handleOpenUrlCommand(specialId, {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -502,7 +508,7 @@ describe('Boundary: Command ID Edge Cases', () => {
     const result = await handleOpenUrlCommand(unicodeId, {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -512,7 +518,7 @@ describe('Boundary: Command ID Edge Cases', () => {
     const result = await handleOpenUrlCommand(null, {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -522,7 +528,7 @@ describe('Boundary: Command ID Edge Cases', () => {
     const result = await handleOpenUrlCommand(undefined, {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -532,7 +538,7 @@ describe('Boundary: Command ID Edge Cases', () => {
     const result = await handleOpenUrlCommand(12345, {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();

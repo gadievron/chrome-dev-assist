@@ -21,12 +21,12 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
     return new Promise((resolve, reject) => {
       serverProcess = spawn('npm', ['run', 'server'], {
         cwd: path.join(__dirname, '../..'),
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       let started = false;
 
-      serverProcess.stdout.on('data', (data) => {
+      serverProcess.stdout.on('data', data => {
         const output = data.toString();
         if (output.includes('Ready - waiting for connections') && !started) {
           started = true;
@@ -38,7 +38,7 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
         }
       });
 
-      serverProcess.stderr.on('data', (data) => {
+      serverProcess.stderr.on('data', data => {
         console.error('Server error:', data.toString());
       });
 
@@ -52,7 +52,7 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
 
   // Helper to stop server
   async function stopServer() {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       if (serverProcess) {
         serverProcess.kill();
         serverProcess = null;
@@ -72,9 +72,9 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
   // Helper to check if extension is connected
   async function isExtensionConnected() {
     return new Promise((resolve, reject) => {
-      const req = http.get('http://localhost:9876/list-extensions', (res) => {
+      const req = http.get('http://localhost:9876/list-extensions', res => {
         let data = '';
-        res.on('data', chunk => data += chunk);
+        res.on('data', chunk => (data += chunk));
         res.on('end', () => {
           try {
             const result = JSON.parse(data);
@@ -85,7 +85,7 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
           }
         });
       });
-      req.on('error', (err) => {
+      req.on('error', err => {
         // Server not running or connection failed
         resolve(false);
       });
@@ -112,7 +112,7 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
   async function waitForDisconnection(timeoutMs = 10000) {
     const startTime = Date.now();
     while (Date.now() - startTime < timeoutMs) {
-      if (!await isExtensionConnected()) {
+      if (!(await isExtensionConnected())) {
         return true;
       }
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -126,12 +126,12 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
       const scriptPath = path.join(__dirname, '../../scripts/launch-chrome-with-extension.sh');
       const chromeProcess = spawn('bash', [scriptPath], {
         cwd: path.join(__dirname, '../..'),
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       let chromePid = null;
 
-      chromeProcess.stdout.on('data', (data) => {
+      chromeProcess.stdout.on('data', data => {
         const output = data.toString();
         // Extract PID from output: "✅ Chrome launched (PID: 12345)"
         const pidMatch = output.match(/Chrome launched \(PID: (\d+)\)/);
@@ -140,7 +140,7 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
         }
       });
 
-      chromeProcess.on('close', (code) => {
+      chromeProcess.on('close', code => {
         if (chromePid) {
           resolve(chromePid);
         } else {
@@ -159,7 +159,7 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
 
   // Helper to kill Chrome process
   async function killChrome(pid) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       try {
         process.kill(pid, 'SIGTERM');
         // Wait for Chrome to die
@@ -356,8 +356,7 @@ describe('Extension Reconnection Behavior (ISSUE-012)', () => {
 
       // Should have max backoff (usually 30 seconds)
       const hasMaxBackoff =
-        backgroundJs.includes('Math.min') ||
-        backgroundJs.includes('maxReconnectDelay');
+        backgroundJs.includes('Math.min') || backgroundJs.includes('maxReconnectDelay');
 
       expect(hasMaxBackoff).toBe(true);
     });

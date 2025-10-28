@@ -1,4 +1,5 @@
 # 🎭 Persona-Based Testing Strategy
+
 ## Going Deep AND Wide - Multi-Perspective QA Approach
 
 **Date**: 2025-10-24
@@ -10,11 +11,13 @@
 ## 🎯 The Problem This Solves
 
 **What Went Wrong:**
+
 - Tab cleanup bug existed despite "passing tests"
 - Tests were fake (tested mock functions, not real code)
 - Traditional testing missed critical quality issues
 
 **What We Need:**
+
 - **DEEP**: Exhaustive testing of individual components
 - **WIDE**: Cross-cutting concerns (security, performance, UX, chaos)
 - **PERSONAS**: Different expert perspectives catching different bug classes
@@ -24,51 +27,61 @@
 ## 👥 The 8 QA Personas
 
 ### 1. 🔒 **Security Tester** - "Trust No Input"
+
 **Mindset**: Assume all inputs are malicious
 **Focus**: Input validation, injection attacks, privilege escalation
 **Question**: "How can this be exploited?"
 
 ### 2. 💥 **Chaos Engineer** - "Break Everything"
+
 **Mindset**: Murphy's law in action
 **Focus**: Failure modes, race conditions, resource exhaustion
 **Question**: "What's the worst that could happen?"
 
 ### 3. ⚡ **Performance Engineer** - "Make It Fast"
+
 **Mindset**: Optimize for speed and efficiency
 **Focus**: Latency, throughput, memory usage, scalability
 **Question**: "Where are the bottlenecks?"
 
 ### 4. 🎨 **UX Tester** - "User Experience Matters"
+
 **Mindset**: Think like end user
 **Focus**: Usability, error messages, edge cases in UI
 **Question**: "Will users understand this?"
 
 ### 5. 🔬 **Integration Tester** - "Components Must Work Together"
+
 **Mindset**: Test real flows end-to-end
 **Focus**: Cross-component interactions, integration points
 **Question**: "Does the whole system work?"
 
 ### 6. 🐛 **Boundary Tester** - "Test The Edges"
+
 **Mindset**: Extremes and boundaries reveal bugs
 **Focus**: Min/max values, empty inputs, overflow conditions
 **Question**: "What happens at the limits?"
 
 ### 7. 🔁 **State Machine Tester** - "All Paths Matter"
+
 **Mindset**: Every state transition must be tested
 **Focus**: State transitions, invalid states, state corruption
 **Question**: "Can we reach invalid states?"
 
 ### 8. 📊 **Data Quality Tester** - "Garbage In, Garbage Out"
+
 **Mindset**: Data integrity is critical
 **Focus**: Data validation, corruption, consistency
 **Question**: "Is the data trustworthy?"
 
 ### 9. 🧪 **Testing Expert** - "Test The Tests"
+
 **Mindset**: Tests themselves must be high quality
 **Focus**: Test effectiveness, fake tests, test coverage, test maintainability
 **Question**: "Do these tests actually catch bugs?"
 
 **Key Responsibilities:**
+
 - Detect fake tests (tests that don't test real code)
 - Verify test effectiveness (can tests fail?)
 - Ensure test coverage is meaningful (not just high percentage)
@@ -87,17 +100,19 @@ describe('Security: Tab Cleanup', () => {
     const maliciousUrl = 'javascript:alert(document.cookie)';
 
     // Should reject javascript: URLs
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: maliciousUrl,
-      autoClose: true
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: maliciousUrl,
+        autoClose: true,
+      })
+    ).rejects.toThrow();
   });
 
   test('should sanitize tab IDs to prevent prototype pollution', async () => {
     // Attempt prototype pollution via __proto__
     const maliciousParams = {
       url: 'https://example.com',
-      '__proto__': { autoClose: false }
+      __proto__: { autoClose: false },
     };
 
     const result = await handleOpenUrlCommand('cmd-1', maliciousParams);
@@ -109,10 +124,12 @@ describe('Security: Tab Cleanup', () => {
   test('should limit URL length to prevent memory exhaustion', async () => {
     const veryLongUrl = 'https://example.com/' + 'a'.repeat(100000);
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: veryLongUrl,
-      autoClose: true
-    })).rejects.toThrow(/URL too long/i);
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: veryLongUrl,
+        autoClose: true,
+      })
+    ).rejects.toThrow(/URL too long/i);
   });
 
   test('should validate duration parameter to prevent DoS', async () => {
@@ -120,7 +137,7 @@ describe('Security: Tab Cleanup', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       duration: Number.MAX_SAFE_INTEGER,
-      autoClose: true
+      autoClose: true,
     });
 
     // Should cap duration at reasonable max
@@ -138,7 +155,7 @@ describe('Security: WebSocket Server', () => {
       type: 'openUrl',
       id: 'cmd-1',
       url: 'https://example.com',
-      payload: 'x'.repeat(10 * 1024 * 1024) // 10MB
+      payload: 'x'.repeat(10 * 1024 * 1024), // 10MB
     };
 
     // Should reject without processing
@@ -146,16 +163,16 @@ describe('Security: WebSocket Server', () => {
   });
 
   test('should rate-limit rapid command requests', async () => {
-    const requests = Array(1000).fill().map((_, i) => ({
-      type: 'openUrl',
-      id: `cmd-${i}`,
-      url: 'https://example.com'
-    }));
+    const requests = Array(1000)
+      .fill()
+      .map((_, i) => ({
+        type: 'openUrl',
+        id: `cmd-${i}`,
+        url: 'https://example.com',
+      }));
 
     // Should reject after rate limit exceeded
-    const results = await Promise.allSettled(
-      requests.map(req => server.handleMessage(req))
-    );
+    const results = await Promise.allSettled(requests.map(req => server.handleMessage(req)));
 
     const rejected = results.filter(r => r.status === 'rejected');
     expect(rejected.length).toBeGreaterThan(0);
@@ -164,11 +181,13 @@ describe('Security: WebSocket Server', () => {
   test('should validate command IDs to prevent injection', async () => {
     const maliciousId = '"; DROP TABLE commands; --';
 
-    await expect(server.handleMessage({
-      type: 'openUrl',
-      id: maliciousId,
-      url: 'https://example.com'
-    })).rejects.toThrow(/invalid command id/i);
+    await expect(
+      server.handleMessage({
+        type: 'openUrl',
+        id: maliciousId,
+        url: 'https://example.com',
+      })
+    ).rejects.toThrow(/invalid command id/i);
   });
 });
 ```
@@ -187,7 +206,7 @@ describe('Chaos: Network Failures', () => {
       url: 'https://example.com',
       captureConsole: true,
       duration: 5000,
-      autoClose: true
+      autoClose: true,
     });
 
     // Simulate WebSocket disconnect mid-execution
@@ -209,7 +228,7 @@ describe('Chaos: Network Failures', () => {
 
     const promise = client.openUrl('https://example.com', {
       captureConsole: true,
-      duration: 5000
+      duration: 5000,
     });
 
     // Kill and restart server mid-capture
@@ -228,12 +247,14 @@ describe('Chaos: Network Failures', () => {
 ```javascript
 describe('Chaos: Resource Exhaustion', () => {
   test('should handle 100 concurrent tab opens', async () => {
-    const promises = Array(100).fill().map((_, i) =>
-      handleOpenUrlCommand(`cmd-${i}`, {
-        url: `https://example.com/${i}`,
-        autoClose: true
-      })
-    );
+    const promises = Array(100)
+      .fill()
+      .map((_, i) =>
+        handleOpenUrlCommand(`cmd-${i}`, {
+          url: `https://example.com/${i}`,
+          autoClose: true,
+        })
+      );
 
     const results = await Promise.allSettled(promises);
 
@@ -251,14 +272,14 @@ describe('Chaos: Resource Exhaustion', () => {
 
   test('should handle memory pressure during console capture', async () => {
     // Generate massive console output
-    mockChrome.runtime.onMessage.addListener((msg) => {
+    mockChrome.runtime.onMessage.addListener(msg => {
       if (msg.type === 'generateLoad') {
         for (let i = 0; i < 100000; i++) {
           handleConsoleMessage({
             type: 'console',
             level: 'log',
             message: 'x'.repeat(1000),
-            timestamp: Date.now()
+            timestamp: Date.now(),
           });
         }
       }
@@ -268,7 +289,7 @@ describe('Chaos: Resource Exhaustion', () => {
       url: 'https://example.com',
       captureConsole: true,
       duration: 1000,
-      autoClose: true
+      autoClose: true,
     });
 
     // Should cap logs, not crash
@@ -291,7 +312,7 @@ describe('Performance: Latency', () => {
     await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     const duration = performance.now() - start;
@@ -303,7 +324,7 @@ describe('Performance: Latency', () => {
 
     await server.routeMessage({
       type: 'ping',
-      id: 'ping-1'
+      id: 'ping-1',
     });
 
     const duration = performance.now() - start;
@@ -320,13 +341,15 @@ describe('Performance: Throughput', () => {
     const commands = 1000;
     const start = performance.now();
 
-    const promises = Array(commands).fill().map((_, i) =>
-      server.handleCommand({
-        type: 'openUrl',
-        id: `cmd-${i}`,
-        url: 'https://example.com'
-      })
-    );
+    const promises = Array(commands)
+      .fill()
+      .map((_, i) =>
+        server.handleCommand({
+          type: 'openUrl',
+          id: `cmd-${i}`,
+          url: 'https://example.com',
+        })
+      );
 
     await Promise.all(promises);
     const duration = (performance.now() - start) / 1000; // seconds
@@ -348,7 +371,7 @@ describe('Performance: Memory', () => {
     for (let i = 0; i < 10000; i++) {
       await handleOpenUrlCommand(`cmd-${i}`, {
         url: 'https://example.com',
-        autoClose: true
+        autoClose: true,
       });
     }
 
@@ -371,22 +394,18 @@ describe('Performance: Memory', () => {
 ```javascript
 describe('UX: Error Messages', () => {
   test('should provide helpful error when URL missing', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {}))
-      .rejects.toThrow('url is required');
+    await expect(handleOpenUrlCommand('cmd-1', {})).rejects.toThrow('url is required');
 
     // Should suggest fix
-    await expect(handleOpenUrlCommand('cmd-1', {}))
-      .rejects.toThrow(/provide a url parameter/i);
+    await expect(handleOpenUrlCommand('cmd-1', {})).rejects.toThrow(/provide a url parameter/i);
   });
 
   test('should explain why tab cleanup failed', async () => {
-    mockChrome.tabs.remove.mockRejectedValue(
-      new Error('No tab with id: 123')
-    );
+    mockChrome.tabs.remove.mockRejectedValue(new Error('No tab with id: 123'));
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      autoClose: true
+      autoClose: true,
     });
 
     expect(result.error).toMatch(/tab may have been closed manually/i);
@@ -400,13 +419,13 @@ describe('UX: Error Messages', () => {
 describe('UX: Progress Feedback', () => {
   test('should emit progress events during long capture', async () => {
     const events = [];
-    healthManager.on('capture-progress', (evt) => events.push(evt));
+    healthManager.on('capture-progress', evt => events.push(evt));
 
     await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       captureConsole: true,
       duration: 5000,
-      autoClose: true
+      autoClose: true,
     });
 
     // Should have emitted progress updates
@@ -441,7 +460,7 @@ describe('Integration: Full E2E', () => {
     const result = await apiClient.openUrl('https://example.com', {
       captureConsole: true,
       duration: 1000,
-      autoClose: true
+      autoClose: true,
     });
 
     // 5. Verify full flow
@@ -470,16 +489,14 @@ describe('Boundary: Input Limits', () => {
       { url: 'a', shouldFail: true, reason: 'too short' },
       { url: 'https://a.com', shouldFail: false, reason: 'min valid' },
       { url: 'https://example.com/' + 'a'.repeat(2048), shouldFail: false, reason: 'max valid' },
-      { url: 'https://example.com/' + 'a'.repeat(2049), shouldFail: true, reason: 'too long' }
+      { url: 'https://example.com/' + 'a'.repeat(2049), shouldFail: true, reason: 'too long' },
     ];
 
     for (const test of tests) {
       if (test.shouldFail) {
-        await expect(handleOpenUrlCommand('cmd-1', { url: test.url }))
-          .rejects.toThrow();
+        await expect(handleOpenUrlCommand('cmd-1', { url: test.url })).rejects.toThrow();
       } else {
-        await expect(handleOpenUrlCommand('cmd-1', { url: test.url }))
-          .resolves.toBeDefined();
+        await expect(handleOpenUrlCommand('cmd-1', { url: test.url })).resolves.toBeDefined();
       }
     }
   });
@@ -492,20 +509,24 @@ describe('Boundary: Input Limits', () => {
       { duration: 60000, shouldFail: false },
       { duration: 60001, shouldFail: true },
       { duration: Infinity, shouldFail: true },
-      { duration: NaN, shouldFail: true }
+      { duration: NaN, shouldFail: true },
     ];
 
     for (const test of tests) {
       if (test.shouldFail) {
-        await expect(handleOpenUrlCommand('cmd-1', {
-          url: 'https://example.com',
-          duration: test.duration
-        })).rejects.toThrow();
+        await expect(
+          handleOpenUrlCommand('cmd-1', {
+            url: 'https://example.com',
+            duration: test.duration,
+          })
+        ).rejects.toThrow();
       } else {
-        await expect(handleOpenUrlCommand('cmd-1', {
-          url: 'https://example.com',
-          duration: test.duration
-        })).resolves.toBeDefined();
+        await expect(
+          handleOpenUrlCommand('cmd-1', {
+            url: 'https://example.com',
+            duration: test.duration,
+          })
+        ).resolves.toBeDefined();
       }
     }
   });
@@ -524,7 +545,7 @@ describe('State: Capture Lifecycle', () => {
     const states = [];
 
     // Track state changes
-    healthManager.on('capture-state-changed', (evt) => {
+    healthManager.on('capture-state-changed', evt => {
       states.push(evt.state);
     });
 
@@ -532,18 +553,11 @@ describe('State: Capture Lifecycle', () => {
       url: 'https://example.com',
       captureConsole: true,
       duration: 1000,
-      autoClose: true
+      autoClose: true,
     });
 
     // Should transition: idle → starting → capturing → completing → cleanup → idle
-    expect(states).toEqual([
-      'idle',
-      'starting',
-      'capturing',
-      'completing',
-      'cleanup',
-      'idle'
-    ]);
+    expect(states).toEqual(['idle', 'starting', 'capturing', 'completing', 'cleanup', 'idle']);
   });
 
   test('should prevent invalid state transitions', async () => {
@@ -551,14 +565,16 @@ describe('State: Capture Lifecycle', () => {
     const promise = handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       captureConsole: true,
-      duration: 5000
+      duration: 5000,
     });
 
     // Try to start another capture for same command
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      captureConsole: true
-    })).rejects.toThrow(/capture already active/i);
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        captureConsole: true,
+      })
+    ).rejects.toThrow(/capture already active/i);
 
     await promise;
   });
@@ -574,25 +590,28 @@ describe('State: Capture Lifecycle', () => {
 ```javascript
 describe('Data Quality: Console Logs', () => {
   test('should preserve log order across rapid messages', async () => {
-    const messages = Array(1000).fill().map((_, i) => ({
-      type: 'console',
-      level: 'log',
-      message: `Log ${i}`,
-      timestamp: Date.now() + i
-    }));
+    const messages = Array(1000)
+      .fill()
+      .map((_, i) => ({
+        type: 'console',
+        level: 'log',
+        message: `Log ${i}`,
+        timestamp: Date.now() + i,
+      }));
 
     messages.forEach(msg => handleConsoleMessage(msg));
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       captureConsole: true,
-      duration: 100
+      duration: 100,
     });
 
     // Should be in order
     for (let i = 1; i < result.consoleLogs.length; i++) {
-      expect(result.consoleLogs[i].timestamp)
-        .toBeGreaterThanOrEqual(result.consoleLogs[i-1].timestamp);
+      expect(result.consoleLogs[i].timestamp).toBeGreaterThanOrEqual(
+        result.consoleLogs[i - 1].timestamp
+      );
     }
   });
 
@@ -605,8 +624,7 @@ describe('Data Quality: Console Logs', () => {
     ];
 
     invalidMessages.forEach(msg => {
-      expect(() => handleConsoleMessage(msg))
-        .toThrow(/invalid console message/i);
+      expect(() => handleConsoleMessage(msg)).toThrow(/invalid console message/i);
     });
   });
 });
@@ -617,18 +635,21 @@ describe('Data Quality: Console Logs', () => {
 ## 📋 Implementation Priority
 
 ### Phase 1: Critical Security & Integration (Week 1)
+
 - [x] Security: Input validation tests
 - [x] Security: Injection prevention tests
 - [ ] Integration: Full E2E flow tests
 - [ ] Chaos: Resource exhaustion tests
 
 ### Phase 2: Performance & UX (Week 2)
+
 - [ ] Performance: Latency benchmarks
 - [ ] Performance: Memory leak detection
 - [ ] UX: Error message quality tests
 - [ ] Boundary: Input limit tests
 
 ### Phase 3: Deep Dive (Week 3-4)
+
 - [ ] Chaos: Network failure scenarios
 - [ ] State: All state transition tests
 - [ ] Data Quality: Message validation
@@ -639,6 +660,7 @@ describe('Data Quality: Console Logs', () => {
 ## 🎯 Success Metrics
 
 **Coverage Goals:**
+
 - Security: 100% attack vectors covered
 - Chaos: 90% failure modes tested
 - Performance: All critical paths benchmarked
@@ -648,6 +670,7 @@ describe('Data Quality: Console Logs', () => {
 - Data Quality: All data validated
 
 **Quality Gates:**
+
 - No fake tests (all tests import real code)
 - Every test can fail (verified by breaking implementation)
 - E2E tests run against real components
@@ -661,15 +684,19 @@ describe('Data Quality: Console Logs', () => {
 **Checklist for Every New Test:**
 
 1. ✅ Does test import real implementation?
+
    ```javascript
    // GOOD
    const { handleOpenUrlCommand } = require('../../extension/background');
 
    // BAD
-   const handleOpenUrlCommand = () => { /* mock */ };
+   const handleOpenUrlCommand = () => {
+     /* mock */
+   };
    ```
 
 2. ✅ Does test use real objects (not all mocks)?
+
    ```javascript
    // GOOD - Mock only external dependencies
    global.chrome = mockChrome; // External
@@ -680,6 +707,7 @@ describe('Data Quality: Console Logs', () => {
    ```
 
 3. ✅ If I break implementation, does test fail?
+
    ```javascript
    // Test this by commenting out real code:
    // if (autoClose) {
@@ -689,6 +717,7 @@ describe('Data Quality: Console Logs', () => {
    ```
 
 4. ✅ Does test cover a real user scenario?
+
    ```javascript
    // GOOD
    test('tab closes when autoClose=true', ...)
@@ -766,7 +795,7 @@ describe('Interconnections: Cross-Component Dependencies', () => {
       url: 'https://example.com',
       captureConsole: true,
       duration: 500,
-      autoClose: true
+      autoClose: true,
     });
 
     const elapsed = Date.now() - start;
@@ -812,7 +841,7 @@ describe('Interconnections: Cross-Component Dependencies', () => {
     // Start two captures on same tab simultaneously
     const [result1, result2] = await Promise.all([
       handleConsoleCapture('cmd-1', 1000, tab.id),
-      handleConsoleCapture('cmd-2', 1000, tab.id)
+      handleConsoleCapture('cmd-2', 1000, tab.id),
     ]);
 
     // Both should succeed with independent logs
@@ -822,11 +851,13 @@ describe('Interconnections: Cross-Component Dependencies', () => {
   });
 
   test('server routing should preserve message order under load', async () => {
-    const messages = Array(1000).fill().map((_, i) => ({
-      type: 'test',
-      id: `msg-${i}`,
-      sequence: i
-    }));
+    const messages = Array(1000)
+      .fill()
+      .map((_, i) => ({
+        type: 'test',
+        id: `msg-${i}`,
+        sequence: i,
+      }));
 
     const received = [];
 
@@ -838,7 +869,7 @@ describe('Interconnections: Cross-Component Dependencies', () => {
 
     // Should be in order
     for (let i = 1; i < received.length; i++) {
-      expect(received[i].sequence).toBeGreaterThan(received[i-1].sequence);
+      expect(received[i].sequence).toBeGreaterThan(received[i - 1].sequence);
     }
   });
 });
@@ -855,8 +886,7 @@ describe('Mutual Exclusion: Conflicting Operations', () => {
     const capturePromise = handleConsoleCapture('cmd-1', 5000, tab.id);
 
     // Try to close tab mid-capture
-    await expect(chrome.tabs.remove(tab.id))
-      .rejects.toThrow(/capture in progress/i);
+    await expect(chrome.tabs.remove(tab.id)).rejects.toThrow(/capture in progress/i);
 
     await capturePromise;
 
@@ -867,13 +897,15 @@ describe('Mutual Exclusion: Conflicting Operations', () => {
   test('should prevent multiple handleOpenUrlCommand for same command ID', async () => {
     const promise1 = handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      duration: 2000
+      duration: 2000,
     });
 
     // Try to run same command ID again
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://different.com'
-    })).rejects.toThrow(/command already running/i);
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://different.com',
+      })
+    ).rejects.toThrow(/command already running/i);
 
     await promise1;
   });
@@ -884,12 +916,11 @@ describe('Mutual Exclusion: Conflicting Operations', () => {
       type: 'openUrl',
       id: 'cmd-1',
       url: 'https://example.com',
-      duration: 5000
+      duration: 5000,
     });
 
     // Try to shutdown server
-    await expect(server.shutdown())
-      .rejects.toThrow(/pending commands/i);
+    await expect(server.shutdown()).rejects.toThrow(/pending commands/i);
 
     await commandPromise;
 
@@ -902,12 +933,13 @@ describe('Mutual Exclusion: Conflicting Operations', () => {
     const capturePromise = handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       captureConsole: true,
-      duration: 3000
+      duration: 3000,
     });
 
     // Try to reload extension
-    await expect(chrome.management.setEnabled(extensionId, false))
-      .rejects.toThrow(/active captures/i);
+    await expect(chrome.management.setEnabled(extensionId, false)).rejects.toThrow(
+      /active captures/i
+    );
 
     await capturePromise;
   });
@@ -923,7 +955,7 @@ describe('Creative Edge Cases: Weird Scenarios', () => {
       url: 'https://example.com',
       captureConsole: true,
       duration: 2000,
-      autoClose: true
+      autoClose: true,
     });
 
     // User manually closes tab mid-capture
@@ -951,7 +983,7 @@ describe('Creative Edge Cases: Weird Scenarios', () => {
       url: 'https://example.com',
       captureConsole: true,
       duration: 1000,
-      autoClose: true
+      autoClose: true,
     });
 
     // Restore
@@ -967,7 +999,7 @@ describe('Creative Edge Cases: Weird Scenarios', () => {
     const promise = handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       captureConsole: true,
-      duration: 2000
+      duration: 2000,
     });
 
     // Simulate context invalidation
@@ -992,16 +1024,18 @@ describe('Creative Edge Cases: Weird Scenarios', () => {
       // Recursive tab creation
       if (createCount < 5) {
         await handleOpenUrlCommand(`cmd-${createCount}`, {
-          url: `https://example.com/${createCount}`
+          url: `https://example.com/${createCount}`,
         });
       }
 
       return { id: createCount, url };
     });
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com/1'
-    })).resolves.toBeDefined();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com/1',
+      })
+    ).resolves.toBeDefined();
 
     expect(createCount).toBeLessThan(100);
   });
@@ -1011,7 +1045,7 @@ describe('Creative Edge Cases: Weird Scenarios', () => {
       url: 'https://example.com',
       captureConsole: true,
       duration: 2000,
-      autoClose: true
+      autoClose: true,
     });
 
     // Tab navigates to different page
@@ -1032,29 +1066,26 @@ describe('Creative Edge Cases: Weird Scenarios', () => {
       type: 'openUrl',
       id: 'cmd-1',
       url: 'https://example.com',
-      data: 'x'.repeat(100 * 1024 * 1024) // 100MB
+      data: 'x'.repeat(100 * 1024 * 1024), // 100MB
     };
 
     // Should reject before attempting to process
-    await expect(server.handleMessage(huge))
-      .rejects.toThrow(/message too large/i);
+    await expect(server.handleMessage(huge)).rejects.toThrow(/message too large/i);
 
     // Server should still be responsive
-    await expect(server.handleMessage({ type: 'ping' }))
-      .resolves.toBeDefined();
+    await expect(server.handleMessage({ type: 'ping' })).resolves.toBeDefined();
   });
 
   test('circular reference in message should not cause serialization hang', async () => {
     const message = {
       type: 'openUrl',
       id: 'cmd-1',
-      url: 'https://example.com'
+      url: 'https://example.com',
     };
 
     message.self = message; // Circular reference
 
-    await expect(server.handleMessage(message))
-      .rejects.toThrow(/circular|serialize/i);
+    await expect(server.handleMessage(message)).rejects.toThrow(/circular|serialize/i);
   });
 
   test('tab ID collision (reused ID)', async () => {
@@ -1084,7 +1115,7 @@ describe('Stress Tests: System Limits', () => {
     for (let i = 0; i < 10000; i++) {
       const result = await handleOpenUrlCommand(`cmd-${i}`, {
         url: `https://example.com/${i}`,
-        autoClose: true
+        autoClose: true,
       });
       results.push(result);
 
@@ -1102,7 +1133,9 @@ describe('Stress Tests: System Limits', () => {
   }, 120000);
 
   test('1000 concurrent WebSocket connections', async () => {
-    const clients = Array(1000).fill().map(() => new ApiClient('ws://localhost:9876'));
+    const clients = Array(1000)
+      .fill()
+      .map(() => new ApiClient('ws://localhost:9876'));
 
     await Promise.all(clients.map(c => c.connect()));
 
@@ -1139,7 +1172,7 @@ describe('Stress Tests: System Limits', () => {
             type: 'openUrl',
             id: `cmd-${requestCount}`,
             url: 'https://example.com',
-            autoClose: true
+            autoClose: true,
           });
           requestCount++;
         } catch (err) {
@@ -1176,7 +1209,7 @@ describe('Stress Tests: System Limits', () => {
         level: 'log',
         message: `Message ${i}`,
         timestamp: Date.now(),
-        tabId: 123
+        tabId: 123,
       });
 
       // Force periodic GC
@@ -1194,21 +1227,25 @@ describe('Stress Tests: System Limits', () => {
   }, 60000);
 
   test('CPU intensive: parse and validate 10K complex messages', async () => {
-    const messages = Array(10000).fill().map((_, i) => ({
-      type: 'openUrl',
-      id: `cmd-${i}`,
-      url: `https://example.com/${i}`,
-      params: {
-        autoClose: i % 2 === 0,
-        captureConsole: i % 3 === 0,
-        duration: Math.floor(Math.random() * 5000),
-        metadata: {
-          timestamp: Date.now(),
-          user: `user-${i}`,
-          tags: Array(10).fill().map((_, j) => `tag-${j}`)
-        }
-      }
-    }));
+    const messages = Array(10000)
+      .fill()
+      .map((_, i) => ({
+        type: 'openUrl',
+        id: `cmd-${i}`,
+        url: `https://example.com/${i}`,
+        params: {
+          autoClose: i % 2 === 0,
+          captureConsole: i % 3 === 0,
+          duration: Math.floor(Math.random() * 5000),
+          metadata: {
+            timestamp: Date.now(),
+            user: `user-${i}`,
+            tags: Array(10)
+              .fill()
+              .map((_, j) => `tag-${j}`),
+          },
+        },
+      }));
 
     const start = Date.now();
 
@@ -1233,7 +1270,7 @@ describe('Stress Tests: System Limits', () => {
     await expect(finalClient.connect()).resolves.toBeUndefined();
 
     const result = await finalClient.openUrl('https://example.com', {
-      autoClose: true
+      autoClose: true,
     });
 
     expect(result.tabId).toBeDefined();
@@ -1268,8 +1305,9 @@ describe('Dependency Chains: Multi-Step Failures', () => {
     await client3.connect();
     extensionSocket.close(); // Extension gone
 
-    await expect(client3.openUrl('https://example.com'))
-      .rejects.toThrow(/extension not connected/i);
+    await expect(client3.openUrl('https://example.com')).rejects.toThrow(
+      /extension not connected/i
+    );
   });
 
   test('cascading timeouts: each layer respects parent timeout', async () => {
@@ -1284,7 +1322,7 @@ describe('Dependency Chains: Multi-Step Failures', () => {
 
     // Start long operation
     const promise = client.openUrl('https://example.com', {
-      duration: 20000 // Longer than all timeouts
+      duration: 20000, // Longer than all timeouts
     });
 
     // Should timeout at client level (5s)
@@ -1305,8 +1343,7 @@ describe('Dependency Chains: Multi-Step Failures', () => {
     server.registerDependency('cmd-B', ['cmd-C']);
     server.registerDependency('cmd-C', ['cmd-A']); // Cycle
 
-    await expect(server.executeCommand('cmd-A'))
-      .rejects.toThrow(/circular dependency/i);
+    await expect(server.executeCommand('cmd-A')).rejects.toThrow(/circular dependency/i);
   });
 });
 ```
@@ -1318,6 +1355,7 @@ describe('Dependency Chains: Multi-Step Failures', () => {
 **9 Personas × Deep + Wide Testing = Comprehensive Coverage**
 
 Each persona brings unique perspective:
+
 - 🔒 Security → Finds vulnerabilities
 - 💥 Chaos → Finds brittleness
 - ⚡ Performance → Finds bottlenecks
@@ -1329,6 +1367,7 @@ Each persona brings unique perspective:
 - 🧪 Testing Expert → Finds fake tests
 
 **Additional Coverage:**
+
 - 🌀 Interconnections → Cross-component dependencies
 - ⛔ Mutual Exclusions → Conflicting operations
 - 🌪️ Creative Edge Cases → Weird scenarios
@@ -1338,6 +1377,7 @@ Each persona brings unique perspective:
 **Result**: Bugs have nowhere to hide.
 
 **Next Steps**:
+
 1. Implement Phase 1 tests (security + integration)
 2. Set up CI/CD to run all persona tests
 3. Add persona-based code review checklist
@@ -1348,11 +1388,13 @@ Each persona brings unique perspective:
 ## 🏆 Expected Outcomes
 
 **Before (with fake tests):**
+
 - ❌ Tab cleanup broken, tests pass
 - ❌ False confidence
 - ❌ Bugs in production
 
 **After (with persona-based testing):**
+
 - ✅ All test scenarios covered
 - ✅ Real bugs caught early
 - ✅ True confidence

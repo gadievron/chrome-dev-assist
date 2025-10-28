@@ -9,7 +9,7 @@
 
 const WebSocket = require('ws');
 
-const WS_URL = 'ws://127.0.0.1:9876';  // Use 127.0.0.1 directly
+const WS_URL = 'ws://127.0.0.1:9876'; // Use 127.0.0.1 directly
 
 console.log('=== Simple Connection Test ===');
 console.log(`Connecting to: ${WS_URL}\n`);
@@ -35,7 +35,7 @@ ws.on('close', () => {
   process.exit(0);
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ Connection failed!');
   console.error('Error:', err.message);
   console.error('Code:', err.code);

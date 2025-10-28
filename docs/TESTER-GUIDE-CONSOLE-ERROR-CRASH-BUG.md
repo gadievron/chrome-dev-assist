@@ -12,11 +12,13 @@
 ### Discovery Timeline
 
 **1. Initial Bug (2025-10-24)**
+
 - Extension reload button disappeared on startup
 - Root cause: `console.error()` in WebSocket connection handlers
 - Fixed 3 locations: ws.onerror, connection timeout, registration timeout
 
 **2. Bug Reappeared (2025-10-25)**
+
 - Reload button disappeared again during test execution
 - New root cause: `console.error()` in command error handler (line 496)
 - Test sent command with invalid tabId (999999)
@@ -24,6 +26,7 @@
 - Chrome saw console.error() → marked extension as crashed → hid reload button
 
 **3. Similar Bugs Found**
+
 - Total: 18 `console.error()` calls in background.js
 - 4 fixed (connection failures, command failures)
 - 4 legitimate (programming bugs - keep as-is)
@@ -50,11 +53,12 @@ When tests intentionally send **invalid parameters** to verify error handling:
 // Test sends invalid tabId to verify error handling
 await sendCommand({
   type: 'closeTab',
-  params: { tabId: 999999 }  // ← Invalid, expected to fail
+  params: { tabId: 999999 }, // ← Invalid, expected to fail
 });
 ```
 
 **If extension handles this with console.error():**
+
 ```javascript
 } catch (error) {
   console.error('[ChromeDevAssist] Command failed:', error); // ❌ BAD
@@ -71,11 +75,13 @@ await sendCommand({
 ### Visual Detection (Quick Check)
 
 **Step 1:** Open Chrome Extensions Page
+
 ```
 chrome://extensions
 ```
 
 **Step 2:** Find the extension and check reload button
+
 ```
 ✅ HEALTHY:   [Extension Name] [↻]  ← Reload button visible
 ❌ CRASHED:   [Extension Name] [  ]  ← Reload button missing/grayed
@@ -84,6 +90,7 @@ chrome://extensions
 **Step 3:** Click "service worker" link to open console
 
 **Step 4:** Look at console message colors
+
 ```
 🟡 YELLOW (console.warn)  = Expected error, handled gracefully → ✅ GOOD
 🔴 RED (console.error)    = Unexpected error, crash detected  → ⚠️  CHECK
@@ -158,6 +165,7 @@ async function checkExtensionHealth() {
 ### ✅ Use console.error() For: (Unexpected Errors)
 
 **1. Programming Bugs**
+
 ```javascript
 // Null pointer - should never happen
 if (!ws) {
@@ -167,14 +175,16 @@ if (!ws) {
 ```
 
 **2. Impossible States**
+
 ```javascript
 // WebSocket in unknown state (not 0,1,2,3)
-if (![0,1,2,3].includes(ws.readyState)) {
+if (![0, 1, 2, 3].includes(ws.readyState)) {
   console.error('[ChromeDevAssist] Unknown WebSocket state:', ws.readyState); // ✅ CORRECT
 }
 ```
 
 **3. Internal Logic Errors**
+
 ```javascript
 // Main frame result missing from Chrome API
 if (!results || results.length === 0) {
@@ -183,18 +193,20 @@ if (!results || results.length === 0) {
 }
 ```
 
-### ⚠️  Use console.warn() For: (Expected Errors)
+### ⚠️ Use console.warn() For: (Expected Errors)
 
 **1. Environmental Conditions**
+
 ```javascript
 // Server not running (expected during development/testing)
-ws.onerror = (err) => {
+ws.onerror = err => {
   console.warn('[ChromeDevAssist] WebSocket connection issue (will reconnect):', err.type); // ✅ CORRECT
   scheduleReconnect();
 };
 ```
 
 **2. Invalid User Input / Parameters**
+
 ```javascript
 // Test sends invalid tabId
 } catch (error) {
@@ -204,6 +216,7 @@ ws.onerror = (err) => {
 ```
 
 **3. Resource Not Found / Already Closed**
+
 ```javascript
 // Tab already closed by user (expected in testing)
 try {
@@ -214,6 +227,7 @@ try {
 ```
 
 **4. Recoverable Errors with Retry Logic**
+
 ```javascript
 // Connection timeout (expected when server not running)
 const connectTimeout = setTimeout(() => {
@@ -223,6 +237,7 @@ const connectTimeout = setTimeout(() => {
 ```
 
 **5. Rate Limiting / Queue Overflow**
+
 ```javascript
 // Queue full (expected under stress/DoS)
 if (messageQueue.length >= MAX_QUEUE_SIZE) {
@@ -256,21 +271,24 @@ Is this error EXPECTED in normal operation?
 ### Scenario 1: Invalid Parameters
 
 **Test Code:**
+
 ```javascript
 // Send command with invalid tabId
 await sendCommand({
   type: 'closeTab',
-  params: { tabId: 999999 }
+  params: { tabId: 999999 },
 });
 ```
 
 **Expected Behavior:**
+
 - ✅ Response: `{ success: false, error: "No tab with id: 999999" }`
 - ✅ Console: 🟡 YELLOW warning (console.warn)
 - ✅ Extension: Reload button visible
 - ✅ Extension: Still responsive to commands
 
 **Bug If:**
+
 - ❌ Console: 🔴 RED error (console.error)
 - ❌ Extension: Reload button disappears
 - ❌ Extension: Becomes unresponsive
@@ -278,6 +296,7 @@ await sendCommand({
 ### Scenario 2: Connection Failures
 
 **Test Code:**
+
 ```javascript
 // 1. Stop server
 kill $(cat .server-pid)
@@ -287,11 +306,13 @@ kill $(cat .server-pid)
 ```
 
 **Expected Behavior:**
+
 - ✅ Console: 🟡 YELLOW warnings (connection timeout, will reconnect)
 - ✅ Extension: Reload button visible
 - ✅ Extension: Attempting reconnection with backoff
 
 **Bug If:**
+
 - ❌ Console: 🔴 RED errors (connection failed)
 - ❌ Extension: Reload button disappears
 - ❌ Extension: No reconnection attempts
@@ -299,22 +320,25 @@ kill $(cat .server-pid)
 ### Scenario 3: Rapid Error Stress Test
 
 **Test Code:**
+
 ```javascript
 // Send 10 invalid commands rapidly
 for (let i = 0; i < 10; i++) {
   await sendCommand({
     type: 'closeTab',
-    params: { tabId: 999999 + i }
+    params: { tabId: 999999 + i },
   });
 }
 ```
 
 **Expected Behavior:**
+
 - ✅ Console: 10 🟡 YELLOW warnings (expected errors)
 - ✅ Extension: Reload button visible
 - ✅ Extension: Still responsive
 
 **Bug If:**
+
 - ❌ Console: Multiple 🔴 RED errors in rapid succession
 - ❌ Extension: Reload button disappears
 - ❌ Extension: Chrome shows "Extension crashed" warning
@@ -322,6 +346,7 @@ for (let i = 0; i < 10; i++) {
 ### Scenario 4: Tab Cleanup Errors
 
 **Test Code:**
+
 ```javascript
 // 1. Open tabs via extension
 const tab1 = await sendCommand({ type: 'openUrl', params: { url: 'https://example.com' } });
@@ -334,11 +359,13 @@ await sendCommand({ type: 'endTest' });
 ```
 
 **Expected Behavior:**
+
 - ✅ Console: 🟡 YELLOW warning ("Failed to close tab (may be already closed)")
 - ✅ Extension: Continues cleaning up other tabs
 - ✅ Extension: Reload button visible
 
 **Bug If:**
+
 - ❌ Console: 🔴 RED error ("TAB CLEANUP FAILED")
 - ❌ Extension: Reload button disappears
 
@@ -394,22 +421,22 @@ describe('Console.error Crash Detection Prevention', () => {
 <button onclick="runTest3()">Test 3: Tab Already Closed</button>
 
 <script>
-async function runTest1() {
-  log('[Test 1] Sending closeTab with invalid tabId=999999', 'info');
+  async function runTest1() {
+    log('[Test 1] Sending closeTab with invalid tabId=999999', 'info');
 
-  await fetch(`${SERVER_URL}/execute`, {
-    method: 'POST',
-    body: JSON.stringify({
-      extensionId: EXTENSION_ID,
-      command: { type: 'closeTab', params: { tabId: 999999 } }
-    })
-  });
+    await fetch(`${SERVER_URL}/execute`, {
+      method: 'POST',
+      body: JSON.stringify({
+        extensionId: EXTENSION_ID,
+        command: { type: 'closeTab', params: { tabId: 999999 } },
+      }),
+    });
 
-  log('[Test 1] ⚠️  NOW CHECK SERVICE WORKER CONSOLE:', 'warning');
-  log('[Test 1] Expected: 🟡 YELLOW (console.warn)', 'info');
-  log('[Test 1] Bug if: 🔴 RED (console.error)', 'error');
-  log('[Test 1] ✅ Check chrome://extensions - reload button should be visible', 'info');
-}
+    log('[Test 1] ⚠️  NOW CHECK SERVICE WORKER CONSOLE:', 'warning');
+    log('[Test 1] Expected: 🟡 YELLOW (console.warn)', 'info');
+    log('[Test 1] Bug if: 🔴 RED (console.error)', 'error');
+    log('[Test 1] ✅ Check chrome://extensions - reload button should be visible', 'info');
+  }
 </script>
 ```
 
@@ -429,6 +456,7 @@ try {
 ```
 
 **Fix:**
+
 ```javascript
 // GOOD: Expected error (tab may be already closed)
 try {
@@ -442,15 +470,16 @@ try {
 
 ```javascript
 // BAD: Connection failures are expected during development
-ws.onerror = (err) => {
+ws.onerror = err => {
   console.error('WebSocket error:', err); // ❌ WRONG - triggers crash detection
 };
 ```
 
 **Fix:**
+
 ```javascript
 // GOOD: Connection failures are expected, handled with reconnection
-ws.onerror = (err) => {
+ws.onerror = err => {
   console.warn('WebSocket connection issue (will reconnect):', err.type); // ✅ CORRECT
   scheduleReconnect();
 };
@@ -470,6 +499,7 @@ ws.onerror = (err) => {
 ```
 
 **Fix:**
+
 ```javascript
 // GOOD: Single warning with all details
 } catch (err) {
@@ -521,6 +551,7 @@ When reviewing error handling code, check:
    - **Unexpected:** Null pointers, impossible states, programming bugs → console.error
 
 4. **Test Pattern:**
+
    ```javascript
    1. Trigger expected error (invalid parameter)
    2. Check service worker console color (should be YELLOW)

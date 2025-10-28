@@ -33,12 +33,14 @@ extension/
 **Correct location:** `extension/lib/error-logger.js` ✅
 
 **Why:**
+
 - ErrorLogger already exists here
 - Centralized error handling
 - Used by both background.js and (potentially) content scripts
 - Clean separation of concerns
 
 **Changes needed:**
+
 ```javascript
 // In error-logger.js
 class ErrorLogger {
@@ -68,33 +70,28 @@ class ErrorLogger {
 **Correct location:** `extension/background.js` ✅
 
 **Why:**
+
 - Service worker global scope (self.addEventListener)
 - Needs to run at startup (before any errors occur)
 - Calls ErrorLogger (which is imported)
 
 **Placement within background.js:**
+
 - **After imports** (line ~7, after importScripts)
 - **Before any other code** (catch errors from initialization)
 
 **Changes needed:**
+
 ```javascript
 // In background.js, right after importScripts('/lib/error-logger.js')
 
 // Global error handlers (catch uncaught errors)
-self.addEventListener('error', (event) => {
-  ErrorLogger.logUnexpectedError(
-    'unhandledError',
-    'Uncaught error in service worker',
-    event.error
-  );
+self.addEventListener('error', event => {
+  ErrorLogger.logUnexpectedError('unhandledError', 'Uncaught error in service worker', event.error);
 });
 
-self.addEventListener('unhandledrejection', (event) => {
-  ErrorLogger.logUnexpectedError(
-    'unhandledRejection',
-    'Uncaught promise rejection',
-    event.reason
-  );
+self.addEventListener('unhandledrejection', event => {
+  ErrorLogger.logUnexpectedError('unhandledRejection', 'Uncaught promise rejection', event.reason);
 });
 ```
 
@@ -109,23 +106,26 @@ self.addEventListener('unhandledrejection', (event) => {
 **Correct location:** `extension/background.js` ✅
 
 **Why:**
+
 - Needs access to chrome.runtime.onSuspend (already has listener at line 1706)
 - Tracks service worker's own state
 - Used by getExtensionStatus command
 
 **Placement within background.js:**
+
 - **State variable:** Near top, after sessionMetadata (line ~42)
 - **onSuspend modification:** Update existing listener (line 1706)
 - **Startup initialization:** After state declaration
 
 **Changes needed:**
+
 ```javascript
 // Near line 42, after sessionMetadata
 let serviceWorkerStatus = {
-  state: 'active',           // 'active', 'suspending', 'suspended'
+  state: 'active', // 'active', 'suspending', 'suspended'
   lastActiveTime: Date.now(),
   suspendCount: 0,
-  activeDuration: 0
+  activeDuration: 0,
 };
 
 // Modify existing onSuspend listener (line 1706)
@@ -156,16 +156,19 @@ serviceWorkerStatus.lastActiveTime = Date.now();
 **Correct location:** `extension/background.js` ✅
 
 **Why:**
+
 - WebSocket message handlers are in background.js
 - Needs access to: ErrorLogger, sessionMetadata, serviceWorkerStatus, ws object
 - Follows existing pattern (see handleOpenUrlCommand at line 908)
 
 **Placement within background.js:**
+
 - **Helper function:** calculateHealth() near sessionMetadata (~line 50)
 - **Command handler:** In WebSocket message handler switch statement
 - **Location:** After existing commands (search for "case 'openUrl'")
 
 **Changes needed:**
+
 ```javascript
 // Near line 50, helper function
 let previousErrorCount = 0;
@@ -217,12 +220,14 @@ case 'getExtensionStatus':
 **Correct location:** `extension/background.js` ✅
 
 **Why:**
+
 - WebSocket command handler
 - Service worker wakes when handling the message
 
 **Placement:** In WebSocket message handler switch statement
 
 **Changes needed:**
+
 ```javascript
 case 'wakeServiceWorker':
   // Service worker is awake if handling this message
@@ -240,21 +245,24 @@ case 'wakeServiceWorker':
 
 ### Phase 5B: Service Worker Log Capture
 
-**Feature:** Intercept console.* calls in background service worker
+**Feature:** Intercept console.\* calls in background service worker
 
 **Correct location:** `extension/background.js` ✅
 
 **Why:**
-- Needs to wrap console.* in service worker global scope
+
+- Needs to wrap console.\* in service worker global scope
 - Must run at startup (before console is used)
 - WebSocket commands to control capture
 
 **Placement within background.js:**
+
 - **Storage & config:** Near top, after serviceWorkerStatus (~line 55)
 - **Console interception:** Right after global error handlers (~line 30)
 - **Command handlers:** In WebSocket message handler switch statement
 
 **Changes needed:**
+
 ```javascript
 // Near line 55
 let serviceWorkerLogs = [];
@@ -320,11 +328,13 @@ case 'getServiceWorkerLogs':
 ## 📊 Final Size Estimate
 
 **extension/lib/error-logger.js:**
+
 - Before: 156 lines
 - After: ~206 lines (+50 lines, +32%)
 - ✅ ACCEPTABLE - Still well under 300 lines
 
 **extension/background.js:**
+
 - Before: 2385 lines
 - After: ~2540 lines (+155 lines, +6.5%)
 - ⚠️ WARNING - Already too large, getting worse
@@ -337,6 +347,7 @@ case 'getServiceWorkerLogs':
 ## ✅ Architecture Validation
 
 **All placements are correct:**
+
 - ✅ ErrorLogger storage → error-logger.js (existing utility)
 - ✅ Global error handlers → background.js (service worker global scope)
 - ✅ Service worker status → background.js (tracks own lifecycle)
@@ -354,6 +365,7 @@ case 'getServiceWorkerLogs':
 **After this implementation, background.js will be 2540 lines (too large)**
 
 **Recommended refactoring:**
+
 ```
 extension/
 ├── background.js (300 lines)          # Main entry point + imports
@@ -380,6 +392,7 @@ extension/
 **Phase 5:** background.js wake + log capture (independent commands)
 
 **This order minimizes risk:**
+
 - Each phase builds on previous
 - Each phase is independently testable
 - No circular dependencies

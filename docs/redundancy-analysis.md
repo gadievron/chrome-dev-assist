@@ -1,4 +1,5 @@
 # Redundancy & Architecture Analysis
+
 ## Chrome Dev Assist - Code Cleanliness Report
 
 **Version**: 1.0
@@ -12,6 +13,7 @@
 ### Answer: **We're INTEGRATING WELL, not supporting old tech**
 
 **Key Findings:**
+
 - ✅ **Clean Architecture**: Single responsibility, clear separation of concerns
 - ✅ **Modern Stack**: WebSockets (no legacy polling), ES6+ JavaScript, Chrome Manifest V3
 - ⚠️ **Some Dead Code**: 2 unused files (backup/versioned content scripts)
@@ -26,6 +28,7 @@
 ### 1. Extension Files
 
 #### ✅ **ACTIVE FILES** (In Use)
+
 ```
 extension/
 ├── background.js               [ACTIVE] - WebSocket client, message routing
@@ -38,6 +41,7 @@ extension/
 ```
 
 #### 🔴 **DEAD FILES** (NOT in Use)
+
 ```
 extension/
 ├── content-script-backup.js    [DEAD] - Old backup (not in manifest.json)
@@ -45,10 +49,12 @@ extension/
 ```
 
 **Evidence:**
+
 - `manifest.json` line 25: `"js": ["content-script.js"]` ← Only references current file
 - Backup/v2 files are NOT referenced anywhere
 
 **Recommendation:**
+
 ```bash
 # Safe to delete
 rm extension/content-script-backup.js
@@ -100,6 +106,7 @@ WebSocket (ws:// protocol)
 ```
 
 **Not Using (Legacy Tech):**
+
 - ❌ HTTP polling (old)
 - ❌ Long-polling (old)
 - ❌ Server-Sent Events (SSE) (limited)
@@ -139,6 +146,7 @@ if (!healthManager.isExtensionConnected()) {
 ```
 
 **Analysis:**
+
 - **Not redundant**: Replaced scattered checks with centralized manager
 - **Added value**: Observability (events), testability, maintainability
 - **No duplication**: Old manual checks being gradually replaced
@@ -150,6 +158,7 @@ if (!healthManager.isExtensionConnected()) {
 ### 5. Feature Redundancy Check
 
 #### Console Capture
+
 ```
 Purpose: Capture console.log/error/warn from web pages
 Implementation: inject-console-capture.js
@@ -158,6 +167,7 @@ Verdict: ✅ UNIQUE FEATURE
 ```
 
 #### WebSocket Server
+
 ```
 Purpose: Relay messages between extension and API clients
 Implementation: server/websocket-server.js
@@ -166,6 +176,7 @@ Verdict: ✅ UNIQUE FEATURE
 ```
 
 #### Health Manager
+
 ```
 Purpose: Track and report connection health
 Implementation: src/health/health-manager.js
@@ -175,6 +186,7 @@ Verdict: ✅ UNIQUE FEATURE
 ```
 
 #### Extension Background
+
 ```
 Purpose: Maintain WebSocket connection, execute scripts
 Implementation: extension/background.js
@@ -183,6 +195,7 @@ Verdict: ✅ UNIQUE FEATURE
 ```
 
 #### Extension Content Script
+
 ```
 Purpose: Inject console capture into pages
 Implementation: extension/content-script.js
@@ -262,6 +275,7 @@ Verdict: ✅ NO REDUNDANCY - Tests cover different layers
 ```
 
 **Test Overlap Analysis:**
+
 - `health-manager.test.js` (20 tests) - Unit tests with mocks
 - `health-manager-realws.test.js` (4 tests) - Integration with REAL WebSockets
 - **Verdict**: NOT redundant - one uses mocks, one uses real instances
@@ -270,19 +284,19 @@ Verdict: ✅ NO REDUNDANCY - Tests cover different layers
 
 ## Redundancy Matrix
 
-| Component | Purpose | Alternative? | Redundant? | Action |
-|-----------|---------|--------------|------------|--------|
-| **background.js** | WebSocket client | None | NO | Keep |
-| **content-script.js** | Inject console capture | None | NO | Keep |
-| **content-script-backup.js** | Old backup | content-script.js | **YES** | **DELETE** |
-| **content-script-v2.js** | Old version | content-script.js | **YES** | **DELETE** |
-| **inject-console-capture.js** | Console capture | None | NO | Keep |
-| **websocket-server.js** | Message routing | None | NO | Keep |
-| **health-manager.js** | Health tracking | Manual checks | NO (replacement) | Keep |
-| **health-manager.d.ts** | Type definitions | None | NO (different purpose) | Keep |
-| **API socket check (line 517)** | Per-request check | Extension check | NO (different scope) | Keep |
-| **healthManager check (line 469)** | Global health check | API socket check | NO (different scope) | Keep |
-| **Observer events** | Business logic events | WebSocket events | NO (different layer) | Keep |
+| Component                          | Purpose                | Alternative?      | Redundant?             | Action     |
+| ---------------------------------- | ---------------------- | ----------------- | ---------------------- | ---------- |
+| **background.js**                  | WebSocket client       | None              | NO                     | Keep       |
+| **content-script.js**              | Inject console capture | None              | NO                     | Keep       |
+| **content-script-backup.js**       | Old backup             | content-script.js | **YES**                | **DELETE** |
+| **content-script-v2.js**           | Old version            | content-script.js | **YES**                | **DELETE** |
+| **inject-console-capture.js**      | Console capture        | None              | NO                     | Keep       |
+| **websocket-server.js**            | Message routing        | None              | NO                     | Keep       |
+| **health-manager.js**              | Health tracking        | Manual checks     | NO (replacement)       | Keep       |
+| **health-manager.d.ts**            | Type definitions       | None              | NO (different purpose) | Keep       |
+| **API socket check (line 517)**    | Per-request check      | Extension check   | NO (different scope)   | Keep       |
+| **healthManager check (line 469)** | Global health check    | API socket check  | NO (different scope)   | Keep       |
+| **Observer events**                | Business logic events  | WebSocket events  | NO (different layer)   | Keep       |
 
 **Total Redundancy: 2 files (0.5% of codebase)**
 
@@ -322,6 +336,7 @@ NOT Using:
 **Answer: YES - Following best practices**
 
 #### 1. **Single Responsibility Principle** ✅
+
 ```
 HealthManager:  Only tracks health (not routing messages)
 WebSocket Server: Only routes messages (not tracking health)
@@ -330,6 +345,7 @@ Content Script: Only injects capture (not maintaining connection)
 ```
 
 #### 2. **Separation of Concerns** ✅
+
 ```
 Transport Layer:   WebSocket (server/websocket-server.js)
 Business Logic:    Health tracking (src/health/health-manager.js)
@@ -338,6 +354,7 @@ Type Safety:       TypeScript definitions (health-manager.d.ts)
 ```
 
 #### 3. **Don't Repeat Yourself (DRY)** ✅
+
 ```
 Before: Health checks scattered in 3+ places
 After:  Centralized in health-manager.js
@@ -345,6 +362,7 @@ Result: Single source of truth
 ```
 
 #### 4. **Open/Closed Principle** ✅
+
 ```
 HealthManager is:
 - Open for extension:  Add observers via EventEmitter
@@ -352,6 +370,7 @@ HealthManager is:
 ```
 
 #### 5. **Dependency Injection** ✅
+
 ```
 Server depends on HealthManager abstraction
 Not tightly coupled to socket implementation
@@ -390,6 +409,7 @@ rm extension/content-script-v2.js        # 2.8 KB saved
 ### **Priority 3: No Other Changes Needed**
 
 Current architecture is excellent:
+
 - ✅ Clean separation of concerns
 - ✅ Modern stack
 - ✅ No redundancy (except 2 dead files)
@@ -409,6 +429,7 @@ Current architecture is excellent:
 - Line 517 (`apiSocket.readyState`): This specific API socket
 
 **Example:**
+
 ```javascript
 // Extension is connected (line 469 passes)
 if (healthManager.isExtensionConnected()) {
@@ -434,6 +455,7 @@ if (healthManager.isExtensionConnected()) {
 **A: NO - It enables observability**
 
 **Without EventEmitter:**
+
 ```javascript
 // Can only check health when we remember to
 const status = healthManager.getHealthStatus();
@@ -443,9 +465,10 @@ if (!status.healthy) {
 ```
 
 **With EventEmitter:**
+
 ```javascript
 // Proactive monitoring
-healthManager.on('health-changed', (event) => {
+healthManager.on('health-changed', event => {
   if (!event.current.healthy) {
     // Immediately notified of problems
     alertMonitoring(event.current.issues);
@@ -454,6 +477,7 @@ healthManager.on('health-changed', (event) => {
 ```
 
 **Benefits:**
+
 - Real-time monitoring
 - Decoupled observers
 - Testable event flow
@@ -468,10 +492,12 @@ healthManager.on('health-changed', (event) => {
 **A: YES - Low cost, high value**
 
 **Cost:**
+
 - 220 lines of .d.ts code
 - Update when signatures change (~5 min/change)
 
 **Value:**
+
 - Type safety for TypeScript consumers
 - IntelliSense in VS Code
 - Compile-time error detection
@@ -488,12 +514,15 @@ healthManager.on('health-changed', (event) => {
 ### **Final Answer to User's Questions:**
 
 #### 1. **"Are we supporting old tech or communications?"**
+
 **Answer: NO** - 100% modern stack (WebSockets, ES6+, Manifest V3)
 
 #### 2. **"Or just integrating well?"**
+
 **Answer: YES** - Following SOLID principles, clean architecture
 
 #### 3. **"Do we have features that are redundant?"**
+
 **Answer: NO** - Except 2 dead backup files (easily deleted)
 
 ---
@@ -501,15 +530,18 @@ healthManager.on('health-changed', (event) => {
 ### **Action Items:**
 
 **MUST DO (5 minutes):**
+
 1. Delete `extension/content-script-backup.js`
 2. Delete `extension/content-script-v2.js`
 3. Add `*-backup.js` to `.gitignore`
 
 **OPTIONAL (nice to have):**
+
 1. Add comment explaining line 517 vs healthManager difference
 2. Document observer pattern benefits in JSDoc
 
 **DO NOT DO:**
+
 1. ❌ Remove line 517 API socket check (not redundant!)
 2. ❌ Remove EventEmitter pattern (adds value!)
 3. ❌ Remove TypeScript definitions (low cost, high value!)
@@ -520,6 +552,7 @@ healthManager.on('health-changed', (event) => {
 ### **Health Score: 98/100**
 
 **Breakdown:**
+
 - Architecture: 100/100 (Excellent)
 - Modern Stack: 100/100 (All current standards)
 - Code Cleanliness: 95/100 (-5 for 2 dead files)

@@ -13,10 +13,10 @@ const apiSockets = new Map(); // commandId -> socket
 
 console.log('[Prototype Server] Starting on ws://localhost:9876');
 
-server.on('connection', (socket) => {
+server.on('connection', socket => {
   console.log('[Prototype Server] Client connected');
 
-  socket.on('message', (data) => {
+  socket.on('message', data => {
     const msg = JSON.parse(data.toString());
     console.log('[Prototype Server] Received:', msg.type, msg.id || '');
 
@@ -34,11 +34,13 @@ server.on('connection', (socket) => {
         extensionSocket.send(JSON.stringify(msg));
       } else {
         console.log('[Prototype Server] ERROR: No extension connected');
-        socket.send(JSON.stringify({
-          type: 'error',
-          id: msg.id,
-          error: { message: 'Extension not connected' }
-        }));
+        socket.send(
+          JSON.stringify({
+            type: 'error',
+            id: msg.id,
+            error: { message: 'Extension not connected' },
+          })
+        );
       }
     }
 
@@ -60,12 +62,12 @@ server.on('connection', (socket) => {
     }
   });
 
-  socket.on('error', (err) => {
+  socket.on('error', err => {
     console.error('[Prototype Server] Socket error:', err.message);
   });
 });
 
-server.on('error', (err) => {
+server.on('error', err => {
   console.error('[Prototype Server] Server error:', err.message);
   process.exit(1);
 });

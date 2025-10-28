@@ -3,6 +3,7 @@
 **Purpose:** Test extension functionality to verify behavior and debug issues
 
 **Prerequisites:**
+
 1. ✅ Chrome running with extension loaded
 2. ✅ WebSocket server running (localhost:9876)
 3. ✅ Extension connected to server
@@ -14,11 +15,13 @@
 ### Test 1: Open a Simple URL
 
 **Expected Behavior:**
+
 - Tab opens in Chrome
 - Returns tab ID (positive integer)
 - Tab URL matches requested URL
 
 **Test Code:**
+
 ```bash
 cd /Users/gadievron/Documents/Claude\ Code/chrome-dev-assist && node -e "
 const chromeDevAssist = require('./claude-code/index.js');
@@ -42,6 +45,7 @@ const chromeDevAssist = require('./claude-code/index.js');
 ```
 
 **If this fails with "No extensions connected":**
+
 - Extension isn't connected to server
 - Check extension console: `chrome://extensions/` → "Inspect views: service worker"
 - Look for connection errors
@@ -51,10 +55,12 @@ const chromeDevAssist = require('./claude-code/index.js');
 ## Test 2: Capture Console Logs (Simple Page)
 
 **Expected Behavior:**
+
 - Returns array of console logs
 - Should capture logs from integration-test-2.html (generates logs every 1.5s)
 
 **Test Code:**
+
 ```bash
 cd /Users/gadievron/Documents/Claude\ Code/chrome-dev-assist && node -e "
 const chromeDevAssist = require('./claude-code/index.js');
@@ -96,6 +102,7 @@ const chromeDevAssist = require('./claude-code/index.js');
 ```
 
 **Expected Output:**
+
 ```
 ✅ Page opened, tab ID: 12345
 ✅ Logs captured: 8
@@ -107,6 +114,7 @@ First 3 logs:
 ```
 
 **If logs count is 0:**
+
 - Console capture may not be working
 - Check ISSUE-009 in TO-FIX.md
 - Try with different fixture (integration-test-1.html)
@@ -116,10 +124,12 @@ First 3 logs:
 ## Test 3: Get Page Metadata (ISSUE-001 Debug)
 
 **Expected Behavior:**
+
 - Returns metadata from main page
 - Should NOT include iframe metadata
 
 **Test Code:**
+
 ```bash
 cd /Users/gadievron/Documents/Claude\ Code/chrome-dev-assist && node -e "
 const chromeDevAssist = require('./claude-code/index.js');
@@ -171,6 +181,7 @@ const chromeDevAssist = require('./claude-code/index.js');
 ```
 
 **Expected Output (BUG PRESENT):**
+
 ```
 ✅ Page opened, tab ID: 12345
 
@@ -186,6 +197,7 @@ Main page metadata:
 ```
 
 **Expected Output (BUG FIXED):**
+
 ```
 ✅ Page opened, tab ID: 12345
 
@@ -201,6 +213,7 @@ Main page metadata:
 ```
 
 **Debug Logs to Check:**
+
 1. Open Chrome extension console: `chrome://extensions/` → "Inspect views: service worker"
 2. Look for lines starting with `[DEBUG METADATA]`
 3. Check:
@@ -213,9 +226,11 @@ Main page metadata:
 ## Test 4: Adversarial Navigation (ISSUE-009 Debug)
 
 **Expected Behavior:**
+
 - Should capture continuous logs from setInterval
 
 **Test Code:**
+
 ```bash
 cd /Users/gadievron/Documents/Claude\ Code/chrome-dev-assist && node -e "
 const chromeDevAssist = require('./claude-code/index.js');
@@ -273,6 +288,7 @@ const chromeDevAssist = require('./claude-code/index.js');
 ```
 
 **Expected Output (BUG PRESENT):**
+
 ```
 ✅ Page opened, tab ID: 12345
 ✅ Logs captured: 0
@@ -283,6 +299,7 @@ Navigation logs: 0
 ```
 
 **Expected Output (BUG FIXED):**
+
 ```
 ✅ Page opened, tab ID: 12345
 ✅ Logs captured: 12
@@ -301,10 +318,12 @@ First 3 navigation logs:
 ## Test 5: Screenshot Capture
 
 **Expected Behavior:**
+
 - Captures screenshot as data URL
 - File size > 1000 bytes
 
 **Test Code:**
+
 ```bash
 cd /Users/gadievron/Documents/Claude\ Code/chrome-dev-assist && node -e "
 const chromeDevAssist = require('./claude-code/index.js');
@@ -353,33 +372,37 @@ const chromeDevAssist = require('./claude-code/index.js');
 
 ## Summary of Expected Behaviors
 
-| Test | Expected Behavior | If It Fails |
-|------|-------------------|-------------|
-| Test 1: Open URL | Tab opens, returns tab ID | Extension not connected |
-| Test 2: Capture Logs (Simple) | Gets 6-8 logs from integration-test-2.html | Console capture broken |
-| Test 3: Metadata (ISSUE-001) | NO leak (secret = undefined) | ISSUE-001 still present |
-| Test 4: Adversarial Logs (ISSUE-009) | Gets 10+ navigation logs | ISSUE-009 still present |
-| Test 5: Screenshot | Data URL > 1000 bytes | Screenshot capture broken |
+| Test                                 | Expected Behavior                          | If It Fails               |
+| ------------------------------------ | ------------------------------------------ | ------------------------- |
+| Test 1: Open URL                     | Tab opens, returns tab ID                  | Extension not connected   |
+| Test 2: Capture Logs (Simple)        | Gets 6-8 logs from integration-test-2.html | Console capture broken    |
+| Test 3: Metadata (ISSUE-001)         | NO leak (secret = undefined)               | ISSUE-001 still present   |
+| Test 4: Adversarial Logs (ISSUE-009) | Gets 10+ navigation logs                   | ISSUE-009 still present   |
+| Test 5: Screenshot                   | Data URL > 1000 bytes                      | Screenshot capture broken |
 
 ---
 
 ## Next Steps Based on Results
 
 **If Test 1 fails:**
+
 1. Check if extension is loaded in Chrome
 2. Check extension console for errors
 3. Restart server and extension
 
 **If Test 2 works but Test 4 fails:**
+
 - ISSUE-009 is real (complex pages fail, simple pages work)
 - Check hypothesis: Page complexity vs console capture
 
 **If Test 3 shows leak:**
+
 - ISSUE-001 confirmed
 - Check extension console for `[DEBUG METADATA]` logs
 - Analyze which context is leaking
 
 **If all tests pass:**
+
 - Extension is working correctly!
 - Tests might be the problem, not the extension
 

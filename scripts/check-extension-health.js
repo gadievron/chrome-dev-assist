@@ -36,9 +36,7 @@ async function checkHealth() {
     // Try to get all extensions (requires server connection)
     const result = await Promise.race([
       chromeDevAssist.getAllExtensions(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)
-      )
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)),
     ]);
 
     console.log('   ✅ Server is running and responding\n');
@@ -65,9 +63,7 @@ async function checkHealth() {
   try {
     const info = await Promise.race([
       chromeDevAssist.getExtensionInfo(EXTENSION_ID),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)
-      )
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)),
     ]);
 
     console.log(`   ✅ Extension loaded: ${info.name} v${info.version}`);
@@ -84,9 +80,7 @@ async function checkHealth() {
   try {
     const result = await Promise.race([
       chromeDevAssist.getAllExtensions(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)
-      )
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)),
     ]);
 
     const extensionCount = result.extensions ? result.extensions.length : 0;

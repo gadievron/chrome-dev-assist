@@ -11,6 +11,7 @@
 ### 1. ✅ 10,000 Log Limit Per Capture
 
 **Test Evidence:** `tests/fixtures/edge-massive-logs.html`
+
 ```javascript
 // Generates 15,000 logs to test the limit
 for (let i = 0; i < 15000; i++) {
@@ -19,6 +20,7 @@ for (let i = 0; i < 15000; i++) {
 ```
 
 **Code Evidence:** `extension/background.js`
+
 ```javascript
 // Line 15
 const MAX_LOGS_PER_CAPTURE = 10000; // Maximum logs per command to prevent memory exhaustion
@@ -33,7 +35,7 @@ if (state.logs.length < MAX_LOGS_PER_CAPTURE) {
     message: `[ChromeDevAssist] Log limit reached (${MAX_LOGS_PER_CAPTURE}). Further logs will be dropped.`,
     timestamp: new Date().toISOString(),
     source: 'chrome-dev-assist',
-    tabId: logEntry.tabId
+    tabId: logEntry.tabId,
   });
 }
 // else: silently drop logs exceeding limit
@@ -47,6 +49,7 @@ if (state.logs.length < MAX_LOGS_PER_CAPTURE) {
 ### 2. ✅ 10,000 Character Message Truncation
 
 **Test Evidence:** `tests/fixtures/edge-long-message.html`
+
 ```javascript
 // Generate 15,000 character message (should be truncated to 10,000)
 const longMessage = 'A'.repeat(15000);
@@ -54,6 +57,7 @@ console.log(longMessage);
 ```
 
 **Code Evidence:** `extension/background.js`
+
 ```javascript
 // Lines 687-691
 const MAX_MESSAGE_LENGTH = 10000;
@@ -71,6 +75,7 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 ### 3. ✅ installType Field in getExtensionInfo()
 
 **Test Evidence:** `tests/integration/complete-system.test.js`
+
 ```javascript
 // Line 68
 const info = await chromeDevAssist.getExtensionInfo(EXTENSION_ID);
@@ -78,6 +83,7 @@ expect(info).toHaveProperty('installType');
 ```
 
 **Code Evidence:** `extension/background.js`
+
 ```javascript
 // Lines 334-344 - handleGetExtensionInfoCommand
 return {
@@ -88,8 +94,8 @@ return {
   description: extension.description,
   permissions: extension.permissions,
   hostPermissions: extension.hostPermissions,
-  installType: extension.installType,  // ← HERE!
-  mayDisable: extension.mayDisable
+  installType: extension.installType, // ← HERE!
+  mayDisable: extension.mayDisable,
 };
 ```
 
@@ -101,29 +107,35 @@ return {
 ### 4. ✅ Circular Reference Handling
 
 **Test Evidence:** `tests/fixtures/edge-circular-ref.html`
+
 ```javascript
 const obj = { name: 'parent' };
-obj.self = obj;  // Circular!
+obj.self = obj; // Circular!
 obj.child = { parent: obj };
 console.log(obj);
 ```
 
 **Code Evidence:** `extension/background.js`
+
 ```javascript
 // Lines 355-371
 // Safe JSON stringify (handles circular references)
-const safeStringify = (obj) => {
+const safeStringify = obj => {
   try {
     const seen = new WeakSet();
-    return JSON.stringify(obj, (key, value) => {
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return '[Circular]';  // ← Replaces circular refs
+    return JSON.stringify(
+      obj,
+      (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular]'; // ← Replaces circular refs
+          }
+          seen.add(value);
         }
-        seen.add(value);
-      }
-      return value;
-    }, 2);
+        return value;
+      },
+      2
+    );
   } catch (err) {
     return '[Unable to stringify]';
   }
@@ -138,6 +150,7 @@ const safeStringify = (obj) => {
 ### 5. ✅ Log Level Preservation
 
 **Test Evidence:** `tests/fixtures/console-mixed-test.html`
+
 ```javascript
 console.log('📝 Log 1/5: ...');     // 5 logs
 console.warn('⚠️ Warning 1/2: ...'); // 2 warnings
@@ -145,6 +158,7 @@ console.error('❌ Error 1/1:', ...); // 1 error
 ```
 
 **Code Evidence:** `extension/background.js`
+
 ```javascript
 // Lines 680-701
 if (!message.level || !message.message || !message.timestamp) {
@@ -153,13 +167,13 @@ if (!message.level || !message.message || !message.timestamp) {
 }
 
 const logEntry = {
-  level: message.level,  // ← Level is preserved!
+  level: message.level, // ← Level is preserved!
   message: truncatedMessage,
   timestamp: message.timestamp,
   source: message.source || 'unknown',
   url: sender.url || 'unknown',
   tabId: sender.tab.id,
-  frameId: sender.frameId
+  frameId: sender.frameId,
 };
 ```
 
@@ -171,11 +185,13 @@ const logEntry = {
 ### 6. ✅ Tab Isolation (Dual-Index System)
 
 **Test Evidence:** `tests/fixtures/edge-tab-a.html` + `edge-tab-b.html`
+
 - Tab A generates distinct logs
 - Tab B generates distinct logs
 - No cross-contamination
 
 **Code Evidence:** `extension/background.js`
+
 ```javascript
 // Lines 10-12
 // Index for fast O(1) lookup by tabId to prevent race conditions
@@ -213,9 +229,10 @@ if (capturesByTab.has(tabId)) {
 **Test Evidence:** Implied by code review
 
 **Code Evidence:** `extension/background.js`
+
 ```javascript
 // Line 343
-mayDisable: extension.mayDisable  // ← ALSO UNDOCUMENTED!
+mayDisable: extension.mayDisable; // ← ALSO UNDOCUMENTED!
 ```
 
 **Status:** ✅ **VERIFIED** - Additional undocumented field
@@ -228,6 +245,7 @@ mayDisable: extension.mayDisable  // ← ALSO UNDOCUMENTED!
 ### 8. ⚠️ Deep Object Nesting (100 Levels)
 
 **Test Evidence:** `tests/fixtures/edge-deep-object.html`
+
 ```javascript
 // Creates 100-level deep object
 for (let i = 1; i < 100; i++) {
@@ -240,6 +258,7 @@ console.log(obj);
 **Code Evidence:** No special handling in our code
 
 **Analysis:** This works because:
+
 1. Chrome's DevTools console handles deep objects natively
 2. Our code uses `safeStringify()` which will serialize it
 3. No explicit depth limit in our code
@@ -252,6 +271,7 @@ console.log(obj);
 ### 9. ⚠️ Special Character Encoding (Unicode/Emoji)
 
 **Test Evidence:** `tests/fixtures/edge-special-chars.html`
+
 ```javascript
 console.log('Unicode: 你好🌍💻');
 console.log('Emoji: 🔥💯✅❌⚠️');
@@ -260,6 +280,7 @@ console.log('Emoji: 🔥💯✅❌⚠️');
 **Code Evidence:** No special handling
 
 **Analysis:** JavaScript strings are UTF-16 by default
+
 - Chrome console captures these natively
 - JSON.stringify handles Unicode correctly
 - We don't need special code for this
@@ -272,6 +293,7 @@ console.log('Emoji: 🔥💯✅❌⚠️');
 ### 10. ⚠️ Undefined/Null Handling
 
 **Test Evidence:** `tests/fixtures/edge-undefined-null.html`
+
 ```javascript
 console.log(undefined);
 console.log(null);
@@ -280,6 +302,7 @@ console.log(null);
 **Code Evidence:** No special handling
 
 **Analysis:**
+
 - Chrome console captures these natively
 - JSON.stringify handles null (converts undefined to null in objects)
 - Standard JavaScript behavior
@@ -292,15 +315,18 @@ console.log(null);
 ### 11. ⚠️ Error Type Preservation
 
 **Test Evidence:** `tests/fixtures/console-errors-test.html`
+
 ```javascript
-undefinedVariable.someProperty;  // ReferenceError
-const obj = null; obj.property;  // TypeError
-throw new Error('test');          // Error
+undefinedVariable.someProperty; // ReferenceError
+const obj = null;
+obj.property; // TypeError
+throw new Error('test'); // Error
 ```
 
 **Code Evidence:** Console captures error messages
 
 **Analysis:**
+
 - Chrome DevTools captures error type and message
 - Our code captures the `message.message` field (line 695)
 - Error type information comes from Chrome, not our code
@@ -313,6 +339,7 @@ throw new Error('test');          // Error
 ### 12. ⚠️ Rapid Log Performance
 
 **Test Evidence:** `tests/fixtures/edge-rapid-logs.html`
+
 ```javascript
 for (let i = 0; i < 100; i++) {
   console.log(`Rapid log ${i}`);
@@ -322,6 +349,7 @@ for (let i = 0; i < 100; i++) {
 **Code Evidence:** No special handling
 
 **Analysis:**
+
 - Uses dual-index Map for O(1) lookups (line 10-12)
 - No rate limiting or queuing
 - Performance comes from efficient data structures
@@ -335,15 +363,15 @@ for (let i = 0; i < 100; i++) {
 
 ### ✅ OUR CODE - Features We Implement (7 features)
 
-| Feature | Location | Line | Documented? |
-|---------|----------|------|-------------|
-| 10K log limit | background.js | 15, 728-744 | ⚠️ Partial |
-| 10K char truncation | background.js | 687-691 | ⚠️ Partial |
-| installType field | background.js | 342 | ❌ **NO** |
-| mayDisable field | background.js | 343 | ❌ **NO** |
-| Circular ref handling | background.js | 355-371 | ❌ **NO** |
-| Log level preservation | background.js | 694 | ⚠️ Partial |
-| Tab isolation | background.js | 10-12, 584-589 | ⚠️ Partial |
+| Feature                | Location      | Line           | Documented? |
+| ---------------------- | ------------- | -------------- | ----------- |
+| 10K log limit          | background.js | 15, 728-744    | ⚠️ Partial  |
+| 10K char truncation    | background.js | 687-691        | ⚠️ Partial  |
+| installType field      | background.js | 342            | ❌ **NO**   |
+| mayDisable field       | background.js | 343            | ❌ **NO**   |
+| Circular ref handling  | background.js | 355-371        | ❌ **NO**   |
+| Log level preservation | background.js | 694            | ⚠️ Partial  |
+| Tab isolation          | background.js | 10-12, 584-589 | ⚠️ Partial  |
 
 **Documentation Gap:** 3/7 completely undocumented, 4/7 partially documented
 
@@ -351,13 +379,13 @@ for (let i = 0; i < 100; i++) {
 
 ### ⚠️ CHROME/JAVASCRIPT - Native Features (5 features)
 
-| Feature | Provided By | Our Involvement |
-|---------|-------------|-----------------|
-| Deep nesting (100 levels) | Chrome DevTools | We serialize it |
-| Unicode/emoji | JavaScript UTF-16 | We pass it through |
-| Undefined/null | JavaScript | We pass it through |
-| Error types | Chrome DevTools | We capture message |
-| Rapid log perf | Our dual-index architecture | O(1) lookups |
+| Feature                   | Provided By                 | Our Involvement    |
+| ------------------------- | --------------------------- | ------------------ |
+| Deep nesting (100 levels) | Chrome DevTools             | We serialize it    |
+| Unicode/emoji             | JavaScript UTF-16           | We pass it through |
+| Undefined/null            | JavaScript                  | We pass it through |
+| Error types               | Chrome DevTools             | We capture message |
+| Rapid log perf            | Our dual-index architecture | O(1) lookups       |
 
 **Note:** These work but aren't features we explicitly implement
 
@@ -370,6 +398,7 @@ for (let i = 0; i < 100; i++) {
 #### 1. Missing Return Fields
 
 **getExtensionInfo() returns:**
+
 ```javascript
 {
   id: string,
@@ -390,6 +419,7 @@ for (let i = 0; i < 100; i++) {
 ## Limitations
 
 ### Log Capture Limits
+
 - **Maximum logs per capture:** 10,000 logs
   - When limit reached, a warning log is added
   - Further logs are silently dropped
@@ -399,30 +429,38 @@ for (let i = 0; i < 100; i++) {
   - Truncated messages have `... [truncated]` appended
 
 ### Purpose
+
 These limits prevent memory exhaustion from:
+
 - Pages with excessive console output
 - Very long error messages or stringified objects
 ```
 
 #### 3. Advanced Features Section
 
-```markdown
+````markdown
 ## Advanced Features
 
 ### Circular Reference Handling
+
 Console logs with circular references are automatically handled:
+
 ```javascript
 const obj = { name: 'parent' };
-obj.self = obj;  // Circular reference
-console.log(obj);  // Captured as: { name: 'parent', self: '[Circular]' }
+obj.self = obj; // Circular reference
+console.log(obj); // Captured as: { name: 'parent', self: '[Circular]' }
 ```
+````
 
 ### Log Level Preservation
+
 All console output levels are preserved:
+
 - `console.log()` → level: 'log'
 - `console.warn()` → level: 'warn'
 - `console.error()` → level: 'error'
-```
+
+````
 
 #### 4. Performance Characteristics
 
@@ -438,7 +476,7 @@ This enables:
 - Fast log routing (O(1) per log)
 - No performance degradation with multiple tabs
 - No cross-contamination between tabs
-```
+````
 
 ---
 
@@ -447,6 +485,7 @@ This enables:
 **Features Discovered from Tests:** 12 total
 
 **Actually Implemented by Us:** 7
+
 - ✅ 10K log limit
 - ✅ 10K char truncation
 - ✅ installType field
@@ -456,6 +495,7 @@ This enables:
 - ✅ Tab isolation (dual-index)
 
 **Native Chrome/JavaScript:** 5
+
 - ⚠️ Deep nesting (Chrome handles)
 - ⚠️ Unicode/emoji (JavaScript standard)
 - ⚠️ Undefined/null (JavaScript standard)
@@ -463,6 +503,7 @@ This enables:
 - ⚠️ Rapid log performance (our architecture enables it)
 
 **Documentation Status:**
+
 - **3/7 completely undocumented** (installType, mayDisable, circular refs)
 - **4/7 partially documented** (limits, log levels, tab isolation)
 
@@ -471,4 +512,3 @@ This enables:
 **Verification Complete:** 2025-10-26
 **Method:** Cross-referenced test files with actual code
 **Confidence:** 100% - All claims verified by reading actual implementation
-

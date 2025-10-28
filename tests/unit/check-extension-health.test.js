@@ -21,24 +21,20 @@ describe('check-extension-health.js logic', () => {
     test('should pass when all checks succeed', async () => {
       // Mock successful responses
       chromeDevAssist.getAllExtensions.mockResolvedValueOnce({
-        extensions: [
-          { id: 'test123', name: 'Test Extension' }
-        ],
-        count: 1
+        extensions: [{ id: 'test123', name: 'Test Extension' }],
+        count: 1,
       });
 
       chromeDevAssist.getExtensionInfo.mockResolvedValueOnce({
         id: 'gnojocphflllgichkehjhkojkihcihfn',
         name: 'Chrome Dev Assist',
         version: '1.0.0',
-        enabled: true
+        enabled: true,
       });
 
       chromeDevAssist.getAllExtensions.mockResolvedValueOnce({
-        extensions: [
-          { id: 'test123', name: 'Test Extension' }
-        ],
-        count: 1
+        extensions: [{ id: 'test123', name: 'Test Extension' }],
+        count: 1,
       });
 
       // Simulate health check logic
@@ -64,9 +60,7 @@ describe('check-extension-health.js logic', () => {
     });
 
     test('should fail when server not responding', async () => {
-      chromeDevAssist.getAllExtensions.mockRejectedValueOnce(
-        new Error('Extension not connected')
-      );
+      chromeDevAssist.getAllExtensions.mockRejectedValueOnce(new Error('Extension not connected'));
 
       let healthCheckPassed = true;
 
@@ -84,13 +78,11 @@ describe('check-extension-health.js logic', () => {
       // Server running
       chromeDevAssist.getAllExtensions.mockResolvedValueOnce({
         extensions: [],
-        count: 0
+        count: 0,
       });
 
       // Extension not found
-      chromeDevAssist.getExtensionInfo.mockRejectedValueOnce(
-        new Error('Extension not found')
-      );
+      chromeDevAssist.getExtensionInfo.mockRejectedValueOnce(new Error('Extension not found'));
 
       let healthCheckPassed = true;
 
@@ -108,8 +100,8 @@ describe('check-extension-health.js logic', () => {
     test('should timeout if server too slow', async () => {
       const TIMEOUT_MS = 100;
 
-      chromeDevAssist.getAllExtensions.mockImplementation(() =>
-        new Promise((resolve) => setTimeout(resolve, 200))
+      chromeDevAssist.getAllExtensions.mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 200))
       );
 
       let timedOut = false;
@@ -117,9 +109,7 @@ describe('check-extension-health.js logic', () => {
       try {
         await Promise.race([
           chromeDevAssist.getAllExtensions(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)
-          )
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS)),
         ]);
       } catch (err) {
         timedOut = err.message === 'Timeout';
@@ -136,7 +126,7 @@ describe('check-extension-health.js logic', () => {
         name: 'Chrome Dev Assist',
         version: '1.0.0',
         enabled: true,
-        description: 'Test extension'
+        description: 'Test extension',
       };
 
       chromeDevAssist.getExtensionInfo.mockResolvedValueOnce(mockInfo);
@@ -155,7 +145,7 @@ describe('check-extension-health.js logic', () => {
         id: 'gnojocphflllgichkehjhkojkihcihfn',
         name: 'Chrome Dev Assist',
         version: '1.0.0',
-        enabled: false
+        enabled: false,
       });
 
       const info = await chromeDevAssist.getExtensionInfo('gnojocphflllgichkehjhkojkihcihfn');
@@ -170,9 +160,9 @@ describe('check-extension-health.js logic', () => {
       const mockResponse = {
         extensions: [
           { id: 'ext1', name: 'Extension 1' },
-          { id: 'ext2', name: 'Extension 2' }
+          { id: 'ext2', name: 'Extension 2' },
         ],
-        count: 2
+        count: 2,
       };
 
       chromeDevAssist.getAllExtensions.mockResolvedValueOnce(mockResponse);
@@ -188,7 +178,7 @@ describe('check-extension-health.js logic', () => {
     test('should handle empty extension list', async () => {
       chromeDevAssist.getAllExtensions.mockResolvedValueOnce({
         extensions: [],
-        count: 0
+        count: 0,
       });
 
       const result = await chromeDevAssist.getAllExtensions();
@@ -200,9 +190,7 @@ describe('check-extension-health.js logic', () => {
 
   describe('Error messages', () => {
     test('should provide helpful error for connection failure', async () => {
-      chromeDevAssist.getAllExtensions.mockRejectedValueOnce(
-        new Error('Extension not connected')
-      );
+      chromeDevAssist.getAllExtensions.mockRejectedValueOnce(new Error('Extension not connected'));
 
       try {
         await chromeDevAssist.getAllExtensions();
@@ -214,9 +202,7 @@ describe('check-extension-health.js logic', () => {
     });
 
     test('should provide helpful error for extension not found', async () => {
-      chromeDevAssist.getExtensionInfo.mockRejectedValueOnce(
-        new Error('Extension ID not found')
-      );
+      chromeDevAssist.getExtensionInfo.mockRejectedValueOnce(new Error('Extension ID not found'));
 
       try {
         await chromeDevAssist.getExtensionInfo('invalid-id');
@@ -252,11 +238,7 @@ describe('check-extension-health.js logic', () => {
 
       await chromeDevAssist.getAllExtensions(); // Check 3: API
 
-      expect(callOrder).toEqual([
-        'getAllExtensions-1',
-        'getExtensionInfo',
-        'getAllExtensions-2'
-      ]);
+      expect(callOrder).toEqual(['getAllExtensions-1', 'getExtensionInfo', 'getAllExtensions-2']);
     });
 
     test('should stop at first failure', async () => {

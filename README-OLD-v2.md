@@ -74,11 +74,13 @@ result.consoleLogs.forEach(log => {
 Reload an extension and capture console logs.
 
 **Parameters:**
+
 - `extensionId` (string): Chrome extension ID (32 characters)
 - `options` (object, optional):
   - `duration` (number): Console capture duration in milliseconds (default: 5000)
 
 **Returns:** Promise<Object>
+
 ```javascript
 {
   extensionId: string,
@@ -98,9 +100,10 @@ Reload an extension and capture console logs.
 ```
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.reloadAndCapture('abcdefghijklmnop', {
-  duration: 3000  // Capture for 3 seconds
+  duration: 3000, // Capture for 3 seconds
 });
 ```
 
@@ -109,9 +112,11 @@ const result = await chromeDevAssist.reloadAndCapture('abcdefghijklmnop', {
 Reload an extension without capturing console logs.
 
 **Parameters:**
+
 - `extensionId` (string): Chrome extension ID
 
 **Returns:** Promise<Object>
+
 ```javascript
 {
   extensionId: string,
@@ -121,6 +126,7 @@ Reload an extension without capturing console logs.
 ```
 
 **Example:**
+
 ```javascript
 await chromeDevAssist.reload('abcdefghijklmnop');
 ```
@@ -130,9 +136,11 @@ await chromeDevAssist.reload('abcdefghijklmnop');
 Capture console logs without reloading any extension.
 
 **Parameters:**
+
 - `duration` (number, optional): Capture duration in milliseconds (default: 5000)
 
 **Returns:** Promise<Object>
+
 ```javascript
 {
   consoleLogs: [...]
@@ -140,6 +148,7 @@ Capture console logs without reloading any extension.
 ```
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.captureLogs(10000); // 10 seconds
 console.log(result.consoleLogs);
@@ -279,7 +288,8 @@ npm test
 ```javascript
 const chromeDevAssist = require('./claude-code/index.js');
 
-chromeDevAssist.reloadAndCapture('your-extension-id')
+chromeDevAssist
+  .reloadAndCapture('your-extension-id')
   .then(result => console.log(result))
   .catch(err => console.error(err));
 ```

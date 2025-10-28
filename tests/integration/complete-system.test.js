@@ -33,7 +33,6 @@ const EXTENSION_ID = process.env.EXTENSION_ID || 'gnojocphflllgichkehjhkojkihcih
 const FIXTURE_BASE = 'http://localhost:9876/fixtures';
 
 describe('Complete System Integration Tests', () => {
-
   // Increase timeout for real browser operations
   jest.setTimeout(60000);
 
@@ -74,9 +73,7 @@ describe('Complete System Integration Tests', () => {
     });
 
     test('should reject invalid extension ID', async () => {
-      await expect(
-        chromeDevAssist.getExtensionInfo('invalid-id')
-      ).rejects.toThrow(/32 characters/);
+      await expect(chromeDevAssist.getExtensionInfo('invalid-id')).rejects.toThrow(/32 characters/);
     });
   });
 
@@ -133,7 +130,6 @@ describe('Complete System Integration Tests', () => {
         // Verify enabled
         const infoEnabled = await chromeDevAssist.getExtensionInfo(EXTENSION_ID);
         expect(infoEnabled.enabled).toBe(true);
-
       } finally {
         // Restore original state
         if (wasEnabled) {
@@ -170,7 +166,6 @@ describe('Complete System Integration Tests', () => {
         // Verify restored
         const infoRestored = await chromeDevAssist.getExtensionInfo(EXTENSION_ID);
         expect(infoRestored.enabled).toBe(initialState);
-
       } finally {
         // Ensure it's enabled at the end
         if (!initialState) {
@@ -180,17 +175,11 @@ describe('Complete System Integration Tests', () => {
     });
 
     test('should reject invalid extension ID for enable/disable', async () => {
-      await expect(
-        chromeDevAssist.enableExtension('invalid-id')
-      ).rejects.toThrow(/32 characters/);
+      await expect(chromeDevAssist.enableExtension('invalid-id')).rejects.toThrow(/32 characters/);
 
-      await expect(
-        chromeDevAssist.disableExtension('invalid-id')
-      ).rejects.toThrow(/32 characters/);
+      await expect(chromeDevAssist.disableExtension('invalid-id')).rejects.toThrow(/32 characters/);
 
-      await expect(
-        chromeDevAssist.toggleExtension('invalid-id')
-      ).rejects.toThrow(/32 characters/);
+      await expect(chromeDevAssist.toggleExtension('invalid-id')).rejects.toThrow(/32 characters/);
     });
   });
 
@@ -207,7 +196,7 @@ describe('Complete System Integration Tests', () => {
 
     test('should reload extension WITH console capture', async () => {
       const result = await chromeDevAssist.reloadAndCapture(EXTENSION_ID, {
-        duration: 2000
+        duration: 2000,
       });
 
       expect(result).toHaveProperty('extensionId', EXTENSION_ID);
@@ -246,13 +235,9 @@ describe('Complete System Integration Tests', () => {
     });
 
     test('should reject invalid duration', async () => {
-      await expect(
-        chromeDevAssist.captureLogs(0)
-      ).rejects.toThrow(/Duration must be between/);
+      await expect(chromeDevAssist.captureLogs(0)).rejects.toThrow(/Duration must be between/);
 
-      await expect(
-        chromeDevAssist.captureLogs(70000)
-      ).rejects.toThrow(/Duration must be between/);
+      await expect(chromeDevAssist.captureLogs(70000)).rejects.toThrow(/Duration must be between/);
     });
   });
 
@@ -273,7 +258,7 @@ describe('Complete System Integration Tests', () => {
 
     test('should open URL in new tab', async () => {
       const result = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
 
       testTabId = result.tabId;
@@ -288,7 +273,7 @@ describe('Complete System Integration Tests', () => {
       const result = await chromeDevAssist.openUrl('https://example.com', {
         active: false,
         captureConsole: true,
-        duration: 2000
+        duration: 2000,
       });
 
       testTabId = result.tabId;
@@ -303,7 +288,7 @@ describe('Complete System Integration Tests', () => {
         active: false,
         captureConsole: true,
         duration: 2000,
-        autoClose: true
+        autoClose: true,
       });
 
       // Tab should be closed automatically
@@ -316,7 +301,7 @@ describe('Complete System Integration Tests', () => {
     test('should reload tab', async () => {
       // First, open a tab
       const openResult = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       testTabId = openResult.tabId;
 
@@ -327,7 +312,7 @@ describe('Complete System Integration Tests', () => {
       const reloadResult = await chromeDevAssist.reloadTab(testTabId, {
         bypassCache: false,
         captureConsole: true,
-        duration: 2000
+        duration: 2000,
       });
 
       expect(reloadResult).toHaveProperty('tabId', testTabId);
@@ -338,7 +323,7 @@ describe('Complete System Integration Tests', () => {
     test('should close tab', async () => {
       // Open a tab
       const openResult = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       const tabId = openResult.tabId;
 
@@ -352,13 +337,9 @@ describe('Complete System Integration Tests', () => {
     });
 
     test('should reject invalid tab ID', async () => {
-      await expect(
-        chromeDevAssist.closeTab(-1)
-      ).rejects.toThrow(/positive number/);
+      await expect(chromeDevAssist.closeTab(-1)).rejects.toThrow(/positive number/);
 
-      await expect(
-        chromeDevAssist.closeTab(0)
-      ).rejects.toThrow(/positive number/);
+      await expect(chromeDevAssist.closeTab(0)).rejects.toThrow(/positive number/);
     });
   });
 
@@ -378,10 +359,9 @@ describe('Complete System Integration Tests', () => {
 
     test('should extract metadata from test page', async () => {
       // Open test fixture with metadata
-      const openResult = await chromeDevAssist.openUrl(
-        `${FIXTURE_BASE}/metadata-test.html`,
-        { active: false }
-      );
+      const openResult = await chromeDevAssist.openUrl(`${FIXTURE_BASE}/metadata-test.html`, {
+        active: false,
+      });
       testTabId = openResult.tabId;
 
       // Wait for page to load
@@ -398,10 +378,9 @@ describe('Complete System Integration Tests', () => {
     });
 
     test('should handle page with no metadata gracefully', async () => {
-      const openResult = await chromeDevAssist.openUrl(
-        `${FIXTURE_BASE}/metadata-minimal.html`,
-        { active: false }
-      );
+      const openResult = await chromeDevAssist.openUrl(`${FIXTURE_BASE}/metadata-minimal.html`, {
+        active: false,
+      });
       testTabId = openResult.tabId;
 
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -414,9 +393,7 @@ describe('Complete System Integration Tests', () => {
     });
 
     test('should reject invalid tab ID', async () => {
-      await expect(
-        chromeDevAssist.getPageMetadata(999999)
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.getPageMetadata(999999)).rejects.toThrow();
     });
   });
 
@@ -440,7 +417,7 @@ describe('Complete System Integration Tests', () => {
 
       // Start test
       const startResult = await chromeDevAssist.startTest(testId, {
-        autoCleanup: true
+        autoCleanup: true,
       });
 
       expect(startResult).toHaveProperty('testId', testId);
@@ -474,10 +451,10 @@ describe('Complete System Integration Tests', () => {
 
       // Open tabs during test (should be auto-tracked)
       const tab1 = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       const tab2 = await chromeDevAssist.openUrl('https://example.org', {
-        active: false
+        active: false,
       });
 
       // Check status
@@ -523,9 +500,7 @@ describe('Complete System Integration Tests', () => {
       await chromeDevAssist.startTest(testId);
 
       // Try to start another test
-      await expect(
-        chromeDevAssist.startTest('another-test')
-      ).rejects.toThrow(/already running/);
+      await expect(chromeDevAssist.startTest('another-test')).rejects.toThrow(/already running/);
 
       // Cleanup
       await chromeDevAssist.endTest(testId);
@@ -539,10 +514,10 @@ describe('Complete System Integration Tests', () => {
 
       // Open tabs
       const tab1 = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       const tab2 = await chromeDevAssist.openUrl('https://example.org', {
-        active: false
+        active: false,
       });
 
       const trackedTabs = [tab1.tabId, tab2.tabId];
@@ -552,7 +527,7 @@ describe('Complete System Integration Tests', () => {
 
       // Verify cleanup
       const verifyResult = await chromeDevAssist.verifyCleanup({
-        expectedClosedTabs: trackedTabs
+        expectedClosedTabs: trackedTabs,
       });
 
       expect(verifyResult).toHaveProperty('verified');
@@ -574,7 +549,7 @@ describe('Complete System Integration Tests', () => {
       // Scenario: Developer reloads extension and checks for errors
 
       const result = await chromeDevAssist.reloadAndCapture(EXTENSION_ID, {
-        duration: 3000
+        duration: 3000,
       });
 
       expect(result.reloadSuccess).toBe(true);
@@ -602,14 +577,11 @@ describe('Complete System Integration Tests', () => {
         await chromeDevAssist.startTest(testId);
 
         // Open test fixture
-        const openResult = await chromeDevAssist.openUrl(
-          `${FIXTURE_BASE}/metadata-test.html`,
-          {
-            active: false,
-            captureConsole: true,
-            duration: 2000
-          }
-        );
+        const openResult = await chromeDevAssist.openUrl(`${FIXTURE_BASE}/metadata-test.html`, {
+          active: false,
+          captureConsole: true,
+          duration: 2000,
+        });
 
         expect(openResult.tabId).toBeGreaterThan(0);
 
@@ -630,7 +602,6 @@ describe('Complete System Integration Tests', () => {
 
         expect(endResult.cleanup.cleanupSuccess).toBe(true);
         expect(endResult.cleanup.tabsClosed).toContain(openResult.tabId);
-
       } catch (err) {
         // Cleanup on error
         await chromeDevAssist.abortTest(testId, err.message);
@@ -647,18 +618,14 @@ describe('Complete System Integration Tests', () => {
         await chromeDevAssist.startTest(testId, { autoCleanup: true });
 
         // Open multiple tabs
-        const urls = [
-          'https://example.com',
-          'https://example.org',
-          'https://example.net'
-        ];
+        const urls = ['https://example.com', 'https://example.org', 'https://example.net'];
 
         const tabs = [];
         for (const url of urls) {
           const result = await chromeDevAssist.openUrl(url, {
             active: false,
             captureConsole: true,
-            duration: 1000
+            duration: 1000,
           });
           tabs.push(result);
         }
@@ -676,7 +643,6 @@ describe('Complete System Integration Tests', () => {
 
         expect(endResult.cleanup.tabsClosed.length).toBe(3);
         expect(endResult.cleanup.cleanupSuccess).toBe(true);
-
       } catch (err) {
         await chromeDevAssist.abortTest(testId, err.message);
         throw err;
@@ -713,22 +679,18 @@ describe('Complete System Integration Tests', () => {
     }, 35000);
 
     test('should handle invalid URLs', async () => {
-      await expect(
-        chromeDevAssist.openUrl('not-a-valid-url')
-      ).rejects.toThrow(/Invalid URL/);
+      await expect(chromeDevAssist.openUrl('not-a-valid-url')).rejects.toThrow(/Invalid URL/);
     });
 
     test('should reject dangerous URL protocols', async () => {
       const dangerousUrls = [
         'javascript:alert(1)',
         'data:text/html,<script>alert(1)</script>',
-        'file:///etc/passwd'
+        'file:///etc/passwd',
       ];
 
       for (const url of dangerousUrls) {
-        await expect(
-          chromeDevAssist.openUrl(url)
-        ).rejects.toThrow();
+        await expect(chromeDevAssist.openUrl(url)).rejects.toThrow();
       }
     });
   });

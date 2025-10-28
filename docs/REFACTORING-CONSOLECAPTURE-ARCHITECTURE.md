@@ -11,11 +11,13 @@
 **Goal:** Replace inline console capture logic in background.js with ConsoleCapture.js class
 
 **Current State:**
+
 - Inline implementation: extension/background.js:687-744 (~200 lines mixed with WebSocket)
 - Class implementation: extension/modules/ConsoleCapture.js (250 lines, unused)
 - **Problem:** Duplication, hard to test, mixed concerns
 
 **Target State:**
+
 - ConsoleCapture.js: Used by background.js
 - background.js: Delegates to ConsoleCapture.js
 - **Benefits:** No duplication, testable, clean separation of concerns
@@ -51,9 +53,10 @@ Return logs via WebSocket to API
 **File:** extension/background.js
 
 **Data Structures (lines 10-12):**
+
 ```javascript
-const captureState = new Map();      // Map<commandId, state>
-const capturesByTab = new Map();     // Map<tabId, Set<commandId>>
+const captureState = new Map(); // Map<commandId, state>
+const capturesByTab = new Map(); // Map<tabId, Set<commandId>>
 ```
 
 **Key Functions/Sections:**
@@ -87,11 +90,12 @@ const capturesByTab = new Map();     // Map<tabId, Set<commandId>>
    - Returns logs array
 
 **Constants:**
+
 ```javascript
-MAX_LOGS_PER_CAPTURE = 10000
-MAX_MESSAGE_LENGTH = 10000
-CLEANUP_INTERVAL_MS = 60000
-MAX_CAPTURE_AGE_MS = 300000
+MAX_LOGS_PER_CAPTURE = 10000;
+MAX_MESSAGE_LENGTH = 10000;
+CLEANUP_INTERVAL_MS = 60000;
+MAX_CAPTURE_AGE_MS = 300000;
 ```
 
 ### 1.3 ConsoleCapture.js Class Architecture
@@ -99,6 +103,7 @@ MAX_CAPTURE_AGE_MS = 300000
 **File:** extension/modules/ConsoleCapture.js (250 lines)
 
 **Class API:**
+
 ```javascript
 class ConsoleCapture {
   constructor()
@@ -123,6 +128,7 @@ class ConsoleCapture {
 ```
 
 **Internal Data Structures:**
+
 ```javascript
 this.captures = new Map();        // Map<captureId, CaptureState>
 this.capturesByTab = new Map();   // Map<tabId, Set<captureId>>
@@ -141,6 +147,7 @@ this.capturesByTab = new Map();   // Map<tabId, Set<captureId>>
 ```
 
 **Key Features:**
+
 - ✅ Same dual-index pattern (O(1) lookups)
 - ✅ Same 10K log limit enforcement
 - ✅ Same periodic cleanup capability
@@ -202,6 +209,7 @@ this.capturesByTab = new Map();   // Map<tabId, Set<captureId>>
    - Add HTML test fixtures
 
 **External systems (NO CHANGE):**
+
 - inject-console-capture.js (MAIN world) - no changes
 - content-script.js (ISOLATED world relay) - no changes
 - claude-code/index.js (API) - no changes
@@ -210,6 +218,7 @@ this.capturesByTab = new Map();   // Map<tabId, Set<captureId>>
 ### 2.3 API Surface (No Breaking Changes)
 
 **Public APIs (MUST stay identical):**
+
 - `reloadAndCapture(extensionId, options)` - Still works
 - `captureLogs(duration)` - Still works
 - `openUrl(url, { captureConsole: true })` - Still works
@@ -263,7 +272,7 @@ function startConsoleCapture(commandId, options) {
   consoleCapture.start(commandId, {
     tabId: options.tabId || null,
     duration: options.duration,
-    maxLogs: MAX_LOGS_PER_CAPTURE
+    maxLogs: MAX_LOGS_PER_CAPTURE,
   });
 
   // Auto-stop after duration
@@ -279,10 +288,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'console-log') {
     // Truncate message (keep defense-in-depth)
     let truncatedMessage = message.message;
-    if (typeof message.message === 'string' &&
-        message.message.length > MAX_MESSAGE_LENGTH) {
-      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) +
-                         '... [truncated]';
+    if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_LENGTH) {
+      truncatedMessage = message.message.substring(0, MAX_MESSAGE_LENGTH) + '... [truncated]';
     }
 
     const logEntry = {
@@ -292,7 +299,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       source: message.source || 'unknown',
       url: sender.url || 'unknown',
       tabId: sender.tab.id,
-      frameId: sender.frameId
+      frameId: sender.frameId,
     };
 
     // Delegate to ConsoleCapture
@@ -405,41 +412,49 @@ function cleanupConsoleCapture(commandId) {
 ### 5.1 Risks
 
 **Risk 1: Breaking existing functionality**
+
 - Severity: HIGH
 - Probability: MEDIUM
 - Impact: Console capture stops working
 
 Mitigation:
+
 - ✅ Test-first approach (write tests before changing code)
 - ✅ Run tests continuously
 - ✅ Manual testing with extension loaded
 - ✅ Small, incremental changes
 
 **Risk 2: Performance regression**
+
 - Severity: MEDIUM
 - Probability: LOW (ConsoleCapture uses same algorithm)
 - Impact: Slower console capture
 
 Mitigation:
+
 - ✅ ConsoleCapture already optimized (O(1) lookups)
 - ✅ Benchmark if needed (before/after)
 
 **Risk 3: Missing edge cases**
+
 - Severity: MEDIUM
 - Probability: MEDIUM
 - Impact: Some scenarios fail
 
 Mitigation:
+
 - ✅ Comprehensive test suite
 - ✅ HTML test fixtures (edge cases)
 - ✅ Multi-persona review (/review)
 
 **Risk 4: ConsoleCapture class missing features**
+
 - Severity: HIGH
 - Probability: LOW (already analyzed, seems complete)
 - Impact: Need to add features to class
 
 Mitigation:
+
 - ✅ Read ConsoleCapture.js before starting (next step)
 - ✅ Verify feature parity
 - ✅ Add missing features to class first
@@ -447,17 +462,20 @@ Mitigation:
 ### 5.2 Success Criteria
 
 **Functional:**
+
 - ✅ All existing console capture tests pass
 - ✅ No regressions in console log capture
 - ✅ Same behavior from user perspective
 
 **Code Quality:**
+
 - ✅ No inline console capture logic in background.js
 - ✅ ConsoleCapture.js is the single source of truth
 - ✅ Testable (can test ConsoleCapture in isolation)
 - ✅ Clean separation of concerns
 
 **Process:**
+
 - ✅ /validate passes
 - ✅ /review passes (multi-persona)
 - ✅ All tests green
@@ -488,23 +506,26 @@ Mitigation:
    - Confirm approach
    - Get go-ahead
 
-**Then (implementation):**
-5. Execute migration sequence (Phase 3-5)
+**Then (implementation):** 5. Execute migration sequence (Phase 3-5)
 
 ---
 
 ## PART 7: Open Questions
 
 **Question 1:** Does ConsoleCapture.js support tabId: null for global captures?
+
 - **Action:** Read ConsoleCapture.js to verify
 
 **Question 2:** Are there any tests for ConsoleCapture.js already?
+
 - **Action:** Check tests/unit/ for console-capture or ConsoleCapture tests
 
 **Question 3:** What's the exact line-by-line mapping of inline → class methods?
+
 - **Action:** Create detailed function mapping (next document)
 
 **Question 4:** Should we add any NEW features while refactoring?
+
 - **Recommendation:** NO - refactor only, features later (scope discipline)
 
 ---

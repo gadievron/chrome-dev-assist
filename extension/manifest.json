@@ -4,16 +4,9 @@
   "version": "1.0.0",
   "description": "Automated testing assistant for Chrome extension development",
 
-  "permissions": [
-    "management",
-    "storage",
-    "scripting",
-    "tabs"
-  ],
+  "permissions": ["management", "storage", "scripting", "tabs"],
 
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
 
   "background": {
     "service_worker": "background.js"

@@ -53,7 +53,7 @@ describe('ErrorLogger', () => {
         expect.objectContaining({
           context: 'closeTab',
           message: 'Tab not found',
-          errorMessage: 'No tab with id: 999999'
+          errorMessage: 'No tab with id: 999999',
         })
       );
     });
@@ -82,7 +82,7 @@ describe('ErrorLogger', () => {
           context: 'websocket',
           errorType: 'Error',
           errorMessage: 'Connection failed',
-          errorCode: 'ECONNREFUSED'
+          errorCode: 'ECONNREFUSED',
         })
       );
     });
@@ -95,7 +95,7 @@ describe('ErrorLogger', () => {
         expect.any(String),
         expect.objectContaining({
           context: 'test',
-          message: 'No error object'
+          message: 'No error object',
         })
       );
     });
@@ -119,13 +119,15 @@ describe('ErrorLogger', () => {
 
       const result = ErrorLogger.logExpectedError('test', 'Test message', error);
 
-      expect(result).toEqual(expect.objectContaining({
-        context: 'test',
-        message: 'Test message',
-        errorType: 'Error',
-        errorMessage: 'Test error',
-        timestamp: expect.any(String)
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          context: 'test',
+          message: 'Test message',
+          errorType: 'Error',
+          errorMessage: 'Test error',
+          timestamp: expect.any(String),
+        })
+      );
     });
   });
 
@@ -150,7 +152,7 @@ describe('ErrorLogger', () => {
         expect.objectContaining({
           context: 'safeSend',
           message: 'Null WebSocket',
-          errorMessage: 'WebSocket is null'
+          errorMessage: 'WebSocket is null',
         })
       );
     });
@@ -171,13 +173,15 @@ describe('ErrorLogger', () => {
 
       const result = ErrorLogger.logUnexpectedError('stateCheck', 'Invalid state', error);
 
-      expect(result).toEqual(expect.objectContaining({
-        context: 'stateCheck',
-        message: 'Invalid state',
-        errorType: 'Error',
-        errorMessage: 'Unexpected state',
-        timestamp: expect.any(String)
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          context: 'stateCheck',
+          message: 'Invalid state',
+          errorType: 'Error',
+          errorMessage: 'Unexpected state',
+          timestamp: expect.any(String),
+        })
+      );
     });
   });
 
@@ -203,11 +207,7 @@ describe('ErrorLogger', () => {
     it('should handle missing data parameter', () => {
       ErrorLogger.logInfo('test', 'Simple message');
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        '[ChromeDevAssist] test:',
-        'Simple message',
-        ''
-      );
+      expect(consoleLogSpy).toHaveBeenCalledWith('[ChromeDevAssist] test:', 'Simple message', '');
     });
   });
 
@@ -225,11 +225,13 @@ describe('ErrorLogger', () => {
 
       const result = ErrorLogger.logCritical('crash', 'Unrecoverable', error);
 
-      expect(result).toEqual(expect.objectContaining({
-        context: 'crash',
-        message: 'Unrecoverable',
-        errorMessage: 'Fatal error'
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          context: 'crash',
+          message: 'Unrecoverable',
+          errorMessage: 'Fatal error',
+        })
+      );
     });
   });
 
@@ -237,10 +239,18 @@ describe('ErrorLogger', () => {
     it('should NEVER use console.error for expected errors', () => {
       // These are all EXPECTED errors that should use console.warn
       const expectedErrors = [
-        { context: 'tabCleanup', message: 'Tab already closed', error: new Error('No tab with id') },
+        {
+          context: 'tabCleanup',
+          message: 'Tab already closed',
+          error: new Error('No tab with id'),
+        },
         { context: 'queueOverflow', message: 'Queue full', error: new Error('Max queue size') },
         { context: 'sendFailed', message: 'Send failed', error: new Error('WebSocket closed') },
-        { context: 'connectionTimeout', message: 'Timeout', error: new Error('Connection timeout') }
+        {
+          context: 'connectionTimeout',
+          message: 'Timeout',
+          error: new Error('Connection timeout'),
+        },
       ];
 
       for (const { context, message, error } of expectedErrors) {
@@ -260,7 +270,7 @@ describe('ErrorLogger', () => {
       const unexpectedErrors = [
         { context: 'nullCheck', message: 'Null pointer', error: new Error('WebSocket is null') },
         { context: 'stateCheck', message: 'Unknown state', error: new Error('Invalid state: 99') },
-        { context: 'apiError', message: 'API failed', error: new Error('No main frame result') }
+        { context: 'apiError', message: 'API failed', error: new Error('No main frame result') },
       ];
 
       for (const { context, message, error } of unexpectedErrors) {
@@ -293,13 +303,15 @@ describe('ErrorLogger', () => {
 
       // Should include all details in single object
       const loggedData = consoleWarnSpy.mock.calls[0][1];
-      expect(loggedData).toEqual(expect.objectContaining({
-        context: 'tabCleanup',
-        message: expect.stringContaining('12345'),
-        errorType: 'Error',
-        errorMessage: 'Tab cleanup failed',
-        errorCode: 'ERR_TAB_CLOSED'
-      }));
+      expect(loggedData).toEqual(
+        expect.objectContaining({
+          context: 'tabCleanup',
+          message: expect.stringContaining('12345'),
+          errorType: 'Error',
+          errorMessage: 'Tab cleanup failed',
+          errorCode: 'ERR_TAB_CLOSED',
+        })
+      );
     });
 
     it('should NOT log error details across multiple calls', () => {
@@ -309,9 +321,10 @@ describe('ErrorLogger', () => {
       ErrorLogger.logExpectedError('test', 'Test message', error);
 
       // Verify only 1 console call was made
-      const totalCalls = consoleWarnSpy.mock.calls.length +
-                         consoleErrorSpy.mock.calls.length +
-                         consoleLogSpy.mock.calls.length;
+      const totalCalls =
+        consoleWarnSpy.mock.calls.length +
+        consoleErrorSpy.mock.calls.length +
+        consoleLogSpy.mock.calls.length;
 
       expect(totalCalls).toBe(1);
     });
@@ -394,7 +407,7 @@ describe('ErrorLogger', () => {
         expect.any(String),
         expect.objectContaining({
           context: '',
-          message: ''
+          message: '',
         })
       );
     });
@@ -417,9 +430,10 @@ describe('ErrorLogger', () => {
         expect(consoleErrorSpy).not.toHaveBeenCalled();
 
         // Must consolidate into single call (not 6 separate calls)
-        const totalConsoleCalls = consoleWarnSpy.mock.calls.length +
-                                  consoleErrorSpy.mock.calls.length +
-                                  consoleLogSpy.mock.calls.length;
+        const totalConsoleCalls =
+          consoleWarnSpy.mock.calls.length +
+          consoleErrorSpy.mock.calls.length +
+          consoleLogSpy.mock.calls.length;
         expect(totalConsoleCalls).toBe(1);
       });
 
@@ -432,13 +446,15 @@ describe('ErrorLogger', () => {
         const loggedData = consoleWarnSpy.mock.calls[0][1];
 
         // Must include all relevant details
-        expect(loggedData).toEqual(expect.objectContaining({
-          context: 'tabCleanup',
-          message: expect.stringContaining('999'),
-          errorType: 'Error',
-          errorMessage: 'Tab not found',
-          errorCode: 'ERR_TAB_NOT_FOUND'
-        }));
+        expect(loggedData).toEqual(
+          expect.objectContaining({
+            context: 'tabCleanup',
+            message: expect.stringContaining('999'),
+            errorType: 'Error',
+            errorMessage: 'Tab not found',
+            errorCode: 'ERR_TAB_NOT_FOUND',
+          })
+        );
 
         // Must NOT include stack trace
         expect(loggedData).not.toHaveProperty('stack');
@@ -484,10 +500,10 @@ describe('ErrorLogger', () => {
         const errors = [
           { context: 'tab1', message: 'Tab 1 failed', error: new Error('Tab 1') },
           { context: 'tab2', message: 'Tab 2 failed', error: new Error('Tab 2') },
-          { context: 'tab3', message: 'Tab 3 failed', error: new Error('Tab 3') }
+          { context: 'tab3', message: 'Tab 3 failed', error: new Error('Tab 3') },
         ];
 
-        for (const {context, message, error} of errors) {
+        for (const { context, message, error } of errors) {
           ErrorLogger.logExpectedError(context, message, error);
         }
 
@@ -615,7 +631,7 @@ describe('ErrorLogger', () => {
         const fakeError = {
           message: 'Not a real Error',
           code: 'FAKE',
-          toString: () => '[object FakeError]'
+          toString: () => '[object FakeError]',
         };
 
         expect(() => {
@@ -753,7 +769,11 @@ describe('ErrorLogger', () => {
         for (let i = 0; i < 10; i++) {
           promises.push(
             Promise.resolve().then(() => {
-              ErrorLogger.logExpectedError(`concurrent${i}`, `Message ${i}`, new Error(`Error ${i}`));
+              ErrorLogger.logExpectedError(
+                `concurrent${i}`,
+                `Message ${i}`,
+                new Error(`Error ${i}`)
+              );
             })
           );
         }
@@ -781,7 +801,7 @@ describe('ErrorLogger', () => {
         const testCases = [
           { context: 'a', message: 'b', error: new Error('c') },
           { context: '', message: '', error: null },
-          { context: 'x'.repeat(1000), message: 'y', error: new Error('z') }
+          { context: 'x'.repeat(1000), message: 'y', error: new Error('z') },
         ];
 
         for (const testCase of testCases) {
@@ -800,7 +820,7 @@ describe('ErrorLogger', () => {
       it('logUnexpectedError() must always use console.error (invariant)', () => {
         const testCases = [
           { context: 'null', message: 'Null check failed', error: new Error('null') },
-          { context: 'state', message: 'Unknown state', error: new Error('state') }
+          { context: 'state', message: 'Unknown state', error: new Error('state') },
         ];
 
         for (const testCase of testCases) {

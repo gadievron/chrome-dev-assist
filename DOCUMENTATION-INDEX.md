@@ -46,6 +46,7 @@
 ## ⚠️ API VERSION REALITY CHECK (ADDED 2025-10-26)
 
 **ACTUAL CODE REALITY:**
+
 - **Version:** v1.0.0 (per package.json)
 - **API Functions:** **8 total** (verified by code audit)
   1. getAllExtensions()
@@ -58,6 +59,7 @@
   8. closeTab(tabId)
 
 **DOCUMENTATION HISTORY:**
+
 - ❌ **OLD docs/API.md** (before 2025-10-26): Claimed v1.2.0 with 26 functions
 - ✅ **NEW docs/API.md** (after 2025-10-26): Correctly documents v1.0.0 with 8 functions
 - ❌ **OLD COMPLETE-FUNCTIONALITY-MAP.md**: Claimed 20 public API functions
@@ -65,6 +67,7 @@
 - ✅ **README.md**: Always accurate (8 functions)
 
 **PLANNED BUT NOT IMPLEMENTED (18 functions):**
+
 - v1.1.0: Test Orchestration API (startTest, endTest, getTestStatus, abortTest, verifyCleanup)
 - v1.2.0: Service Worker API (wakeServiceWorker, getServiceWorkerStatus, captureServiceWorkerLogs)
 - v1.2.0: External Logging API (enableExternalLogging, disableExternalLogging, getExternalLoggingStatus)
@@ -73,6 +76,7 @@
 - v2.0.0: Level 4 reload (level4Reload)
 
 **VERIFICATION SOURCES:**
+
 - Code audit: CODE-AUDIT-FINDINGS-2025-10-26.md
 - Documentation audit: DOCUMENTATION-AUDIT-2025-10-26.md
 - Update summary: DOCUMENTATION-UPDATE-SUMMARY-2025-10-26.md
@@ -89,6 +93,7 @@
 ### TIER 1: ARCHITECTURE & DESIGN (Start Here) ⭐⭐⭐⭐
 
 #### **Product Requirements**
+
 - **.claude-state/context/PRD.md** (19K, Oct 23)
   - **PURPOSE:** Product requirements document
   - **CONTAINS:** Executive summary, MVP requirements, system architecture, dependencies, success criteria
@@ -101,6 +106,7 @@
   - **CURRENT VALUE:** Goals, requirements, success criteria still valid
 
 #### **Current Architecture (WebSocket-based)**
+
 - **.claude-state/context/architecture-v3-websocket.md** (14K, Oct 24) ⭐⭐⭐⭐
   - **PURPOSE:** Production architecture (current implementation)
   - **CONTAINS:** System architecture, data flow, component design, message routing
@@ -113,6 +119,7 @@
   - **REPLACES:** architecture-v2-native-messaging.md (failed approach)
 
 #### **WebSocket Protocol**
+
 - **docs/WEBSOCKET-PROTOCOL.md** (17K, Oct 25) ⭐⭐⭐
   - **PURPOSE:** WebSocket communication protocol specification
   - **CONTAINS:** Message routing, protocol spec, security model, connection lifecycle
@@ -124,6 +131,7 @@
   - **STATUS:** ✅ Current and accurate
 
 #### **Service Worker Architecture**
+
 - **docs/SERVICE-WORKER-LIFECYCLE-CAPABILITIES.md** (21K, Oct 25) ⭐⭐⭐
   - **PURPOSE:** Chrome Extension service worker architecture
   - **CONTAINS:** Keep-alive system, crash recovery, state persistence, lifecycle
@@ -135,6 +143,7 @@
   - **STATUS:** ⚠️ May reference planned v1.2.0 features - verify against actual code
 
 #### **Communication Standards**
+
 - **docs/CHROME-EXTENSION-COMMUNICATION-STANDARDS.md** (12K, Oct 24) ⭐⭐
   - **PURPOSE:** Communication patterns between components
   - **CONTAINS:** Content script ↔ Service worker, Extension ↔ WebSocket server
@@ -146,6 +155,7 @@
 ### TIER 2: API & FUNCTIONALITY (Reference) ⭐⭐⭐
 
 #### **API Reference**
+
 - **docs/API.md** (673 lines, Oct 26) ⭐⭐⭐⭐ ✅ UPDATED
   - **PURPOSE:** Complete API documentation with all 8 actual functions (v1.0.0)
   - **CONTAINS:**
@@ -161,6 +171,7 @@
   - **CURRENT VERSION:** v1.0.0 with 8 functions (ACCURATE - verified in code)
 
 #### **Complete Functionality Map**
+
 - **COMPLETE-FUNCTIONALITY-MAP.md** (640 lines, Oct 26) ⭐⭐⭐ ✅ UPDATED
   - **PURPOSE:** Catalog of all actual features in v1.0.0 (8 API + internal mechanisms)
   - **CONTAINS:** Every feature with implementation status, test status, line references
@@ -175,6 +186,7 @@
   - **CURRENT VERSION:** 8 API functions (ACCURATE - verified in code)
 
 #### **Functionality List**
+
 - **functionality-list.md** (24K, Oct 25)
   - **PURPOSE:** API functions + internal mechanisms
   - **CONTAINS:** Similar to COMPLETE-FUNCTIONALITY-MAP.md
@@ -186,6 +198,7 @@
 ### TIER 3: ISSUE TRACKING (Mandatory 3-File System) ⭐⭐⭐
 
 #### **Active Issues**
+
 - **TO-FIX.md** (25K, Oct 25 Late Evening) ⭐⭐⭐
   - **PURPOSE:** All active bugs, test failures, security vulnerabilities
   - **CONTAINS:**
@@ -200,6 +213,7 @@
   - **LATEST:** ISSUE-011 fixed - connection stability improved (6 sub-issues)
 
 #### **Resolved Issues**
+
 - **FIXED-LOG.md** (7K, Oct 25) ⭐⭐
   - **PURPOSE:** Historical record of fixes (24-hour cooling period)
   - **CONTAINS:**
@@ -210,6 +224,7 @@
   - **STATUS:** ✅ Current
 
 #### **Deferred/Rejected Features**
+
 - **FEATURE-SUGGESTIONS-TBD.md** (11K, Oct 25) ⭐⭐
   - **PURPOSE:** Track rejected features to prevent re-discussion
   - **CONTAINS:** 8 deferred/rejected features with rationale
@@ -221,6 +236,7 @@
 ### TIER 4: TEST DOCUMENTATION (3-File System) ⭐⭐⭐
 
 #### **Test Catalog**
+
 - **TESTS-INDEX.md** (36K, Oct 25) ⭐⭐⭐⭐
   - **PURPOSE:** Comprehensive catalog of all test files
   - **ORGANIZATION:** Functionality → Date → Type
@@ -239,6 +255,7 @@
   - **STATUS:** ✅ Current (2 new test files added for ISSUE-011)
 
 #### **Test Change History**
+
 - **TESTS-INDEX-CHANGELOG.md** (18K, Oct 25) ⭐⭐
   - **PURPOSE:** Track all test updates and modifications
   - **ORGANIZATION:** Most Recent First → By Date
@@ -247,6 +264,7 @@
   - **STATUS:** ✅ Current
 
 #### **Test Quick Reference**
+
 - **TESTS-QUICK-REFERENCE.md** (16K, Oct 25) ⭐⭐⭐
   - **PURPOSE:** Fast lookup with 5 organizational views
   - **CONTAINS:**
@@ -263,6 +281,7 @@
 ### TIER 5: WORKFLOWS & GUIDES ⭐⭐
 
 #### **Extension Reload**
+
 - **EXTENSION-RELOAD-GUIDE.md** (11K, Oct 25) ⭐⭐⭐⭐
   - **PURPOSE:** 4-level reload escalation guide
   - **CONTAINS:**
@@ -280,6 +299,7 @@
   - **STATUS:** ✅ Current (v1.2.0)
 
 #### **Level 4 Reload Status**
+
 - **LEVEL4-RELOAD-STATUS.md** (8K, Oct 25) ⭐⭐
   - **PURPOSE:** Implementation status for Level 4 reload
   - **CONTAINS:** Progress (85%), blocker (Chrome debug mode), 60 tests written
@@ -287,6 +307,7 @@
   - **STATUS:** ✅ Current
 
 #### **Testing Guide**
+
 - **TESTING-GUIDE.md** (12K, Oct 25) ⭐⭐
   - **PURPOSE:** How to write and run tests
   - **CONTAINS:** Guidelines, running tests, fixtures, best practices
@@ -298,6 +319,7 @@
 ### TIER 6: SECURITY & DEBUGGING ⭐⭐
 
 #### **Security Architecture**
+
 - **docs/SECURITY.md** (14K, Oct 24) ⭐⭐⭐
   - **PURPOSE:** Security architecture and threat model
   - **CONTAINS:**
@@ -313,6 +335,7 @@
   - **STATUS:** ✅ Current
 
 #### **Vulnerability Deep Dive**
+
 - **docs/VULNERABILITY-BLOG-METADATA-LEAK.md** (23K, Oct 25) ⭐⭐
   - **PURPOSE:** ISSUE-001 (data URI iframe metadata leak) deep dive
   - **CONTAINS:** Attack vectors, mitigation strategies, root cause
@@ -320,6 +343,7 @@
   - **STATUS:** ✅ Current (issue still open)
 
 #### **Console Capture Analysis**
+
 - **docs/CONSOLE-CAPTURE-ANALYSIS.md** (13K, Oct 25) ⭐⭐
   - **PURPOSE:** Console capture 3-stage architecture
   - **CONTAINS:** MAIN world → ISOLATED world → Service Worker data flow
@@ -327,6 +351,7 @@
   - **STATUS:** ✅ Current
 
 #### **Console Capture Debugging**
+
 - **docs/DEBUG-CONSOLE-CAPTURE-INSTRUCTIONS.md** (12K, Oct 25)
   - **PURPOSE:** How to debug console capture issues
   - **CONTAINS:** Debugging steps, common issues, troubleshooting
@@ -334,6 +359,7 @@
   - **STATUS:** ✅ Current
 
 #### **Crash Recovery**
+
 - **docs/CRASH-RECOVERY.md** (14K, Oct 25) ⭐⭐
   - **PURPOSE:** Crash recovery system architecture
   - **CONTAINS:** Crash detection, state persistence, recovery workflow
@@ -345,6 +371,7 @@
 ### TIER 7: PLANNING & DECISIONS ⭐
 
 #### **Architectural Decisions**
+
 - **TO-DO-EXPANSIONS-ASSUMPTIONS.md** (14K, Oct 25) ⭐⭐
   - **PURPOSE:** Architectural decisions and deferred features
   - **CONTAINS:**
@@ -356,6 +383,7 @@
   - **STATUS:** ✅ Current
 
 #### **Decision Records**
+
 - **.claude-state/context/decisions.md** (1.6K, Oct 23)
   - **PURPOSE:** Key architectural decisions
   - **CONTAINS:** Decision log with rationale
@@ -363,6 +391,7 @@
   - **STATUS:** ⚠️ May be outdated (Oct 23)
 
 #### **Phase 1.3 Plan**
+
 - **docs/PHASE-1.3-IMPLEMENTATION-PLAN.md** (11K, Oct 24)
   - **PURPOSE:** Phase 1.3 roadmap
   - **CONTAINS:** Feature breakdown, timeline, dependencies
@@ -374,6 +403,7 @@
 ### TIER 8: TESTING STRATEGY ⭐
 
 #### **Comprehensive Test Plan**
+
 - **docs/test-plan-comprehensive.md** (60K, Oct 24) ⭐⭐
   - **PURPOSE:** Complete test strategy
   - **CONTAINS:** 9 test categories, coverage goals, test scenarios
@@ -381,6 +411,7 @@
   - **STATUS:** ✅ Mostly current (60K file)
 
 #### **Persona-Based Testing**
+
 - **docs/PERSONA-BASED-TESTING-STRATEGY.md** (37K, Oct 24)
   - **PURPOSE:** 11-persona review strategy
   - **CONTAINS:** Persona definitions, review workflows
@@ -388,6 +419,7 @@
   - **STATUS:** ✅ Current
 
 #### **Testing Guidelines**
+
 - **docs/TESTING-GUIDELINES-FOR-TESTERS.md** (14K, Oct 25)
   - **PURPOSE:** How to write and run tests
   - **CONTAINS:** Guidelines, best practices
@@ -395,6 +427,7 @@
   - **STATUS:** ✅ Current
 
 #### **Test Orchestration Protocol**
+
 - **docs/TEST-ORCHESTRATION-PROTOCOL.md** (10K, Oct 24) ⭐⭐
   - **PURPOSE:** Test orchestration system architecture
   - **CONTAINS:** Test lifecycle, tab tracking, state management
@@ -402,6 +435,7 @@
   - **STATUS:** ✅ Current
 
 #### **ISSUE-011 Documentation (Connection Stability Fixes)** 🆕
+
 - **ISSUE-011-FIX-SUMMARY.md** (15K, Oct 25 Late Evening) ⭐⭐⭐
   - **PURPOSE:** Comprehensive fix documentation for connection stability
   - **CONTAINS:** 6 sub-issues, fixes, before/after, verification steps, timeline
@@ -431,12 +465,14 @@
 ### TIER 8.5: TECHNICAL BLOG POSTS 🆕 ⭐⭐⭐
 
 #### **Blog Directory**
+
 - **blogs/** (new directory, Oct 25 Late Evening)
   - **PURPOSE:** Deep-dive technical blog posts documenting investigations and learnings
   - **FORMAT:** Long-form (10K+ words), reproducible test cases, full journey documentation
   - **AUDIENCE:** Future maintainers, developers, testers, researchers
 
 #### **ISSUE-011: Connection Stability Deep Dive**
+
 - **blogs/ISSUE-011-CONNECTION-STABILITY-DEEP-DIVE.md** (24K, Oct 25) ⭐⭐⭐⭐
   - **PURPOSE:** Complete investigation of WebSocket connection instability
   - **CONTAINS:**
@@ -456,6 +492,7 @@
   - **STATUS:** ✅ Complete - Issue resolved
 
 #### **ISSUE-001: Metadata Leak Vulnerability**
+
 - **blogs/VULNERABILITY-BLOG-METADATA-LEAK.md** (TBD, Oct 24) ⭐⭐
   - **PURPOSE:** Security vulnerability investigation (iframe isolation)
   - **CONTAINS:** Vulnerability details, attempted fixes, ongoing investigation
@@ -463,6 +500,7 @@
   - **STATUS:** ⚠️ Under investigation
 
 #### **Blog Index**
+
 - **blogs/README.md** (3K, Oct 25) ⭐
   - **PURPOSE:** Blog directory index and writing guidelines
   - **CONTAINS:** Post summaries, format guidelines, statistics
@@ -475,6 +513,7 @@
 **Purpose:** Meta-analysis of problem-solving approaches and architectural lessons
 
 #### **Coding & Testing Lessons**
+
 - **CODING-TESTING-LESSONS.md** (18K, Oct 25 Night) ⭐⭐⭐⭐
   - **PURPOSE:** Universal coding/testing lessons for CLAUDE.md rules
   - **CONTAINS:** 14 mandatory rules extracted from ISSUE-011 and ISSUE-001
@@ -494,6 +533,7 @@
   - **STATUS:** ✅ Complete - Ready for CLAUDE.md integration
 
 #### **Extension Testing & Improvements**
+
 - **EXTENSION-TESTING-AND-IMPROVEMENTS.md** (18K, Oct 25 Night) ⭐⭐⭐⭐
   - **PURPOSE:** 🔥 Extension testing procedures + improvement plan
   - **CONTAINS:**
@@ -508,6 +548,7 @@
   - **STATUS:** ⚠️ PENDING - User testing required
 
 #### **Problem-Solving Analysis**
+
 - **PROBLEM-SOLVING-ANALYSIS.md** (12K, Oct 25 Night) ⭐⭐⭐
   - **PURPOSE:** Compare successful (ISSUE-011) vs incomplete (ISSUE-001) investigations
   - **CONTAINS:**
@@ -565,6 +606,7 @@
   - **STATUS:** ✅ Complete - Reference for future investigations
 
 #### **Lessons Learned Summary**
+
 - **LESSONS-LEARNED-SUMMARY.md** (7.4K, Oct 25 Night) ⭐⭐⭐
   - **PURPOSE:** Quick reference guide to all lessons
   - **CONTAINS:**
@@ -579,6 +621,7 @@
   - **STATUS:** ✅ Complete - Quick reference
 
 #### **Multi-Persona Architecture Analysis** 🆕
+
 - **MULTI-PERSONA-ARCHITECTURE-ANALYSIS.md** (30K, Oct 25 Night) ⭐⭐⭐⭐⭐
   - **PURPOSE:** Comprehensive 5-persona analysis of proposed improvements
   - **CONTAINS:**
@@ -605,6 +648,7 @@
 ### TIER 9: REFERENCE & UTILITIES
 
 #### **Quick Reference**
+
 - **docs/QUICK_REFERENCE.md** (9.6K, Oct 24)
   - **PURPOSE:** Quick API reference card
   - **CONTAINS:** Common commands, examples, cheat sheet
@@ -612,6 +656,7 @@
   - **STATUS:** ✅ Current
 
 #### **Protocol Best Practices**
+
 - **docs/PROTOCOL-BEST-PRACTICES.md** (10K, Oct 24)
   - **PURPOSE:** Protocol design patterns
   - **CONTAINS:** Best practices, error handling, security
@@ -623,6 +668,7 @@
 ### TIER 10: COVERAGE & ANALYSIS
 
 #### **Test Coverage**
+
 - **TEST-COVERAGE-COMPLETE.md** (8K, Oct 25)
   - **PURPOSE:** Test coverage analysis
   - **CONTAINS:** Coverage by feature type, gap analysis
@@ -630,6 +676,7 @@
   - **STATUS:** ✅ Current
 
 #### **Final Test Summary**
+
 - **FINAL-TEST-SUMMARY.md** (9K, Oct 25)
   - **PURPOSE:** Test suite summary snapshot
   - **CONTAINS:** Overall statistics, results by category
@@ -637,6 +684,7 @@
   - **STATUS:** ✅ Current
 
 #### **Feature Coverage Map**
+
 - **FEATURE-COVERAGE-MAP.md** (10K, Oct 25)
   - **PURPOSE:** Feature coverage across dimensions
   - **CONTAINS:** Implementation status, coverage by type
@@ -644,6 +692,7 @@
   - **STATUS:** ✅ Current
 
 #### **Documentation Study**
+
 - **DOCUMENTATION-STUDY-SUMMARY.md** (16K, Oct 25)
   - **PURPOSE:** Documentation analysis and organization
   - **CONTAINS:** File inventory, redundancy analysis
@@ -651,6 +700,7 @@
   - **STATUS:** ✅ Current
 
 #### **Redundancy Analysis**
+
 - **docs/redundancy-analysis.md** (14K, Oct 24)
   - **PURPOSE:** Documentation redundancy detection
   - **CONTAINS:** Duplicate docs, consolidation recommendations
@@ -662,6 +712,7 @@
 ### TIER 11: RESEARCH & ARCHIVE
 
 #### **Level 4 Reload Research**
+
 - **RESEARCH-LEVEL4-RELOAD.md** (10K, Oct 25)
   - **PURPOSE:** Research for Level 4 reload design
   - **CONTAINS:** CDP investigation, implementation approaches
@@ -669,6 +720,7 @@
   - **STATUS:** ✅ Current
 
 #### **Architecture V2 (Failed)**
+
 - **.claude-state/context/architecture-v2-native-messaging.md** (18K, Oct 23)
   - **PURPOSE:** Native messaging attempt (FAILED)
   - **CONTAINS:** What was tried, why it failed, lessons learned
@@ -676,21 +728,25 @@
   - **STATUS:** ⚠️ Archived (failed approach)
 
 #### **Native Messaging Plan**
+
 - **.claude-state/context/implementation-plan-native-messaging.md** (5K, Oct 23)
   - **PURPOSE:** Native messaging implementation plan
   - **STATUS:** ⚠️ Archived (abandoned approach)
 
 #### **Pre-flight Validation**
+
 - **.claude-state/context/pre-flight-validation.md** (6.8K, Oct 23)
   - **PURPOSE:** Pre-implementation checklist
   - **STATUS:** ⚠️ Archived (Oct 23)
 
 #### **Task Context**
+
 - **.claude-state/context/task-context.md** (1.1K, Oct 23)
   - **PURPOSE:** Original task context
   - **STATUS:** ⚠️ Archived (Oct 23)
 
 #### **Safe to Delete**
+
 - **docs/SAFE-TO-DELETE-NO-USERS.md** (9K, Oct 24)
   - **PURPOSE:** Deprecated features and safe deletions
   - **CONTAINS:** Features that can be removed
@@ -702,40 +758,51 @@
 ## 📊 DOCUMENTATION BY STATUS
 
 ### ✅ CURRENT (Updated Oct 25, 2025)
+
 **Core Architecture:**
+
 - README.md, COMPLETE-FUNCTIONALITY-MAP.md, EXTENSION-RELOAD-GUIDE.md
 - docs/API.md, docs/WEBSOCKET-PROTOCOL.md, docs/SERVICE-WORKER-LIFECYCLE-CAPABILITIES.md
 
 **Issue Tracking:**
+
 - TO-FIX.md, FIXED-LOG.md, FEATURE-SUGGESTIONS-TBD.md
 
 **Test Documentation:**
+
 - TESTS-INDEX.md, TESTS-INDEX-CHANGELOG.md, TESTS-QUICK-REFERENCE.md
 
 **Coverage & Analysis:**
+
 - TEST-COVERAGE-COMPLETE.md, FINAL-TEST-SUMMARY.md, FEATURE-COVERAGE-MAP.md
 - functionality-list.md, TESTING-GUIDE.md
 
 **Security & Debugging:**
+
 - docs/SECURITY.md, docs/VULNERABILITY-BLOG-METADATA-LEAK.md
 - docs/CONSOLE-CAPTURE-ANALYSIS.md, docs/DEBUG-CONSOLE-CAPTURE-INSTRUCTIONS.md
 - docs/CRASH-RECOVERY.md
 
 **Planning:**
+
 - TO-DO-EXPANSIONS-ASSUMPTIONS.md, LEVEL4-RELOAD-STATUS.md
 
 **Lessons Learned & Analysis (NEW - Oct 25):**
+
 - CODING-TESTING-LESSONS.md, EXTENSION-TESTING-AND-IMPROVEMENTS.md
 - PROBLEM-SOLVING-ANALYSIS.md, LESSONS-LEARNED-SUMMARY.md
 - MULTI-PERSONA-ARCHITECTURE-ANALYSIS.md
 
 ### ⚠️ PARTIALLY OUTDATED (Oct 23-24)
+
 **May need review:**
+
 - .claude-state/context/PRD.md (designed for filesystem, now WebSocket - goals still valid)
 - .claude-state/context/architecture-v3-websocket.md (Oct 24 - likely still accurate)
 - docs/decisions/ (Oct 24 - may be current)
 
 ### ❌ ARCHIVED (Superseded or Deprecated)
+
 - .claude-state/context/architecture-v2-native-messaging.md (FAILED approach)
 - .claude-state/context/implementation-plan-native-messaging.md (abandoned)
 - .claude-state/context/pre-flight-validation.md (Oct 23)
@@ -746,12 +813,14 @@
 ## 🎯 AI LEARNING PATHS
 
 ### **Path 1: Understanding The System (30 min)**
+
 1. README.md (lines 1-100) - What it does
 2. .claude-state/context/architecture-v3-websocket.md (FULL) - How it works
 3. docs/API.md (lines 1-200) - How to use it
 4. TO-FIX.md (scan issues) - What's broken
 
 ### **Path 2: Implementing New Feature (45 min)**
+
 1. README.md - Context
 2. COMPLETE-FUNCTIONALITY-MAP.md - What exists
 3. docs/API.md - API reference
@@ -759,6 +828,7 @@
 5. TO-FIX.md - Known issues to avoid
 
 ### **Path 3: Debugging Issue (20 min)**
+
 1. TO-FIX.md - Known issues
 2. Relevant doc based on area:
    - Reload: EXTENSION-RELOAD-GUIDE.md
@@ -768,12 +838,14 @@
 3. TESTS-INDEX.md - Tests that cover the area
 
 ### **Path 4: Security Review (40 min)**
+
 1. docs/SECURITY.md - Security architecture
 2. docs/WEBSOCKET-PROTOCOL.md - Security model
 3. docs/VULNERABILITY-BLOG-METADATA-LEAK.md - Known vuln
 4. TO-FIX.md (security issues) - Active security issues
 
 ### **Path 5: Test Writing (25 min)**
+
 1. TESTING-GUIDE.md - How to write tests
 2. TESTS-INDEX.md (relevant category) - Test examples
 3. docs/test-plan-comprehensive.md (relevant section) - Test strategy
@@ -789,16 +861,19 @@
 **Current Version:** v1.2.0
 
 **By Location:**
+
 - Root: 19 files (~242K)
 - docs/: 19 files (~364K)
 - .claude-state/context/: 7 files (~84K)
 
 **By Status:**
+
 - ✅ Current (Oct 25): 28 files
 - ⚠️ Partially outdated (Oct 23-24): 6 files
 - ❌ Archived: 4 files
 
 **By Category:**
+
 - Architecture & Design: 8 files
 - API & Functionality: 3 files
 - Issue Tracking: 3 files
@@ -862,6 +937,7 @@
 ## 📝 MAINTENANCE NOTES
 
 **When updating documentation:**
+
 1. Update this index with new file additions
 2. Mark files with ⚠️ if they become partially outdated
 3. Move superseded files to archive/ directory
@@ -869,6 +945,7 @@
 5. Update version numbers to match releases
 
 **Documentation update frequency:**
+
 - Core docs (README, API, TESTS-INDEX): With every feature release
 - Issue tracking (TO-FIX, FIXED-LOG): Continuously
 - Architecture docs: When architecture changes

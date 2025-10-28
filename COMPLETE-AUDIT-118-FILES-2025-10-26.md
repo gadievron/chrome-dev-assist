@@ -12,26 +12,31 @@
 ### What Was Audited
 
 **Round 1 (Initial - Oct 26):** 10 production files
+
 - Claimed: 100% verification of 93 items
 - Reality: Only 31% directly verified (grep-only)
 - User challenge: "how much... do you have code confirmation for?"
 
 **Round 2 (User-driven - Oct 26):** Complete file reading
+
 - User challenge: "have you really? all"
 - Systematically READ all 10 production files
 - Found overcounting error (Health Manager constants)
 
 **Round 3 (Extension files - Oct 26):** 3 additional files
+
 - User challenge: "you still missed many files"
 - Added content-script.js, inject-console-capture.js, popup.js
 - Found 14 additional items
 
 **Round 4 (Recount - Oct 26):** Thorough recount
+
 - User challenge: "are you sure there aren't more items? double check"
 - Found 9 missed constants and callbacks
 - Corrected from 93 to **95 items**
 
 **Round 5 (Complete audit - Oct 26):** All 118 files
+
 - User request: "audit them all for functionality you don't yet know or is a double"
 - Used Explore agent for systematic audit
 - Found **16 phantom APIs** (initially reported as 4-5, then 10, corrected after systematic grep)
@@ -45,6 +50,7 @@
 ### Production Code: 11 files (95 items verified)
 
 **Already Known (10 files from Rounds 1-4):**
+
 1. claude-code/index.js - 15 items (12 functions + 3 constants)
 2. server/websocket-server.js - 15 items (8 functions + 7 constants)
 3. server/validation.js - 8 items (6 functions + 2 constants)
@@ -56,8 +62,7 @@
 9. extension/modules/ConsoleCapture.js - 10 items (10 methods)
 10. src/health/health-manager.js - 9 items (9 methods)
 
-**Newly Discovered (1 file from Round 5):**
-11. claude-code/level4-reload-cdp.js - 3 functions (CDP-based reload method)
+**Newly Discovered (1 file from Round 5):** 11. claude-code/level4-reload-cdp.js - 3 functions (CDP-based reload method)
 
 **Total Production Items:** 95 verified + 3 new = **98 items**
 
@@ -66,6 +71,7 @@
 ### Test Suite: 59 files
 
 **Breakdown:**
+
 - tests/unit/ - 20 files
 - tests/integration/ - 26 files
 - tests/security/ - 3 files
@@ -84,7 +90,8 @@
 ### Manual Test Scripts: 36 files
 
 **Canonical Location (scripts/manual-tests/):** 10 files - KEEP
-**Root Level (test-*.js):** 26 files
+**Root Level (test-\*.js):** 26 files
+
 - 11 duplicates → DELETE
 - 5 obsolete → DELETE
 - 10 unique → MOVE to scripts/manual-tests/
@@ -94,12 +101,14 @@
 ### Debug & Diagnostic: 5 files
 
 **Keep:** 4 files
+
 - debug-console-capture.js
 - debug-metadata.js
 - scripts/diagnose-connection.js (enhanced)
 - run-integration-tests.js
 
 **Delete:** 1 file
+
 - diagnose-connection.js (root - superseded)
 
 ---
@@ -107,11 +116,13 @@
 ### Prototypes & Backups: 4 files
 
 **Delete:** 3 files
+
 - prototype/api-client.js (superseded)
 - prototype/server.js (superseded)
 - extension/content-script-backup.js (backup)
 
 **Evaluate:** 1 file
+
 - extension/content-script-v2.js (may be current)
 
 ---
@@ -119,6 +130,7 @@
 ### Utilities: 1 file
 
 **Keep:** 1 file
+
 - scripts/add-autoclose-to-tests.js
 
 ---
@@ -169,7 +181,7 @@
    - Status: ❌ NOT IMPLEMENTED
 
 8. **getServiceWorkerStatus()** - Service worker state
-   - Test files: tests/integration/service-worker-*.test.js
+   - Test files: tests/integration/service-worker-\*.test.js
    - Expected location: claude-code/index.js
    - Status: ❌ NOT IMPLEMENTED
 
@@ -223,6 +235,7 @@
 ### DELETE: 20 files
 
 **Duplicates (11 files):**
+
 1. test-api.js → DUPLICATE of scripts/manual-tests/test-api.js
 2. test-auto-debug.js → DUPLICATE
 3. test-capture.js → DUPLICATE
@@ -235,26 +248,18 @@
 10. test-https-url.js → DUPLICATE
 11. test-manual-open.js → DUPLICATE
 
-**Obsolete (5 files):**
-12. test-5s.js - Browser spawn test (outdated)
-13. test-connection-simple.js - Superseded by diagnostics
-14. test-longer-duration.js - Test artifact
-15. test-reload-after-fix.js - Bug fix verification (fix applied)
-16. test-reload-self.js - Self-reload test (outdated)
+**Obsolete (5 files):** 12. test-5s.js - Browser spawn test (outdated) 13. test-connection-simple.js - Superseded by diagnostics 14. test-longer-duration.js - Test artifact 15. test-reload-after-fix.js - Bug fix verification (fix applied) 16. test-reload-self.js - Self-reload test (outdated)
 
-**Prototypes (3 files):**
-17. prototype/api-client.js - Old WebSocket POC
-18. prototype/server.js - Old server POC
-19. extension/content-script-backup.js - Backup file
+**Prototypes (3 files):** 17. prototype/api-client.js - Old WebSocket POC 18. prototype/server.js - Old server POC 19. extension/content-script-backup.js - Backup file
 
-**Superseded (1 file):**
-20. diagnose-connection.js (root) - Enhanced version exists in scripts/
+**Superseded (1 file):** 20. diagnose-connection.js (root) - Enhanced version exists in scripts/
 
 ---
 
 ### MOVE: 10 files
 
 **From root to scripts/manual-tests/:**
+
 1. test-auth-debug.js
 2. test-console-capture-diagnostic.js
 3. test-errorlogger-automated.js
@@ -271,6 +276,7 @@
 ### EVALUATE: 1 file
 
 **extension/content-script-v2.js**
+
 - Alternative console capture implementation
 - Determine if v1 or v2 is canonical
 - Delete the non-canonical version
@@ -298,11 +304,13 @@ Page Console Output
 ### Key Dependencies
 
 **Most Depended-Upon:**
+
 1. claude-code/index.js - 85+ dependents
 2. extension/background.js - 59+ dependents
 3. server/websocket-server.js - 3 direct dependents
 
 **Least Depended-Upon:**
+
 1. extension/popup/popup.js - 0 dependents (standalone)
 2. extension/modules/ConsoleCapture.js - 1 dependent (POC only)
 3. src/health/health-manager.js - 0 production dependents (tests only)
@@ -375,18 +383,21 @@ Clean unidirectional dependency flow.
 ## CORRECTED FILE COUNTS
 
 ### Initial Claim (Round 1)
+
 - Audited: 10 files
 - Items: 93
 - Coverage: 100% claimed
 - **Reality: 31% verified**
 
 ### After User Challenges (Rounds 2-4)
+
 - Audited: 10 files (completely READ)
 - Items: 95 (not 93)
 - Coverage: 100% verified
 - **Errors found: 4 counting mistakes**
 
 ### Complete Audit (Round 5)
+
 - Audited: 118 files
 - Production items: 98 (95 + 3 new)
 - Test files: 59
@@ -401,6 +412,7 @@ Clean unidirectional dependency flow.
 ## IMPACT OF USER SKEPTICISM
 
 ### Without User Challenges
+
 - Would have stopped at Round 1
 - Only 31% verified (grep-only)
 - Would have claimed 93 items (actually 95)
@@ -408,6 +420,7 @@ Clean unidirectional dependency flow.
 - Would have missed 10 major unknown APIs
 
 ### With User Challenges (4 rounds)
+
 - Forced complete file reading
 - Found overcounting errors
 - Found undercounting errors
@@ -555,22 +568,27 @@ Clean unidirectional dependency flow.
 ## AUDIT JOURNEY TIMELINE
 
 **Oct 26, 2025 - Round 1:** Initial 10-file audit
+
 - Claimed 100% verification
 - Actually 31% grep-only
 
 **Oct 26, 2025 - Round 2:** User challenge "how much... confirmation?"
+
 - Complete file reading
 - Found overcounting error
 
 **Oct 26, 2025 - Round 3:** User challenge "you still missed many files"
+
 - Added 3 extension files
 - Found 14 additional items
 
 **Oct 26, 2025 - Round 4:** User challenge "double check"
+
 - Thorough recount
 - Corrected 93 → 95 items
 
 **Oct 26, 2025 - Round 5:** User request "audit them all"
+
 - Complete 118-file audit
 - Found 10 unknown APIs
 - Created file index and dependency map
@@ -580,6 +598,7 @@ Clean unidirectional dependency flow.
 **Auditor Notes:**
 
 This audit demonstrates the critical importance of user skepticism. Without persistent challenges across 5 rounds, this audit would have been:
+
 - 69% incomplete (grep-only verification)
 - 2 items undercounted
 - 108 files unaudited

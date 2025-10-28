@@ -12,12 +12,12 @@ async function testInvalidJSON() {
     ws.send('this is not json{[');
   });
 
-  ws.on('message', (data) => {
+  ws.on('message', data => {
     console.log('Response:', data.toString());
     ws.close();
   });
 
-  ws.on('error', (err) => {
+  ws.on('error', err => {
     console.error('Error:', err.message);
   });
 
@@ -45,11 +45,11 @@ async function testDuplicateRegistration() {
     ext2.send(JSON.stringify({ type: 'register', client: 'extension' }));
   });
 
-  ext1.on('message', (data) => {
+  ext1.on('message', data => {
     console.log('Extension 1 message:', data.toString());
   });
 
-  ext2.on('message', (data) => {
+  ext2.on('message', data => {
     console.log('Extension 2 message:', data.toString());
   });
 
@@ -70,14 +70,16 @@ async function testExtensionNotConnected() {
 
   api.on('open', () => {
     console.log('API connected, sending command without extension...');
-    api.send(JSON.stringify({
-      type: 'command',
-      id: 'test-123',
-      command: { type: 'reload', params: {} }
-    }));
+    api.send(
+      JSON.stringify({
+        type: 'command',
+        id: 'test-123',
+        command: { type: 'reload', params: {} },
+      })
+    );
   });
 
-  api.on('message', (data) => {
+  api.on('message', data => {
     console.log('Response:', data.toString());
     api.close();
   });

@@ -148,7 +148,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Test message',
         timestamp: new Date().toISOString(),
-        tabId: 100
+        tabId: 100,
       };
 
       consoleCapture.addLog(100, logEntry);
@@ -165,7 +165,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Global message',
         timestamp: new Date().toISOString(),
-        tabId: 999
+        tabId: 999,
       };
 
       // Global captures should receive logs from ANY tab
@@ -184,7 +184,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Should not appear',
         timestamp: new Date().toISOString(),
-        tabId: 200
+        tabId: 200,
       };
 
       consoleCapture.addLog(200, logEntry);
@@ -202,7 +202,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
           level: 'log',
           message: `Message ${i}`,
           timestamp: new Date().toISOString(),
-          tabId: 300
+          tabId: 300,
         });
       }
 
@@ -220,16 +220,14 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
           level: 'log',
           message: `Message ${i}`,
           timestamp: new Date().toISOString(),
-          tabId: 400
+          tabId: 400,
         });
       }
 
       const logs = consoleCapture.getLogs('test-105');
 
       // Check for warning message
-      const warningLog = logs.find(log =>
-        log.message && log.message.includes('Log limit reached')
-      );
+      const warningLog = logs.find(log => log.message && log.message.includes('Log limit reached'));
       expect(warningLog).toBeDefined();
       expect(warningLog.level).toBe('warn');
     });
@@ -243,7 +241,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
           level: 'log',
           message: `Message ${i}`,
           timestamp: new Date().toISOString(),
-          tabId: 500
+          tabId: 500,
         });
       }
 
@@ -262,7 +260,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Shared tab message',
         timestamp: new Date().toISOString(),
-        tabId: 600
+        tabId: 600,
       };
 
       consoleCapture.addLog(600, logEntry);
@@ -293,7 +291,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Fast lookup',
         timestamp: new Date().toISOString(),
-        tabId: 777
+        tabId: 777,
       });
 
       const elapsed = Date.now() - startTime;
@@ -319,7 +317,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Test',
         timestamp: new Date().toISOString(),
-        tabId: 800
+        tabId: 800,
       });
 
       const logs = consoleCapture.getLogs('test-201');
@@ -335,7 +333,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Original',
         timestamp: new Date().toISOString(),
-        tabId: 900
+        tabId: 900,
       });
 
       const logs1 = consoleCapture.getLogs('test-202');
@@ -346,7 +344,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'error',
         message: 'FAKE',
         timestamp: new Date().toISOString(),
-        tabId: 900
+        tabId: 900,
       });
 
       // Get logs again - should NOT contain the fake entry
@@ -582,7 +580,7 @@ describe('ConsoleCapture Class - Comprehensive Tests', () => {
         level: 'log',
         message: 'Test',
         timestamp: new Date().toISOString(),
-        tabId: 1300
+        tabId: 1300,
       });
 
       const stats = consoleCapture.getStats('test-701');

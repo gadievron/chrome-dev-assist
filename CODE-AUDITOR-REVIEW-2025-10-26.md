@@ -11,6 +11,7 @@
 ## 🎯 AUDIT OBJECTIVES
 
 As a code auditor, I will:
+
 1. ✅ Verify ALL documented functions actually exist
 2. ✅ Check if line numbers in documentation are accurate
 3. ✅ Find any undocumented code
@@ -69,6 +70,7 @@ diff <(documented_functions) <(actual_functions)
 **Documentation Claims:** 8 exported API functions
 
 **Auditor Verification:**
+
 ```bash
 $ grep "module.exports =" claude-code/index.js -A 10
 module.exports = {
@@ -86,6 +88,7 @@ module.exports = {
 **Result:** ✅ 8/8 exports found
 
 **Line Number Verification:**
+
 ```bash
 $ grep -n "^async function" claude-code/index.js
 23:async function reloadAndCapture(extensionId, options = {}) {
@@ -102,18 +105,19 @@ $ grep -n "^async function" claude-code/index.js
 
 **Cross-Check Against Documentation:**
 
-| Function | Doc Says | Actual Line | Match |
-|----------|----------|-------------|-------|
-| reloadAndCapture | 23 | 23 | ✅ |
-| reload | 44 | 44 | ✅ |
-| captureLogs | 64 | 64 | ✅ |
-| getAllExtensions | 84 | 84 | ✅ |
-| getExtensionInfo | 99 | 99 | ✅ |
-| openUrl | 121 | 121 | ✅ |
-| reloadTab | 161 | 161 | ✅ |
-| closeTab | 189 | 189 | ✅ |
+| Function         | Doc Says | Actual Line | Match |
+| ---------------- | -------- | ----------- | ----- |
+| reloadAndCapture | 23       | 23          | ✅    |
+| reload           | 44       | 44          | ✅    |
+| captureLogs      | 64       | 64          | ✅    |
+| getAllExtensions | 84       | 84          | ✅    |
+| getExtensionInfo | 99       | 99          | ✅    |
+| openUrl          | 121      | 121         | ✅    |
+| reloadTab        | 161      | 161         | ✅    |
+| closeTab         | 189      | 189         | ✅    |
 
 **Undocumented Functions Found:**
+
 - `sendCommand()` - Line 212 (internal, not exported)
 - `startServer()` - Line 280 (internal, not exported)
 - `validateExtensionId()` - Line 313 (internal, not exported)
@@ -128,6 +132,7 @@ $ grep -n "^async function" claude-code/index.js
 **Documentation Claims:** 7 command handlers
 
 **Auditor Verification:**
+
 ```bash
 $ grep -n "case '" extension/background.js | grep -A 1 "command.type"
 127:        case 'reload':
@@ -142,6 +147,7 @@ $ grep -n "case '" extension/background.js | grep -A 1 "command.type"
 **Result:** ✅ 7/7 command cases found
 
 **Handler Functions:**
+
 ```bash
 $ grep -n "^async function handle" extension/background.js
 206:async function handleReloadCommand(commandId, params) {
@@ -157,15 +163,15 @@ $ grep -n "^async function handle" extension/background.js
 
 **Cross-Check Case → Handler Mapping:**
 
-| Case | Line | Handler | Handler Line | Match |
-|------|------|---------|--------------|-------|
-| 'reload' | 127 | handleReloadCommand | 206 | ✅ |
-| 'capture' | 131 | handleCaptureCommand | 271 | ✅ |
-| 'getAllExtensions' | 135 | handleGetAllExtensionsCommand | 291 | ✅ |
-| 'getExtensionInfo' | 139 | handleGetExtensionInfoCommand | 318 | ✅ |
-| 'openUrl' | 143 | handleOpenUrlCommand | 354 | ✅ |
-| 'reloadTab' | 147 | handleReloadTabCommand | 513 | ✅ |
-| 'closeTab' | 151 | handleCloseTabCommand | 549 | ✅ |
+| Case               | Line | Handler                       | Handler Line | Match |
+| ------------------ | ---- | ----------------------------- | ------------ | ----- |
+| 'reload'           | 127  | handleReloadCommand           | 206          | ✅    |
+| 'capture'          | 131  | handleCaptureCommand          | 271          | ✅    |
+| 'getAllExtensions' | 135  | handleGetAllExtensionsCommand | 291          | ✅    |
+| 'getExtensionInfo' | 139  | handleGetExtensionInfoCommand | 318          | ✅    |
+| 'openUrl'          | 143  | handleOpenUrlCommand          | 354          | ✅    |
+| 'reloadTab'        | 147  | handleReloadTabCommand        | 513          | ✅    |
+| 'closeTab'         | 151  | handleCloseTabCommand         | 549          | ✅    |
 
 **Verdict:** ✅ All command handlers exist and are correctly mapped.
 
@@ -176,6 +182,7 @@ $ grep -n "^async function handle" extension/background.js
 **Documentation Claims:** 6 validation functions + 2 constants
 
 **Auditor Verification:**
+
 ```bash
 $ grep -n "^function" server/validation.js
 34:function validateExtensionId(extensionId) {
@@ -189,6 +196,7 @@ $ grep -n "^function" server/validation.js
 **Result:** ✅ 6/6 validation functions found
 
 **Constants:**
+
 ```bash
 $ grep -n "^const METADATA\|^const ALLOWED" server/validation.js
 14:const METADATA_SIZE_LIMIT = 10 * 1024;
@@ -198,6 +206,7 @@ $ grep -n "^const METADATA\|^const ALLOWED" server/validation.js
 **Result:** ✅ 2/2 constants found
 
 **Exports Verification:**
+
 ```bash
 $ grep "module.exports" server/validation.js -A 10
 module.exports = {
@@ -228,7 +237,8 @@ function validateExtensionId(extensionId) {
   if (!extensionId || typeof extensionId !== 'string') {
     throw new Error('extensionId must be non-empty string');
   }
-  if (!/^[a-z]{32}$/.test(extensionId)) {  // ← AUDIT FLAG
+  if (!/^[a-z]{32}$/.test(extensionId)) {
+    // ← AUDIT FLAG
     throw new Error('Invalid extension ID format (must be 32 lowercase letters)');
   }
   return true;
@@ -244,6 +254,7 @@ function validateExtensionId(extensionId) {
 **Expected:** Chrome extension IDs use **base-32 encoding** with alphabet **a-p only** (not a-z).
 
 **Verification:**
+
 ```bash
 # Check Chrome extension ID format documentation
 # Chrome Developer Documentation states:
@@ -252,12 +263,13 @@ function validateExtensionId(extensionId) {
 ```
 
 **Test Case:**
+
 ```javascript
 // Invalid extension ID (contains 'z')
 const invalidId = 'abcdefghijklmnopqrstuvwxyzabcdef';
 
 // Should REJECT but currently ACCEPTS
-validateExtensionId(invalidId);  // ← No error thrown (BUG)
+validateExtensionId(invalidId); // ← No error thrown (BUG)
 ```
 
 **Cross-Reference with index.js:**
@@ -268,6 +280,7 @@ if (!/^[a-p]{32}$/.test(extensionId)) {  // ← CORRECT: a-p only
 ```
 
 **VERDICT:** 🚨 **BUG CONFIRMED**
+
 - **File:** `server/validation.js:38`
 - **Issue:** Regex should be `/^[a-p]{32}$/` not `/^[a-z]{32}$/`
 - **Severity:** MEDIUM
@@ -284,6 +297,7 @@ if (!/^[a-p]{32}$/.test(extensionId)) {  // ← CORRECT: a-p only
 **Analysis:**
 
 **Layer 1: API (`claude-code/index.js`)**
+
 ```javascript
 // Line 313-328
 function validateExtensionId(extensionId) {
@@ -296,13 +310,15 @@ function validateExtensionId(extensionId) {
   if (extensionId.length !== 32) {
     throw new Error(`extensionId must be 32 characters`);
   }
-  if (!/^[a-p]{32}$/.test(extensionId)) {  // ✅ Correct
+  if (!/^[a-p]{32}$/.test(extensionId)) {
+    // ✅ Correct
     throw new Error('Invalid extensionId format (must be 32 lowercase letters a-p)');
   }
 }
 ```
 
 **Layer 2: Extension (`extension/background.js`)**
+
 ```javascript
 // Line 210
 if (!extensionId) {
@@ -322,13 +338,15 @@ if (extension.id === chrome.runtime.id) {
 ```
 
 **Layer 3: Server (`server/validation.js`)**
+
 ```javascript
 // Line 34-42
 function validateExtensionId(extensionId) {
   if (!extensionId || typeof extensionId !== 'string') {
     throw new Error('extensionId must be non-empty string');
   }
-  if (!/^[a-z]{32}$/.test(extensionId)) {  // ⚠️ Incorrect (but exists)
+  if (!/^[a-z]{32}$/.test(extensionId)) {
+    // ⚠️ Incorrect (but exists)
     throw new Error('Invalid extension ID format (must be 32 lowercase letters)');
   }
   return true;
@@ -336,6 +354,7 @@ function validateExtensionId(extensionId) {
 ```
 
 **Auditor Verdict:** ✅ **Defense-in-Depth CONFIRMED**
+
 - Three independent validation layers
 - Each layer checks different aspects
 - Intentional design (not accidental duplication)
@@ -348,12 +367,12 @@ function validateExtensionId(extensionId) {
 
 ### Findings
 
-| Code | Location 1 | Location 2 | Duplication Type |
-|------|-----------|-----------|------------------|
-| `validateExtensionId()` | index.js:313 | validation.js:34 | ✅ Intentional (defense-in-depth) |
-| Tab ID validation | index.js:163 | background.js:517 | ✅ Intentional (dual-layer) |
-| Duration validation | index.js:66 | background.js:403 | ✅ Intentional (dual limits) |
-| Error logging | ErrorLogger.logUnexpectedError | ErrorLogger.logCritical | ✅ Alias pattern |
+| Code                    | Location 1                     | Location 2              | Duplication Type                  |
+| ----------------------- | ------------------------------ | ----------------------- | --------------------------------- |
+| `validateExtensionId()` | index.js:313                   | validation.js:34        | ✅ Intentional (defense-in-depth) |
+| Tab ID validation       | index.js:163                   | background.js:517       | ✅ Intentional (dual-layer)       |
+| Duration validation     | index.js:66                    | background.js:403       | ✅ Intentional (dual limits)      |
+| Error logging           | ErrorLogger.logUnexpectedError | ErrorLogger.logCritical | ✅ Alias pattern                  |
 
 **Auditor Verdict:** ✅ All duplication is intentional and serves architectural purposes.
 
@@ -365,12 +384,12 @@ function validateExtensionId(extensionId) {
 
 **File:** `claude-code/index.js`
 
-| Function | Line | Documented | Verdict |
-|----------|------|------------|---------|
-| `sendCommand()` | 212 | ❌ | ✅ Internal helper (acceptable) |
-| `startServer()` | 280 | ❌ | ✅ Internal helper (acceptable) |
-| `validateExtensionId()` | 313 | ❌ | ✅ Internal helper (acceptable) |
-| `generateCommandId()` | 336 | ❌ | ✅ Internal helper (acceptable) |
+| Function                | Line | Documented | Verdict                         |
+| ----------------------- | ---- | ---------- | ------------------------------- |
+| `sendCommand()`         | 212  | ❌         | ✅ Internal helper (acceptable) |
+| `startServer()`         | 280  | ❌         | ✅ Internal helper (acceptable) |
+| `validateExtensionId()` | 313  | ❌         | ✅ Internal helper (acceptable) |
+| `generateCommandId()`   | 336  | ❌         | ✅ Internal helper (acceptable) |
 
 **Verdict:** ✅ Undocumented functions are internal utilities, not public API.
 
@@ -380,14 +399,14 @@ function validateExtensionId(extensionId) {
 
 **File:** `extension/background.js`
 
-| Function | Line | Documented | Verdict |
-|----------|------|------------|---------|
-| `registerConsoleCaptureScript()` | 44 | ❌ | ✅ Internal (acceptable) |
-| `connectToServer()` | 93 | ❌ | ✅ Internal (acceptable) |
-| `startConsoleCapture()` | 575 | ❌ | ✅ Internal (acceptable) |
-| `cleanupCapture()` | 616 | ❌ | ✅ Internal (acceptable) |
-| `getCommandLogs()` | 647 | ❌ | ✅ Internal (acceptable) |
-| `sleep()` | 758 | ❌ | ✅ Utility (acceptable) |
+| Function                         | Line | Documented | Verdict                  |
+| -------------------------------- | ---- | ---------- | ------------------------ |
+| `registerConsoleCaptureScript()` | 44   | ❌         | ✅ Internal (acceptable) |
+| `connectToServer()`              | 93   | ❌         | ✅ Internal (acceptable) |
+| `startConsoleCapture()`          | 575  | ❌         | ✅ Internal (acceptable) |
+| `cleanupCapture()`               | 616  | ❌         | ✅ Internal (acceptable) |
+| `getCommandLogs()`               | 647  | ❌         | ✅ Internal (acceptable) |
+| `sleep()`                        | 758  | ❌         | ✅ Utility (acceptable)  |
 
 **Verdict:** ✅ All undocumented functions are internal/utility. No public API gaps.
 
@@ -407,13 +426,13 @@ $ diff <(documented_exports.txt) <(actual_exports.txt)
 
 **Results:**
 
-| File | Documented Exports | Actual Exports | Match |
-|------|-------------------|----------------|-------|
-| claude-code/index.js | 8 | 8 | ✅ |
-| server/validation.js | 8 | 8 | ✅ |
-| extension/lib/error-logger.js | 1 class | 1 class | ✅ |
-| extension/modules/ConsoleCapture.js | 1 class | 1 class | ✅ |
-| src/health/health-manager.js | 1 class | 1 class | ✅ |
+| File                                | Documented Exports | Actual Exports | Match |
+| ----------------------------------- | ------------------ | -------------- | ----- |
+| claude-code/index.js                | 8                  | 8              | ✅    |
+| server/validation.js                | 8                  | 8              | ✅    |
+| extension/lib/error-logger.js       | 1 class            | 1 class        | ✅    |
+| extension/modules/ConsoleCapture.js | 1 class            | 1 class        | ✅    |
+| src/health/health-manager.js        | 1 class            | 1 class        | ✅    |
 
 **Auditor Verdict:** ✅ All exports match documentation perfectly.
 
@@ -428,12 +447,14 @@ Documentation claims these security restrictions exist in code:
 **Documented Location:** `extension/background.js:229`
 
 **Verification:**
+
 ```bash
 $ grep -n "Cannot reload self" extension/background.js
 229:    throw new Error('Cannot reload self');
 ```
 
 **Context:**
+
 ```javascript
 if (extension.id === chrome.runtime.id) {
   throw new Error('Cannot reload self');
@@ -449,6 +470,7 @@ if (extension.id === chrome.runtime.id) {
 **Documented Location:** `extension/background.js:396-401`
 
 **Verification:**
+
 ```bash
 $ grep -n "dangerousProtocols" extension/background.js
 398:  const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:'];
@@ -456,6 +478,7 @@ $ grep -n "dangerousProtocols" extension/background.js
 ```
 
 **Context:**
+
 ```javascript
 // Security: Block dangerous URL protocols
 const urlLower = url.toLowerCase().trim();
@@ -468,6 +491,7 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 **Verdict:** ✅ EXISTS
 
 **Protocols Blocked:**
+
 - javascript: ✅
 - data: ✅
 - vbscript: ✅
@@ -480,6 +504,7 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 **Documented Location:** `extension/background.js:15`
 
 **Verification:**
+
 ```bash
 $ grep -n "MAX_LOGS_PER_CAPTURE" extension/background.js
 15:const MAX_LOGS_PER_CAPTURE = 10000; // Maximum logs per command to prevent memory exhaustion
@@ -494,6 +519,7 @@ $ grep -n "MAX_LOGS_PER_CAPTURE" extension/background.js
 **Layer 1 - Documented Location:** `extension/inject-console-capture.js:36`
 
 **Verification:**
+
 ```bash
 $ grep -n "MAX_MESSAGE_LENGTH" extension/inject-console-capture.js
 34:  const MAX_MESSAGE_LENGTH = 10000;
@@ -506,6 +532,7 @@ $ grep -n "MAX_MESSAGE_LENGTH" extension/inject-console-capture.js
 **Layer 2 - Documented Location:** `extension/background.js:687`
 
 **Verification:**
+
 ```bash
 $ grep -n "MAX_MESSAGE_LENGTH" extension/background.js
 686:  const MAX_MESSAGE_LENGTH = 10000;
@@ -522,13 +549,13 @@ $ grep -n "MAX_MESSAGE_LENGTH" extension/background.js
 
 **Random Sample Verification:**
 
-| Documentation Claim | Actual Line | Verified Content | Match |
-|---------------------|-------------|------------------|-------|
-| reloadAndCapture() line 23 | 23 | `async function reloadAndCapture` | ✅ |
-| handleReloadCommand() line 206 | 206 | `async function handleReloadCommand` | ✅ |
-| validateExtensionId() line 34 | 34 | `function validateExtensionId` | ✅ |
-| dangerousProtocols line 398 | 398 | `const dangerousProtocols =` | ✅ |
-| MAX_LOGS_PER_CAPTURE line 15 | 15 | `const MAX_LOGS_PER_CAPTURE = 10000` | ✅ |
+| Documentation Claim            | Actual Line | Verified Content                     | Match |
+| ------------------------------ | ----------- | ------------------------------------ | ----- |
+| reloadAndCapture() line 23     | 23          | `async function reloadAndCapture`    | ✅    |
+| handleReloadCommand() line 206 | 206         | `async function handleReloadCommand` | ✅    |
+| validateExtensionId() line 34  | 34          | `function validateExtensionId`       | ✅    |
+| dangerousProtocols line 398    | 398         | `const dangerousProtocols =`         | ✅    |
+| MAX_LOGS_PER_CAPTURE line 15   | 15          | `const MAX_LOGS_PER_CAPTURE = 10000` | ✅    |
 
 **Auditor Verdict:** ✅ All line numbers accurate (5/5 sampled)
 
@@ -538,13 +565,13 @@ $ grep -n "MAX_MESSAGE_LENGTH" extension/background.js
 
 ### Completeness: 100% ✅
 
-| Category | Claimed | Verified | Coverage |
-|----------|---------|----------|----------|
-| Public API Functions | 8 | 8 | 100% |
-| Command Handlers | 7 | 7 | 100% |
-| Validation Functions | 6 | 6 | 100% |
-| Exports | 19 | 19 | 100% |
-| Security Restrictions | 10 | 10 | 100% |
+| Category              | Claimed | Verified | Coverage |
+| --------------------- | ------- | -------- | -------- |
+| Public API Functions  | 8       | 8        | 100%     |
+| Command Handlers      | 7       | 7        | 100%     |
+| Validation Functions  | 6       | 6        | 100%     |
+| Exports               | 19      | 19       | 100%     |
+| Security Restrictions | 10      | 10       | 100%     |
 
 ---
 
@@ -582,6 +609,7 @@ $ grep -n "MAX_MESSAGE_LENGTH" extension/background.js
 ### Immediate Actions
 
 1. ✅ **Fix validation.js regex** (line 38)
+
    ```diff
    - if (!/^[a-z]{32}$/.test(extensionId)) {
    + if (!/^[a-p]{32}$/.test(extensionId)) {

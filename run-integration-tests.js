@@ -43,7 +43,7 @@ console.log();
 console.log('To check extension status:');
 console.log('  1. Open chrome://extensions in Chrome');
 console.log('  2. Find "Chrome Dev Assist"');
-console.log('  3. Verify it\'s enabled and ID matches');
+console.log("  3. Verify it's enabled and ID matches");
 console.log('  4. Click "service worker" to see console');
 console.log();
 
@@ -56,21 +56,25 @@ setTimeout(() => {
   console.log();
 
   // Run Jest with the integration test file
-  const jest = spawn('npx', [
-    'jest',
-    'tests/integration/complete-system.test.js',
-    '--verbose',
-    '--runInBand', // Run tests serially for browser operations
-    '--detectOpenHandles'
-  ], {
-    env: {
-      ...process.env,
-      EXTENSION_ID: EXTENSION_ID
-    },
-    stdio: 'inherit'
-  });
+  const jest = spawn(
+    'npx',
+    [
+      'jest',
+      'tests/integration/complete-system.test.js',
+      '--verbose',
+      '--runInBand', // Run tests serially for browser operations
+      '--detectOpenHandles',
+    ],
+    {
+      env: {
+        ...process.env,
+        EXTENSION_ID: EXTENSION_ID,
+      },
+      stdio: 'inherit',
+    }
+  );
 
-  jest.on('close', (code) => {
+  jest.on('close', code => {
     console.log();
     console.log('='.repeat(70));
     if (code === 0) {
@@ -90,7 +94,7 @@ setTimeout(() => {
     process.exit(code);
   });
 
-  jest.on('error', (err) => {
+  jest.on('error', err => {
     console.error('Failed to start Jest:', err);
     process.exit(1);
   });

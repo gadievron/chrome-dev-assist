@@ -25,25 +25,19 @@ describe('Edge Cases - Complete Coverage', () => {
       //  Use a valid-format ID that doesn't exist
       const fakeId = 'abcdefghijklmnopqrstuvwxyzabcdef';
 
-      await expect(
-        chromeDevAssist.getExtensionInfo(fakeId)
-      ).rejects.toThrow(/not found/);
+      await expect(chromeDevAssist.getExtensionInfo(fakeId)).rejects.toThrow(/not found/);
     });
 
     test('should error when reloading non-existent extension', async () => {
       const fakeId = 'abcdefghijklmnopqrstuvwxyzabcdef';
 
-      await expect(
-        chromeDevAssist.reload(fakeId)
-      ).rejects.toThrow(/not found/);
+      await expect(chromeDevAssist.reload(fakeId)).rejects.toThrow(/not found/);
     });
 
     test('should error when enabling non-existent extension', async () => {
       const fakeId = 'abcdefghijklmnopqrstuvwxyzabcdef';
 
-      await expect(
-        chromeDevAssist.enableExtension(fakeId)
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.enableExtension(fakeId)).rejects.toThrow();
     });
   });
 
@@ -52,25 +46,19 @@ describe('Edge Cases - Complete Coverage', () => {
       // Use a tab ID that definitely doesn't exist
       const fakeTabId = 999999;
 
-      await expect(
-        chromeDevAssist.closeTab(fakeTabId)
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.closeTab(fakeTabId)).rejects.toThrow();
     });
 
     test('should error when reloading non-existent tab', async () => {
       const fakeTabId = 999999;
 
-      await expect(
-        chromeDevAssist.reloadTab(fakeTabId)
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.reloadTab(fakeTabId)).rejects.toThrow();
     });
 
     test('should error when getting metadata from non-existent tab', async () => {
       const fakeTabId = 999999;
 
-      await expect(
-        chromeDevAssist.getPageMetadata(fakeTabId)
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.getPageMetadata(fakeTabId)).rejects.toThrow();
     });
   });
 
@@ -78,7 +66,7 @@ describe('Edge Cases - Complete Coverage', () => {
     test('should handle attempting to close already-closed tab', async () => {
       // Open and close a tab
       const openResult = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       const tabId = openResult.tabId;
 
@@ -86,9 +74,7 @@ describe('Edge Cases - Complete Coverage', () => {
       await chromeDevAssist.closeTab(tabId);
 
       // Try to close again - should error
-      await expect(
-        chromeDevAssist.closeTab(tabId)
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.closeTab(tabId)).rejects.toThrow();
     });
   });
 
@@ -100,16 +86,17 @@ describe('Edge Cases - Complete Coverage', () => {
           active: false,
           captureConsole: true,
           duration: 3000,
-          autoClose: true
+          autoClose: true,
         }
       );
 
       // Check if timing logs were captured
-      const timingLogs = result.consoleLogs.filter(log =>
-        log.message.includes('operation') ||
-        log.message.includes('ms') ||
-        log.level === 'time' ||
-        log.level === 'timeEnd'
+      const timingLogs = result.consoleLogs.filter(
+        log =>
+          log.message.includes('operation') ||
+          log.message.includes('ms') ||
+          log.level === 'time' ||
+          log.level === 'timeEnd'
       );
 
       // Note: console.time may show as regular log depending on browser
@@ -138,9 +125,7 @@ describe('Edge Cases - Complete Coverage', () => {
       await chromeDevAssist.startTest(testId);
 
       // Try to start another - should fail
-      await expect(
-        chromeDevAssist.startTest('another-test-id')
-      ).rejects.toThrow(/already running/);
+      await expect(chromeDevAssist.startTest('another-test-id')).rejects.toThrow(/already running/);
 
       // Cleanup
       await chromeDevAssist.endTest(testId);
@@ -152,15 +137,15 @@ describe('Edge Cases - Complete Coverage', () => {
 
       // Start test with cleanup disabled
       await chromeDevAssist.startTest(testId, {
-        autoCleanup: false
+        autoCleanup: false,
       });
 
       // Open tabs
       const tab1 = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       const tab2 = await chromeDevAssist.openUrl('https://example.org', {
-        active: false
+        active: false,
       });
 
       // End test
@@ -178,15 +163,15 @@ describe('Edge Cases - Complete Coverage', () => {
     });
 
     test('should reject ending test that is not active', async () => {
-      await expect(
-        chromeDevAssist.endTest('non-existent-test-id')
-      ).rejects.toThrow(/No active test/);
+      await expect(chromeDevAssist.endTest('non-existent-test-id')).rejects.toThrow(
+        /No active test/
+      );
     });
 
     test('should reject aborting test that is not active', async () => {
-      await expect(
-        chromeDevAssist.abortTest('non-existent-test-id')
-      ).rejects.toThrow(/No active test/);
+      await expect(chromeDevAssist.abortTest('non-existent-test-id')).rejects.toThrow(
+        /No active test/
+      );
     });
 
     test('should reject ending test with wrong ID', async () => {
@@ -195,9 +180,7 @@ describe('Edge Cases - Complete Coverage', () => {
       await chromeDevAssist.startTest(testId);
 
       // Try to end with different ID
-      await expect(
-        chromeDevAssist.endTest('wrong-test-id')
-      ).rejects.toThrow(/mismatch/);
+      await expect(chromeDevAssist.endTest('wrong-test-id')).rejects.toThrow(/mismatch/);
 
       await chromeDevAssist.endTest(testId);
       testId = null;
@@ -205,25 +188,19 @@ describe('Edge Cases - Complete Coverage', () => {
 
     test('should validate test ID format', async () => {
       // Test IDs with invalid characters should be rejected
-      await expect(
-        chromeDevAssist.startTest('test with spaces')
-      ).rejects.toThrow(/invalid characters/);
+      await expect(chromeDevAssist.startTest('test with spaces')).rejects.toThrow(
+        /invalid characters/
+      );
 
-      await expect(
-        chromeDevAssist.startTest('test@#$%')
-      ).rejects.toThrow(/invalid characters/);
+      await expect(chromeDevAssist.startTest('test@#$%')).rejects.toThrow(/invalid characters/);
 
-      await expect(
-        chromeDevAssist.startTest('')
-      ).rejects.toThrow(/required/);
+      await expect(chromeDevAssist.startTest('')).rejects.toThrow(/required/);
     });
 
     test('should reject very long test ID', async () => {
       const longId = 'a'.repeat(101); // Max is 100
 
-      await expect(
-        chromeDevAssist.startTest(longId)
-      ).rejects.toThrow(/too long/);
+      await expect(chromeDevAssist.startTest(longId)).rejects.toThrow(/too long/);
     });
   });
 
@@ -233,16 +210,13 @@ describe('Edge Cases - Complete Coverage', () => {
       const allExts = await chromeDevAssist.getAllExtensions();
 
       // Find Chrome Dev Assist extension
-      const selfExt = allExts.extensions.find(ext =>
-        ext.name.includes('Chrome Dev Assist') ||
-        ext.name.includes('chrome-dev-assist')
+      const selfExt = allExts.extensions.find(
+        ext => ext.name.includes('Chrome Dev Assist') || ext.name.includes('chrome-dev-assist')
       );
 
       if (selfExt) {
         // Try to reload self - should fail
-        await expect(
-          chromeDevAssist.reload(selfExt.id)
-        ).rejects.toThrow(/Cannot reload self/);
+        await expect(chromeDevAssist.reload(selfExt.id)).rejects.toThrow(/Cannot reload self/);
       } else {
         // If we can't find self, that's also a problem
         console.warn('Chrome Dev Assist extension not found in extension list');
@@ -256,13 +230,11 @@ describe('Edge Cases - Complete Coverage', () => {
         'ftp://example.com',
         'about:blank',
         'chrome://settings',
-        'chrome-extension://abcd1234'
+        'chrome-extension://abcd1234',
       ];
 
       for (const url of invalidUrls) {
-        await expect(
-          chromeDevAssist.openUrl(url)
-        ).rejects.toThrow();
+        await expect(chromeDevAssist.openUrl(url)).rejects.toThrow();
       }
     });
 
@@ -272,13 +244,11 @@ describe('Edge Cases - Complete Coverage', () => {
         'htp://example.com', // Typo in protocol
         '://example.com', // Missing protocol
         'http://', // Incomplete
-        'http://example com' // Space in domain
+        'http://example com', // Space in domain
       ];
 
       for (const url of malformedUrls) {
-        await expect(
-          chromeDevAssist.openUrl(url)
-        ).rejects.toThrow();
+        await expect(chromeDevAssist.openUrl(url)).rejects.toThrow();
       }
     });
   });
@@ -297,15 +267,11 @@ describe('Edge Cases - Complete Coverage', () => {
     });
 
     test('should reject zero duration', async () => {
-      await expect(
-        chromeDevAssist.captureLogs(0)
-      ).rejects.toThrow(/between/);
+      await expect(chromeDevAssist.captureLogs(0)).rejects.toThrow(/between/);
     });
 
     test('should reject negative duration', async () => {
-      await expect(
-        chromeDevAssist.captureLogs(-1000)
-      ).rejects.toThrow(/between/);
+      await expect(chromeDevAssist.captureLogs(-1000)).rejects.toThrow(/between/);
     });
 
     test('should reject excessive duration', async () => {
@@ -332,7 +298,7 @@ describe('Edge Cases - Complete Coverage', () => {
     test('should perform hard reload with cache bypass', async () => {
       // Open a tab
       const openResult = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       testTabId = openResult.tabId;
 
@@ -343,7 +309,7 @@ describe('Edge Cases - Complete Coverage', () => {
       const reloadResult = await chromeDevAssist.reloadTab(testTabId, {
         bypassCache: true,
         captureConsole: true,
-        duration: 2000
+        duration: 2000,
       });
 
       expect(reloadResult).toHaveProperty('tabId', testTabId);
@@ -357,13 +323,13 @@ describe('Edge Cases - Complete Coverage', () => {
     test('should detect all orphaned tabs', async () => {
       // Open multiple tabs
       const tab1 = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       const tab2 = await chromeDevAssist.openUrl('https://example.org', {
-        active: false
+        active: false,
       });
       const tab3 = await chromeDevAssist.openUrl('https://example.net', {
-        active: false
+        active: false,
       });
 
       const tabIds = [tab1.tabId, tab2.tabId, tab3.tabId];
@@ -373,7 +339,7 @@ describe('Edge Cases - Complete Coverage', () => {
 
       // Verify cleanup - should detect tab2 and tab3 as orphans
       const verifyResult = await chromeDevAssist.verifyCleanup({
-        expectedClosedTabs: tabIds
+        expectedClosedTabs: tabIds,
       });
 
       expect(verifyResult).toHaveProperty('verified', false); // Not all closed
@@ -386,10 +352,10 @@ describe('Edge Cases - Complete Coverage', () => {
     test('should verify cleanup when all tabs actually closed', async () => {
       // Open and close tabs
       const tab1 = await chromeDevAssist.openUrl('https://example.com', {
-        active: false
+        active: false,
       });
       const tab2 = await chromeDevAssist.openUrl('https://example.org', {
-        active: false
+        active: false,
       });
 
       const tabIds = [tab1.tabId, tab2.tabId];
@@ -399,7 +365,7 @@ describe('Edge Cases - Complete Coverage', () => {
 
       // Verify cleanup
       const verifyResult = await chromeDevAssist.verifyCleanup({
-        expectedClosedTabs: tabIds
+        expectedClosedTabs: tabIds,
       });
 
       expect(verifyResult.verified).toBe(true);
@@ -423,9 +389,7 @@ describe('Edge Cases - Complete Coverage', () => {
       const expectedPermissions = ['management', 'tabs', 'storage', 'scripting', 'alarms'];
 
       expectedPermissions.forEach(perm => {
-        const hasPermission = info.permissions.some(p =>
-          p === perm || p.includes(perm)
-        );
+        const hasPermission = info.permissions.some(p => p === perm || p.includes(perm));
 
         if (!hasPermission) {
           console.warn(`Missing expected permission: ${perm}`);

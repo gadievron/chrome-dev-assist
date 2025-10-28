@@ -66,7 +66,9 @@ See `README.md` Security Warnings section for complete details.
 ### Known Security Considerations
 
 #### Extension Permissions
+
 This extension requires broad permissions to function:
+
 - `<all_urls>` - Access to all websites
 - `tabs` - Access to all browser tabs
 - `scripting` - Can inject code into pages
@@ -75,7 +77,9 @@ This extension requires broad permissions to function:
 **These are necessary for test automation** but should be treated as high-risk.
 
 #### Screenshot Sensitivity
+
 `captureScreenshot()` captures ALL visible content including:
+
 - Passwords (even masked)
 - Credit card numbers
 - PII and sensitive data
@@ -104,12 +108,14 @@ This extension requires broad permissions to function:
 ### Scope
 
 **In scope**:
+
 - Node.js API (claude-code/)
 - Chrome Extension (extension/)
 - WebSocket Server (server/)
 - Test Infrastructure (tests/)
 
 **Out of scope**:
+
 - Third-party dependencies (report to upstream)
 - Social engineering
 - Physical security

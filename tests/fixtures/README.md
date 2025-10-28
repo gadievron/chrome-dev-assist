@@ -9,24 +9,31 @@ Test pages designed for Chrome Dev Assist validation with **3-level identificati
 Every test page includes identification at three levels:
 
 ### 1️⃣ **In Code** (Programmatic Detection)
+
 Data attributes on `<body>` element:
+
 ```html
 <body
   data-test-id="basic-test-001"
   data-test-name="Basic Test Page"
   data-extension-name="Chrome Dev Assist"
-  data-test-status="ready">
+  data-test-status="ready"
+></body>
 ```
 
 ### 2️⃣ **In Visible Text** (Visual Confirmation)
+
 Test information displayed prominently on page:
+
 - Test ID (monospaced, highlighted)
 - Test Name
 - Extension Name (Chrome Dev Assist)
 - Status indicator
 
 ### 3️⃣ **In Console** (Logging at Beginning)
+
 Test identification logged **immediately** when page loads:
+
 ```javascript
 console.log('═══════════════════════════════════════════════════════');
 console.log('🧪 TEST PAGE LOADED');
@@ -44,12 +51,14 @@ console.log('══════════════════════�
 ## 📁 Available Test Fixtures
 
 ### `basic-test.html`
+
 **Purpose:** Validate basic page load and metadata detection
 **Test ID:** `basic-test-001`
 **Console Output:** Identification only (clean)
 **Expected Errors:** 0
 
 **Use Cases:**
+
 - Verify openUrl() works
 - Validate test page metadata detection
 - Check console capture works
@@ -58,12 +67,14 @@ console.log('══════════════════════�
 ---
 
 ### `console-errors-test.html`
+
 **Purpose:** Test console error capture functionality
 **Test ID:** `console-errors-001`
 **Console Output:** 3 intentional errors
 **Expected Errors:** 3 (ReferenceError, TypeError, Custom Error)
 
 **Use Cases:**
+
 - Validate error capture
 - Test error filtering
 - Verify error message accuracy
@@ -72,15 +83,18 @@ console.log('══════════════════════�
 ---
 
 ### `console-mixed-test.html`
+
 **Purpose:** Test mixed console output capture
 **Test ID:** `console-mixed-001`
 **Console Output:** 5 logs + 2 warnings + 1 error = 8 messages
 **Expected:**
+
 - Logs: 5
 - Warnings: 2
 - Errors: 1
 
 **Use Cases:**
+
 - Validate multi-level capture (log/warn/error)
 - Test message counting by level
 - Verify filtering by severity
@@ -91,23 +105,25 @@ console.log('══════════════════════�
 ## 🔧 Usage in Tests
 
 ### Basic Usage
+
 ```javascript
 const chromeDevAssist = require('../../claude-code/index.js');
 
 // Open test page
-const result = await chromeDevAssist.openUrl(
-  'file:///path/to/tests/fixtures/basic-test.html',
-  { captureConsole: true, duration: 2000 }
-);
+const result = await chromeDevAssist.openUrl('file:///path/to/tests/fixtures/basic-test.html', {
+  captureConsole: true,
+  duration: 2000,
+});
 
 // Verify test identification in console
-const testIdLog = result.consoleLogs.find(log =>
-  log.message.includes('Test ID:') && log.message.includes('basic-test-001')
+const testIdLog = result.consoleLogs.find(
+  log => log.message.includes('Test ID:') && log.message.includes('basic-test-001')
 );
 expect(testIdLog).toBeDefined();
 ```
 
 ### Dogfooding Pattern (Using Extension to Test Itself)
+
 ```javascript
 // 1. Open test page with capture
 const { tabId, consoleLogs } = await chromeDevAssist.openUrl(
@@ -116,9 +132,7 @@ const { tabId, consoleLogs } = await chromeDevAssist.openUrl(
 );
 
 // 2. Validate test identification present
-const testHeader = consoleLogs.find(log =>
-  log.message.includes('console-errors-001')
-);
+const testHeader = consoleLogs.find(log => log.message.includes('console-errors-001'));
 expect(testHeader).toBeDefined();
 
 // 3. Validate expected errors captured
@@ -130,6 +144,7 @@ await chromeDevAssist.closeTab(tabId);
 ```
 
 ### Accessing Test Metadata from Extension
+
 ```javascript
 // After page loads, metadata is available in window object
 window.testMetadata = {
@@ -137,7 +152,7 @@ window.testMetadata = {
   name: 'Basic Test Page',
   extension: 'Chrome Dev Assist',
   status: 'ready',
-  loadedAt: '2025-10-24T...'
+  loadedAt: '2025-10-24T...',
 };
 ```
 
@@ -148,14 +163,14 @@ window.testMetadata = {
 ### Required Elements
 
 1. **Data Attributes on `<body>`:**
+
    ```html
-   data-test-id="unique-id-001"
-   data-test-name="Descriptive Test Name"
-   data-extension-name="Chrome Dev Assist"
-   data-test-status="ready"
+   data-test-id="unique-id-001" data-test-name="Descriptive Test Name" data-extension-name="Chrome
+   Dev Assist" data-test-status="ready"
    ```
 
 2. **Visible Test Information:**
+
    ```html
    <div class="test-info">
      <h1>🧪 Test Page Title</h1>
@@ -167,6 +182,7 @@ window.testMetadata = {
    ```
 
 3. **Console Logging at Beginning:**
+
    ```javascript
    console.log('═══════════════════════════════════════════════════════');
    console.log('🧪 TEST PAGE LOADED');
@@ -186,11 +202,12 @@ window.testMetadata = {
      name: 'Descriptive Test Name',
      extension: 'Chrome Dev Assist',
      status: 'ready',
-     loadedAt: new Date().toISOString()
+     loadedAt: new Date().toISOString(),
    };
    ```
 
 ### Naming Convention
+
 - **File:** `descriptive-name-test.html`
 - **Test ID:** `descriptive-name-XXX` (where XXX is sequential number)
 - **Body ID:** Same as test ID
@@ -227,11 +244,11 @@ When creating or using test fixtures, validate:
 
 ## 📊 Test Fixture Metadata Summary
 
-| File | Test ID | Logs | Warnings | Errors | Purpose |
-|------|---------|------|----------|--------|---------|
-| `basic-test.html` | `basic-test-001` | 2 | 0 | 0 | Basic validation |
-| `console-errors-test.html` | `console-errors-001` | 5 | 0 | 3 | Error capture |
-| `console-mixed-test.html` | `console-mixed-001` | 5 | 2 | 1 | Mixed output |
+| File                       | Test ID              | Logs | Warnings | Errors | Purpose          |
+| -------------------------- | -------------------- | ---- | -------- | ------ | ---------------- |
+| `basic-test.html`          | `basic-test-001`     | 2    | 0        | 0      | Basic validation |
+| `console-errors-test.html` | `console-errors-001` | 5    | 0        | 3      | Error capture    |
+| `console-mixed-test.html`  | `console-mixed-001`  | 5    | 2        | 1      | Mixed output     |
 
 ---
 

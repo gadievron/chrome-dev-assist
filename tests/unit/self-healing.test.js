@@ -58,21 +58,21 @@ describe('Self-Healing Mechanism', () => {
   describe('Connection State Tracking', () => {
     test('should track connection as "active" when WebSocket open', () => {
       const wsState = 'OPEN'; // WebSocket.OPEN === 1
-      const connectionActive = (wsState === 'OPEN');
+      const connectionActive = wsState === 'OPEN';
 
       expect(connectionActive).toBe(true);
     });
 
     test('should track connection as "lost" when WebSocket closes', () => {
       const wsState = 'CLOSED'; // WebSocket.CLOSED === 3
-      const connectionLost = (wsState === 'CLOSED');
+      const connectionLost = wsState === 'CLOSED';
 
       expect(connectionLost).toBe(true);
     });
 
     test('should track connection as "lost" when WebSocket errors', () => {
       const wsState = 'ERROR';
-      const connectionLost = (wsState === 'ERROR' || wsState === 'CLOSED');
+      const connectionLost = wsState === 'ERROR' || wsState === 'CLOSED';
 
       expect(connectionLost).toBe(true);
     });
@@ -122,7 +122,7 @@ describe('Self-Healing Mechanism', () => {
 
       const events = ['connect', 'disconnect', 'connect', 'disconnect', 'connect'];
       const finalState = events[events.length - 1];
-      const shouldReload = (finalState !== 'connect');
+      const shouldReload = finalState !== 'connect';
 
       expect(shouldReload).toBe(false);
     });
@@ -159,7 +159,7 @@ describe('Self-Healing Mechanism', () => {
       const serverDown = true;
       const time = 65000; // 65 seconds
       const reconnected = false;
-      const shouldReload = (time > 60000 && !reconnected);
+      const shouldReload = time > 60000 && !reconnected;
 
       expect(shouldReload).toBe(true);
     });

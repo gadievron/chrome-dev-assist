@@ -23,36 +23,45 @@ This debugging session revealed **SEVEN CRITICAL ISSUES** with our testing metho
 ## Problem 1: Background Process Cleanup Failures
 
 ### What Happened
+
 Throughout the session, multiple background processes were started but NOT cleaned up:
+
 - Chrome (PID 30758) - launched at 19:12:06, killed at 22:33
 - Server (PID 71941) - old server, killed at 19:31
 - Server (PID 75422) - new server, killed at 22:33
 - Bash shells (c607db, 7c1e40, 047efb) - left running
 
 ### User Complaint
+
 > "you are once again not closing tabs on your own, and the extension isn't verifying they weren't closed and then closing them. this is an issue that keep repeaaring."
 
 ### Root Cause
+
 **Claude does not proactively clean up background processes.**
 
 When running:
+
 - `./scripts/launch-chrome-with-extension.sh` in background
 - `npm run server` in background
 - `npm test` in background
 
 Claude NEVER automatically:
+
 1. Tracks which processes were started
 2. Kills them when done
 3. Verifies cleanup succeeded
 
 ### Impact
+
 - System resources wasted (memory, CPU)
 - Orphaned Chrome instances interfering with new tests
 - Server port conflicts (can't start new server on same port)
 - Confusion about which process is which
 
 ### Current Rules (Inadequate)
+
 From CLAUDE.md:
+
 - No explicit rule about cleaning up background processes
 - No checklist item for process cleanup
 - No automated verification
@@ -62,7 +71,9 @@ From CLAUDE.md:
 ## Problem 2: Fake Tests (Testing Mocks Instead of Production Code)
 
 ### What Happened
+
 The timeout-wrapper.test.js file initially contained:
+
 ```javascript
 // Mock implementation of withTimeout for testing
 async function withTimeout(promise, timeoutMs, operation) {
@@ -73,21 +84,27 @@ async function withTimeout(promise, timeoutMs, operation) {
 ```
 
 ### Discovery
+
 Multi-persona review (Tester persona) identified:
+
 > "4 out of 5 unit tests don't test production code"
 
 ### Root Cause
+
 **Tests were written BEFORE implementation existed.**
 
 Following "test-first" principle, tests were created with a mock implementation. But when real implementation was added to background.js, tests were NEVER updated to test the real code.
 
 ### Impact
+
 - Tests passed but production code could be broken
 - False confidence in implementation quality
 - Bugs not caught until integration testing
 
 ### Fix Applied
+
 Added verification tests:
+
 ```javascript
 it('should verify withTimeout exists in background.js', () => {
   const backgroundJs = fs.readFileSync(
@@ -100,7 +117,9 @@ it('should verify withTimeout exists in background.js', () => {
 ```
 
 ### Current Rules (Inadequate)
+
 From bootstrap.md:
+
 - "Test-First Discipline: No code before tests"
 - BUT no rule about updating tests to use real implementation
 - No verification that tests actually call production code
@@ -110,7 +129,9 @@ From bootstrap.md:
 ## Problem 3: Server Restart Methodology Error
 
 ### What Happened
+
 Debugging process:
+
 1. Extension connected to server (PID 71941)
 2. Added debug logging to server code
 3. Restarted server to pick up changes (new PID 75422)
@@ -118,16 +139,20 @@ Debugging process:
 5. Tests failed: "No extensions connected"
 
 ### Root Cause
+
 **Restarting server mid-session is INVALID testing methodology.**
 
 When server restarts:
+
 - Extension's WebSocket connection breaks
 - Extension should reconnect automatically
 - But if reconnection doesn't work (ISSUE-012), extension stuck disconnected
 - Cannot test WebSocket improvements with broken connection
 
 ### Correct Methodology
+
 **WRONG:**
+
 ```bash
 # Server running, extension connected
 kill <server-pid>
@@ -136,6 +161,7 @@ npm run server  # New PID
 ```
 
 **RIGHT:**
+
 ```bash
 # Kill everything
 kill <chrome-pid>
@@ -147,7 +173,9 @@ npm run server
 ```
 
 ### Current Rules (Missing)
+
 No documented testing procedures for:
+
 - How to test WebSocket improvements
 - How to restart components safely
 - When it's safe to restart vs must restart all
@@ -157,32 +185,39 @@ No documented testing procedures for:
 ## Problem 4: Extension Reconnection Failure (ISSUE-012)
 
 ### What Happened
+
 Extension connected successfully on initial launch, but when server restarted, extension did NOT reconnect automatically.
 
 **Evidence:**
+
 - Server logs: NO connections after restart
 - Extension console: "Registration timeout, reconnecting..."
 - But no actual reconnection occurred
 
 ### Root Cause
+
 **Reconnection logic has a bug** (needs further investigation).
 
 Possible causes:
+
 1. Service worker crashes after disconnect
 2. Exponential backoff delays too long
 3. WebSocket state stuck in CONNECTING
 4. scheduleReconnect() has bug
 
 ### Impact
+
 **This is the ACTUAL bug**, not the registration timeout.
 
 The registration timeout (Improvement 6) is WORKING CORRECTLY:
+
 - Extension sends register message
 - Waits 5 seconds for ACK
 - Times out because server not connected
 - Tries to reconnect (but fails)
 
 ### Lesson
+
 **Initial diagnosis was WRONG.**
 
 Assumed problem was in Improvement 6 (Registration ACK), but actual problem is reconnection logic not working.
@@ -192,23 +227,29 @@ Assumed problem was in Improvement 6 (Registration ACK), but actual problem is r
 ## Problem 5: No Cleanup Verification
 
 ### What Happened
+
 User complaint:
+
 > "the extension isn't verifying they weren't closed and then closing them"
 
 Throughout session:
+
 - Chrome launched but no verification it was killed
 - Server started but no verification it was stopped
 - Tests run but no verification processes cleaned up
 
 ### Root Cause
+
 **No systematic cleanup verification protocol.**
 
 When Claude runs:
+
 ```bash
 ./scripts/launch-chrome-with-extension.sh
 ```
 
 It should:
+
 1. Record PID returned
 2. After testing, kill that PID
 3. Verify process is dead: `ps -p <PID>` returns non-zero
@@ -216,6 +257,7 @@ It should:
 But Claude does NONE of this.
 
 ### Impact
+
 - Resource leaks accumulate
 - Tests interfere with each other
 - Hard to debug ("is old Chrome interfering?")
@@ -226,24 +268,29 @@ But Claude does NONE of this.
 ## Problem 6: Debug Logging Left in Code
 
 ### What Happened
+
 Added debug logging to investigate registration timeout:
 
 **extension/background.js:352-358:**
+
 ```javascript
 // 🔍 DEBUG: Log all incoming messages
 console.log('[ChromeDevAssist] 🔍 DEBUG: Received raw message:', event.data);
 ```
 
 **server/websocket-server.js:592-594:**
+
 ```javascript
 console.log('[Server] 🔍 DEBUG: Sending registration-ack:', JSON.stringify(ackMessage));
 console.log('[Server] 🔍 DEBUG: registration-ack sent successfully to', name);
 ```
 
 ### Root Cause
+
 **No protocol for temporary debug changes.**
 
 Debug logging should be:
+
 1. Marked as temporary
 2. Removed after investigation
 3. Or converted to conditional logging (DEBUG env var)
@@ -251,6 +298,7 @@ Debug logging should be:
 But no rule enforces this.
 
 ### Impact
+
 - Production code polluted with debug logs
 - Console noise in normal operation
 - Harder to find real issues in logs
@@ -260,16 +308,20 @@ But no rule enforces this.
 ## Problem 7: Investigation Took Wrong Path
 
 ### What Happened
+
 **Time Spent:**
+
 - 30+ minutes investigating Registration ACK implementation
 - Reading server code, extension code, test code
 - Adding debug logging to ACK sending/receiving
 - Creating test scripts to reload extension
 
 **Actual Problem:**
+
 - Extension not reconnecting (took 5 minutes to discover once right question asked)
 
 ### Root Cause
+
 **Assumed symptom was the cause.**
 
 - Symptom: "Registration timeout, reconnecting..."
@@ -277,7 +329,9 @@ But no rule enforces this.
 - Reality: Bug in reconnection logic (different issue)
 
 ### Better Approach
+
 Should have asked FIRST:
+
 1. Is server running? ✅ (PID 75422)
 2. Is extension connected? ❌ (NO - this is the issue!)
 3. When did extension last connect? (19:12 to old server)
@@ -294,14 +348,16 @@ Then investigate reconnection, NOT registration ACK.
 
 **New Section: "Resource Cleanup Protocol"**
 
-```markdown
+````markdown
 ## Resource Cleanup Protocol (MANDATORY)
 
 ### Before Starting Background Processes
+
 1. Check if port/resource already in use
 2. Document PID/resource in session notes
 
 ### When Starting Background Processes
+
 ```bash
 # ALWAYS capture PID
 ./script.sh &
@@ -313,14 +369,17 @@ npm run server &
 SERVER_PID=$!
 echo "Server PID: $SERVER_PID"
 ```
+````
 
 ### After Test/Debug Session (MANDATORY)
+
 1. Kill all processes started
 2. Verify processes are dead
 3. Check for orphaned processes
 4. Clean up temporary files
 
 **Checklist:**
+
 - [ ] Chrome killed: `kill <chrome-pid>`
 - [ ] Server killed: `kill <server-pid>`
 - [ ] Processes verified dead: `ps -p <PID>` returns non-zero
@@ -328,13 +387,15 @@ echo "Server PID: $SERVER_PID"
 - [ ] Background shells killed: Use KillShell tool
 
 ### Verification Command
+
 ```bash
 # Check for orphaned Chrome/node processes
 ps aux | grep -E "(chrome|node.*server)" | grep -v grep
 
 # If any found, document why or kill
 ```
-```
+
+````
 
 **Priority:** P0 CRITICAL - Add to bootstrap.md
 
@@ -374,14 +435,16 @@ describe('Production Code Verification', () => {
     expect(spy).toHaveBeenCalled();
   });
 });
-```
+````
 
 ### Red Flags (Fake Tests)
+
 - ❌ Test file defines function being tested
 - ❌ Mock implementation in test file
 - ❌ No require/import of production code
 - ❌ Tests pass even when production code is broken
-```
+
+````
 
 **Priority:** P0 CRITICAL - Add to tier1/testing.md
 
@@ -401,9 +464,10 @@ describe('Production Code Verification', () => {
 # This breaks extension connection
 kill <old-server>
 npm run server  # New server, but extension won't reconnect
-```
+````
 
 ### ✅ ALWAYS: Restart both server AND extension
+
 ```bash
 # Method 1: Kill everything
 kill <chrome-pid>
@@ -419,6 +483,7 @@ node -e "require('./claude-code/index').reload('<ext-id>')"
 ## Debug Logging Best Practices
 
 ### Adding Debug Logs
+
 1. Mark as TEMPORARY with 🔍 emoji
 2. Document removal plan
 3. Use DEBUG environment variable
@@ -434,6 +499,7 @@ console.log('[ChromeDevAssist] 🔍 DEBUG: Message:', data);
 ```
 
 ### Removing Debug Logs
+
 - Before committing code
 - After investigation complete
 - Convert to conditional if useful long-term
@@ -441,12 +507,14 @@ console.log('[ChromeDevAssist] 🔍 DEBUG: Message:', data);
 ## Connection State Debugging
 
 ### First Questions
+
 1. Is server running? `ps aux | grep node.*server`
 2. Is extension connected? Check server logs for "Extension registered"
 3. When did connection last work? Check timestamps
 4. What changed between working and broken? (server restart, extension reload, etc.)
 
 ### Diagnosis Tree
+
 ```
 Registration timeout?
 ├─ Is server running? NO → Start server
@@ -458,7 +526,8 @@ Registration timeout?
    └─ Is extension connected? YES
       └─ DIAGNOSIS: Registration ACK not received (check server code)
 ```
-```
+
+````
 
 **Priority:** P1 HIGH - Create this file
 
@@ -499,7 +568,7 @@ Registration timeout?
 - ✅ "Error says X, but what STATE led to X?"
 - ❌ "This code looks wrong"
 - ✅ "Is this code even being executed?"
-```
+````
 
 **Priority:** P1 HIGH - Add to bootstrap.md
 
@@ -513,33 +582,40 @@ Registration timeout?
 ## 7-Item Validation Checklist
 
 ### 1. Tests Pass
+
 - [ ] All tests passing
 - [ ] No fake tests (tests call production code)
 
 ### 2. Code Quality
+
 - [ ] No syntax errors
 - [ ] No TODOs without tickets
 - [ ] No debug logging (or marked TEMPORARY)
 
 ### 3. Documentation Updated
+
 - [ ] README updated if needed
 - [ ] API docs updated if needed
 
 ### 4. Issue Tracking
+
 - [ ] Bugs logged to TO-FIX.md
 - [ ] Features logged to FEATURE-SUGGESTIONS-TBD.md
 
 ### 5. Security Review
+
 - [ ] No hardcoded secrets
 - [ ] Input validation present
 
 ### 6. **RESOURCE CLEANUP** ⭐ NEW
+
 - [ ] All background processes killed
 - [ ] Process death verified
 - [ ] Temp files removed
 - [ ] Chrome/browser tabs closed
 
 ### 7. Test Reality Check
+
 - [ ] Tests import production code
 - [ ] Tests call real functions (not mocks)
 - [ ] Verification tests added if complex
@@ -596,6 +672,7 @@ echo "✅ Cleanup complete!"
 ```
 
 **Usage:**
+
 ```bash
 # At end of test session
 ./scripts/cleanup-test-session.sh
@@ -610,20 +687,25 @@ echo "✅ Cleanup complete!"
 ## Summary of Rule Changes
 
 ### bootstrap.md Changes
+
 1. Add "Resource Cleanup Protocol" section (P0 CRITICAL)
 2. Add "Investigation Protocol" section (P1 HIGH)
 
 ### tier1/testing.md Changes
+
 1. Add "Test Reality Check" section (P0 CRITICAL)
 2. Add verification test pattern examples
 
 ### tier1/ New Files
+
 1. Create websocket-testing.md (P1 HIGH)
 
 ### Commands Changes
+
 1. Update /validate to include cleanup check (P0 CRITICAL)
 
 ### Scripts Changes
+
 1. Create cleanup-test-session.sh (P1 HIGH)
 
 ---
@@ -631,18 +713,22 @@ echo "✅ Cleanup complete!"
 ## Metrics to Track
 
 ### Process Cleanup Compliance
+
 - Sessions ending with orphaned processes: Currently HIGH
 - Target: 0%
 
 ### Test Reality
+
 - Fake tests discovered: 4 out of 5 in timeout-wrapper.test.js (80%)
 - Target: 0%
 
 ### Investigation Efficiency
+
 - Time to identify root cause: 90+ minutes
 - Target: <30 minutes with better protocol
 
 ### Resource Leaks
+
 - Background processes left running: 5+ per session
 - Target: 0
 
@@ -660,6 +746,7 @@ This debugging session revealed **systematic problems** with our testing and deb
 **All 7 issues are SOLVABLE** with rule updates and new helper scripts.
 
 **Priority Order:**
+
 1. P0 CRITICAL: Add cleanup protocol and /validate update (blocks all testing)
 2. P0 CRITICAL: Add test verification (blocks quality assurance)
 3. P1 HIGH: Add WebSocket testing docs (blocks WebSocket development)
@@ -667,7 +754,7 @@ This debugging session revealed **systematic problems** with our testing and deb
 
 ---
 
-*Analysis Date: 2025-10-25*
-*Session: Registration Timeout Investigation*
-*Findings: 7 critical methodology issues identified*
-*Recommendations: 6 actionable improvements proposed*
+_Analysis Date: 2025-10-25_
+_Session: Registration Timeout Investigation_
+_Findings: 7 critical methodology issues identified_
+_Recommendations: 6 actionable improvements proposed_

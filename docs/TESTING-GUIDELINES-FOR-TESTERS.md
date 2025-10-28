@@ -25,6 +25,7 @@
 **Impact:** 4 tests failing due to incorrect timing assumptions
 
 #### ❌ INCORRECT Pattern (Don't Do This):
+
 ```javascript
 // WRONG - Logs happen BEFORE capture starts
 const openResult = await chromeDevAssist.openUrl(url, { active: true });
@@ -41,12 +42,14 @@ const logsResult = await capturePromise;
 ```
 
 **Why this fails:**
+
 - Initial page load logs happen BEFORE `captureLogs()` is called
 - These logs are NOT captured
 - Page reload may not re-trigger synchronous initialization logs
 - Console capture missed the actual logs you wanted to test
 
 #### ✅ CORRECT Pattern (Do This):
+
 ```javascript
 // Open URL and wait for page to fully load
 const openResult = await chromeDevAssist.openUrl(url, { active: true });
@@ -60,6 +63,7 @@ const logsResult = await chromeDevAssist.captureLogs(6000);
 ```
 
 **Why this works:**
+
 - Extension automatically captures and stores console logs during page load
 - `captureLogs()` retrieves the stored logs
 - No reload needed - logs already captured
@@ -67,12 +71,12 @@ const logsResult = await chromeDevAssist.captureLogs(6000);
 
 #### Key Timing Guidelines:
 
-| Page Type | Recommended Wait Time | Reason |
-|-----------|----------------------|---------|
-| Simple HTML | 2000ms | Basic DOM + scripts |
-| Complex with iframes | 4000ms | Iframe loading takes time |
-| Continuous logging | 5000ms+ | Allow logs to accumulate |
-| Heavy JavaScript | 3000-5000ms | Script execution time |
+| Page Type            | Recommended Wait Time | Reason                    |
+| -------------------- | --------------------- | ------------------------- |
+| Simple HTML          | 2000ms                | Basic DOM + scripts       |
+| Complex with iframes | 4000ms                | Iframe loading takes time |
+| Continuous logging   | 5000ms+               | Allow logs to accumulate  |
+| Heavy JavaScript     | 3000-5000ms           | Script execution time     |
 
 ---
 
@@ -154,12 +158,14 @@ test('should capture all console levels', async () => {
 **Issue:** Metadata extraction from adversarial pages may be blocked by security protocols
 
 **Affected pages:**
+
 - Pages with `data:` URIs
 - Pages with `about:` protocol
 - Pages with `javascript:` protocol
 - Pages with `blob:` URLs
 
 **Current behavior:**
+
 - Protocol blocking returns error instead of metadata
 - This is INTENTIONAL for security
 - XSS test fixtures may fail due to this
@@ -208,6 +214,7 @@ test('should NOT extract iframe metadata', async () => {
 ```
 
 **⚠️ KNOWN ISSUE:** Data URI iframe metadata currently LEAKS to main page (ISSUE-001)
+
 - This is a CRITICAL security vulnerability
 - Tests will FAIL until fixed
 - Do NOT disable this test - it catches real security issues
@@ -219,6 +226,7 @@ test('should NOT extract iframe metadata', async () => {
 ### Cross-Origin Iframe Isolation
 
 **What to test:**
+
 - [ ] Main page logs ARE captured
 - [ ] Same-origin iframe logs ARE captured
 - [ ] Sandboxed iframe logs are NOT captured
@@ -226,6 +234,7 @@ test('should NOT extract iframe metadata', async () => {
 - [ ] Nested sandboxed iframe logs are NOT captured
 
 **How to test:**
+
 ```javascript
 // Filter logs by source marker
 const mainPageLogs = logs.filter(m => m.includes('[MAIN-PAGE]'));
@@ -240,14 +249,16 @@ expect(sandboxedLogs.length).toBe(0); // ✓ Must NOT capture
 ### XSS Prevention in Metadata
 
 **What to test:**
-- [ ] Script tags in data-* attributes are escaped
-- [ ] HTML entities in data-* attributes are escaped
+
+- [ ] Script tags in data-\* attributes are escaped
+- [ ] HTML entities in data-\* attributes are escaped
 - [ ] JavaScript protocol URLs are escaped
 - [ ] SQL injection attempts are escaped
 - [ ] Command injection attempts are escaped
 - [ ] No eval() or Function() in extracted metadata
 
 **How to test:**
+
 ```javascript
 const metadata = await chromeDevAssist.getPageMetadata(tabId);
 
@@ -265,6 +276,7 @@ expect(metadataStr).not.toMatch(/<script>/);
 ### Crash Recovery and Robustness
 
 **What to test:**
+
 - [ ] Extension doesn't crash on pages with 100+ rapid errors
 - [ ] Extension handles extreme memory usage pages gracefully
 - [ ] Console capture continues after crash simulation
@@ -272,6 +284,7 @@ expect(metadataStr).not.toMatch(/<script>/);
 - [ ] Metadata extraction works on crash pages
 
 **Verified working** (3 tests passed):
+
 - ✅ Crash simulation without extension crash
 - ✅ Error cascade (100 rapid errors) without data loss
 - ✅ Extreme memory usage handled gracefully
@@ -287,6 +300,7 @@ expect(metadataStr).not.toMatch(/<script>/);
 **Status:** VERIFIED FAILING (3 fix attempts unsuccessful)
 
 **What to look for:**
+
 ```javascript
 // Main page: <html data-test-id="main-001">
 // Data URI iframe: <body data-secret="IFRAME-SECRET">
@@ -298,6 +312,7 @@ const metadata = await chromeDevAssist.getPageMetadata(tabId);
 ```
 
 **Security impact:** CRITICAL
+
 - Cross-origin isolation violated
 - Sandboxed iframe data leaks to main page
 - Potential sensitive data exposure
@@ -305,6 +320,7 @@ const metadata = await chromeDevAssist.getPageMetadata(tabId);
 **Test to run:** `tests/integration/adversarial-tests.test.js` - "should isolate metadata from cross-origin iframes"
 
 **When testing:**
+
 - Verify main page metadata is extracted correctly ✓
 - Verify iframe metadata does NOT appear in result ✗ (currently fails)
 - Check both sandboxed and data URI iframes
@@ -318,16 +334,19 @@ const metadata = await chromeDevAssist.getPageMetadata(tabId);
 **Status:** ROOT CAUSE IDENTIFIED - Test bug, not production bug
 
 **What was wrong:**
+
 - Tests used incorrect console capture timing pattern
 - Started capture AFTER page loaded, then reloaded
 - Missed initial page load logs
 
 **How it was fixed:**
+
 - Updated tests to use correct pattern: wait for logs, then capture
 - Removed unnecessary page reloads
 - Increased wait times for complex pages
 
 **When writing new tests:**
+
 - ✅ DO: Wait 4000ms after openUrl(), then captureLogs()
 - ❌ DON'T: Start captureLogs(), then reloadTab(), then await
 
@@ -340,6 +359,7 @@ const metadata = await chromeDevAssist.getPageMetadata(tabId);
 **81 tests are currently skipped** because they require infrastructure that doesn't exist yet:
 
 #### Chrome Debug Mode Required (60+ tests)
+
 ```bash
 # Start Chrome with remote debugging
 google-chrome --remote-debugging-port=9222
@@ -351,6 +371,7 @@ google-chrome --remote-debugging-port=9222
 ```
 
 #### Native Messaging Required (9 tests)
+
 ```javascript
 // Requires native host binary/script
 // Required for:
@@ -359,6 +380,7 @@ google-chrome --remote-debugging-port=9222
 ```
 
 #### Mocking Framework Required (12+ tests)
+
 ```javascript
 // Requires jest mocking or sinon.js
 // Required for:
@@ -368,11 +390,13 @@ google-chrome --remote-debugging-port=9222
 ```
 
 **DO NOT WRITE FAKE TESTS:**
+
 - If infrastructure doesn't exist, SKIP the test with clear TODO
 - Explain what infrastructure is needed
 - Never use `expect(true).toBe(true)` placeholders
 
 **Example of properly skipped test:**
+
 ```javascript
 // TODO: REQUIRES - Chrome with --remote-debugging-port=9222
 // This test requires CDP (Chrome DevTools Protocol) access to control
@@ -413,7 +437,7 @@ Before marking tests as passing:
 - [ ] Console logs captured from page load (not from reload)
 - [ ] Wait time sufficient for page complexity (4000ms+ for iframes)
 - [ ] Iframe isolation verified (sandboxed logs NOT captured)
-- [ ] Metadata isolation verified (iframe data-* NOT extracted)
+- [ ] Metadata isolation verified (iframe data-\* NOT extracted)
 - [ ] XSS payloads escaped (no executable code in metadata)
 - [ ] All console levels captured (log, info, warn, error)
 - [ ] No fake tests (no `expect(true).toBe(true)`)
@@ -433,12 +457,14 @@ Before marking tests as passing:
 5. Verify extension is loaded and connected
 
 **Documentation:**
+
 - `TO-FIX.md` - All known issues and their status
 - `tests/PLACEHOLDER-TESTS-RESOLVED.md` - Why 81 tests are skipped
 - `tests/METADATA-LEAK-INVESTIGATION.md` - Deep dive on ISSUE-001
 - `docs/VULNERABILITY-BLOG-METADATA-LEAK.md` - Security analysis
 
 **Questions?**
+
 - Review test patterns in `tests/integration/multi-feature-integration.test.js` (working tests)
 - Compare with `tests/integration/adversarial-tests.test.js` (now fixed)
 

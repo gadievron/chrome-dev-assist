@@ -15,7 +15,7 @@ async function testHttpsUrl() {
     const result = await chromeDevAssist.openUrl('https://example.com', {
       captureConsole: true,
       duration: 2000,
-      active: false
+      active: false,
     });
 
     console.log('✅ Tab opened:', result.tabId);
@@ -37,7 +37,6 @@ async function testHttpsUrl() {
     console.log('Step 2: Closing tab...');
     await chromeDevAssist.closeTab(result.tabId);
     console.log('✅ Tab closed');
-
   } catch (error) {
     console.error('❌ Error:', error.message);
   }

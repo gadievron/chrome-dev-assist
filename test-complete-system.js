@@ -59,10 +59,9 @@ async function runTests() {
       console.log('-'.repeat(60));
       console.log('Reloading extension and capturing console logs...');
 
-      const reloadCaptureResult = await chromeDevAssist.reloadAndCapture(
-        TEST_EXTENSION_ID,
-        { duration: 3000 }
-      );
+      const reloadCaptureResult = await chromeDevAssist.reloadAndCapture(TEST_EXTENSION_ID, {
+        duration: 3000,
+      });
 
       console.log('✓ Reload and capture successful');
       console.log(`  Extension: ${reloadCaptureResult.extensionName}`);
@@ -117,7 +116,6 @@ async function runTests() {
       console.log('  ✓ Reload + capture combination');
     }
     console.log();
-
   } catch (error) {
     console.error();
     console.error('✗ TEST FAILED');

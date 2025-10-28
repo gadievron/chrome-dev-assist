@@ -55,10 +55,7 @@ describe('Security: WebSocket Message Validation', () => {
 
     try {
       extensionWs.send(hugeMessage);
-      await Promise.race([
-        errorPromise,
-        new Promise(resolve => setTimeout(resolve, 1000))
-      ]);
+      await Promise.race([errorPromise, new Promise(resolve => setTimeout(resolve, 1000))]);
 
       // Should have closed or errored
       expect([WebSocket.CLOSED, WebSocket.CLOSING]).toContain(extensionWs.readyState);
@@ -78,10 +75,10 @@ describe('Security: WebSocket Message Validation', () => {
     const malformedMessages = [
       '{not valid json}',
       '{"type": "extension-connect", invalid}',
-      '{"type": "extension-connect"',  // Incomplete
+      '{"type": "extension-connect"', // Incomplete
       'null',
       'undefined',
-      '{"__proto__": {"polluted": true}}'
+      '{"__proto__": {"polluted": true}}',
     ];
 
     for (const msg of malformedMessages) {
@@ -92,10 +89,7 @@ describe('Security: WebSocket Message Validation', () => {
       extensionWs.send(msg);
 
       // Should either error or reject the message
-      await Promise.race([
-        errorPromise,
-        new Promise(resolve => setTimeout(resolve, 100))
-      ]);
+      await Promise.race([errorPromise, new Promise(resolve => setTimeout(resolve, 100))]);
     }
 
     // Connection might be closed or still open (depends on server implementation)
@@ -110,11 +104,11 @@ describe('Security: WebSocket Message Validation', () => {
     });
 
     const injectionAttempts = [
-      {type: 'extension-connect; DROP TABLE messages;'},
-      {type: 'extension-connect\'OR\'1\'=\'1'},
-      {type: 'extension-connect\r\nX-Injected-Header: evil'},
-      {type: '../../../etc/passwd'},
-      {type: '../../server/websocket-server.js'},
+      { type: 'extension-connect; DROP TABLE messages;' },
+      { type: "extension-connect'OR'1'='1" },
+      { type: 'extension-connect\r\nX-Injected-Header: evil' },
+      { type: '../../../etc/passwd' },
+      { type: '../../server/websocket-server.js' },
     ];
 
     for (const msg of injectionAttempts) {
@@ -134,10 +128,13 @@ describe('Security: WebSocket Message Validation', () => {
     });
 
     const xssAttempts = [
-      {type: 'extension-connect', data: '<script>alert(1)</script>'},
-      {type: 'extension-connect', data: 'javascript:alert(document.cookie)'},
-      {type: 'extension-connect', data: '<img src=x onerror=alert(1)>'},
-      {type: 'extension-connect', data: '"><script>alert(String.fromCharCode(88,83,83))</script>'},
+      { type: 'extension-connect', data: '<script>alert(1)</script>' },
+      { type: 'extension-connect', data: 'javascript:alert(document.cookie)' },
+      { type: 'extension-connect', data: '<img src=x onerror=alert(1)>' },
+      {
+        type: 'extension-connect',
+        data: '"><script>alert(String.fromCharCode(88,83,83))</script>',
+      },
     ];
 
     for (const msg of xssAttempts) {
@@ -185,7 +182,7 @@ describe('Security: WebSocket Message Validation', () => {
     });
 
     // Create circular reference (JSON.stringify will fail on server)
-    const circularMsg = {type: 'extension-connect'};
+    const circularMsg = { type: 'extension-connect' };
     circularMsg.self = circularMsg;
 
     try {
@@ -206,17 +203,17 @@ describe('Security: WebSocket Message Validation', () => {
 
     const invalidStructures = [
       // Missing type
-      {data: 'some data'},
+      { data: 'some data' },
       // Type as number
-      {type: 12345},
+      { type: 12345 },
       // Type as array
-      {type: ['extension-connect']},
+      { type: ['extension-connect'] },
       // Type as object
-      {type: {command: 'extension-connect'}},
+      { type: { command: 'extension-connect' } },
       // Null type
-      {type: null},
+      { type: null },
       // Undefined type
-      {type: undefined},
+      { type: undefined },
     ];
 
     for (const msg of invalidStructures) {
@@ -234,7 +231,7 @@ describe('Security: WebSocket Message Validation', () => {
       extensionWs.on('open', resolve);
     });
 
-    const binaryData = Buffer.from([0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE]);
+    const binaryData = Buffer.from([0x00, 0x01, 0x02, 0x03, 0xff, 0xfe]);
 
     const errorPromise = new Promise(resolve => {
       extensionWs.on('error', resolve);
@@ -242,10 +239,7 @@ describe('Security: WebSocket Message Validation', () => {
 
     extensionWs.send(binaryData);
 
-    await Promise.race([
-      errorPromise,
-      new Promise(resolve => setTimeout(resolve, 100))
-    ]);
+    await Promise.race([errorPromise, new Promise(resolve => setTimeout(resolve, 100))]);
 
     // Should handle binary data without crashing
     expect([WebSocket.OPEN, WebSocket.CLOSED]).toContain(extensionWs.readyState);
@@ -259,9 +253,9 @@ describe('Security: WebSocket Message Validation', () => {
     });
 
     const pollutionAttempts = [
-      {type: 'extension-connect', '__proto__': {polluted: true}},
-      {type: 'extension-connect', 'constructor': {prototype: {polluted: true}}},
-      {type: 'extension-connect', data: {'__proto__': {admin: true}}},
+      { type: 'extension-connect', __proto__: { polluted: true } },
+      { type: 'extension-connect', constructor: { prototype: { polluted: true } } },
+      { type: 'extension-connect', data: { __proto__: { admin: true } } },
     ];
 
     for (const msg of pollutionAttempts) {
@@ -283,10 +277,12 @@ describe('Security: WebSocket Message Validation', () => {
 
     // Send 1000 messages rapidly
     for (let i = 0; i < 1000; i++) {
-      extensionWs.send(JSON.stringify({
-        type: 'extension-connect',
-        data: `message-${i}`
-      }));
+      extensionWs.send(
+        JSON.stringify({
+          type: 'extension-connect',
+          data: `message-${i}`,
+        })
+      );
     }
 
     // Wait a bit

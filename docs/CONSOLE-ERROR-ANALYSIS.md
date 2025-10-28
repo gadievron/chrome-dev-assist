@@ -15,11 +15,13 @@ Chrome extensions use `console.error()` as a signal that something is critically
 3. May show a crash warning
 
 **Key Insight:** Use `console.error()` ONLY for:
+
 - Actual programming bugs (null pointer, undefined variable)
 - Unrecoverable errors (corrupted state, impossible condition)
 - Internal logic errors (should never happen)
 
 **DO NOT use console.error() for:**
+
 - Expected environmental conditions (server not running, network down)
 - Recoverable errors (connection failures with retry logic)
 - User/external errors (invalid parameters, missing tabs, closed tabs)
@@ -51,6 +53,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
 #### Category 1: Expected Errors (Should be console.warn)
 
 5. **Line 1000-1006 - Tab cleanup failed (5 console.error calls)**
+
    ```javascript
    console.error('[ChromeDevAssist] ⚠️ TAB CLEANUP FAILED ⚠️');
    console.error('[ChromeDevAssist] Tab ID:', tab.id);
@@ -67,6 +70,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
    - **Reason:** Tab already closed is an EXPECTED condition in testing
 
 6. **Line 1688 - Failed to close tab (cleanup)**
+
    ```javascript
    console.error('[ChromeDevAssist] Failed to close tab', tabId, ':', err.message);
    ```
@@ -79,6 +83,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
    - **Reason:** Test cleanup should handle missing tabs gracefully
 
 7. **Line 1760 - Failed to close tab (verifyCleanup)**
+
    ```javascript
    console.error('[ChromeDevAssist] Failed to close tab', tabId, ':', err.message);
    ```
@@ -91,6 +96,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
    - **Reason:** Verification failures are expected during testing
 
 8. **Line 1817 - Failed to close orphan tab**
+
    ```javascript
    console.error('[ChromeDevAssist] Failed to close orphan', tabId, ':', err.message);
    ```
@@ -105,6 +111,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
 #### Category 2: Programming Errors (Keep console.error)
 
 9. **Line 166 - WebSocket is null**
+
    ```javascript
    console.error('[ChromeDevAssist] Cannot send: WebSocket is null');
    ```
@@ -117,6 +124,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
    - **Reason:** This indicates a programming bug (caller should check connection state)
 
 10. **Line 216 - Unknown WebSocket state**
+
     ```javascript
     console.error('[ChromeDevAssist] Cannot send: Unknown WebSocket state:', ws.readyState);
     ```
@@ -129,6 +137,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
     - **Reason:** This indicates a serious state machine bug
 
 11. **Line 109 - Failed to register console capture script**
+
     ```javascript
     console.error('[ChromeDevAssist] Failed to register console capture script:', err);
     ```
@@ -143,6 +152,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
 #### Category 3: Queue Errors (Mixed)
 
 12. **Line 173 - Queue full, dropping message**
+
     ```javascript
     console.error('[ChromeDevAssist] Queue full, dropping message');
     ```
@@ -155,6 +165,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
     - **Reason:** Queue overflow is expected under stress (DoS protection)
 
 13. **Line 198 - Failed to send queued message**
+
     ```javascript
     console.error('[ChromeDevAssist] Failed to send queued message:', err);
     ```
@@ -167,6 +178,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
     - **Reason:** Send failures during drain are expected (connection unstable)
 
 14. **Line 211 - Send failed**
+
     ```javascript
     console.error('[ChromeDevAssist] Send failed:', err);
     ```
@@ -181,6 +193,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
 #### Category 4: Internal Errors (Keep console.error)
 
 15. **Line 1246 - No main frame result found**
+
     ```javascript
     console.error('[ChromeDevAssist] No main frame result found. Results:', ...);
     ```
@@ -193,6 +206,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
     - **Reason:** This indicates a Chrome API bug or permission issue
 
 16. **Line 1410 - Error detecting crash**
+
     ```javascript
     console.error('[ChromeDevAssist] Error detecting crash:', err);
     ```
@@ -205,6 +219,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
     - **Reason:** Crash detection failure is a critical internal error
 
 17. **Line 1520 - Error restoring state**
+
     ```javascript
     console.error('[ChromeDevAssist] Error restoring state:', err);
     ```
@@ -217,6 +232,7 @@ Chrome extensions use `console.error()` as a signal that something is critically
     - **Reason:** State corruption may occur (storage quota, corruption)
 
 18. **Line 1550 - Error persisting state**
+
     ```javascript
     console.error('[ChromeDevAssist] Error persisting state:', err);
     ```
@@ -232,13 +248,13 @@ Chrome extensions use `console.error()` as a signal that something is critically
 
 ## Summary
 
-| Category | Total | Keep error | Change to warn |
-|----------|-------|------------|----------------|
-| Already Fixed | 4 | 0 | 4 ✅ |
-| Expected Errors | 8 | 0 | 8 ⚠️ |
-| Programming Errors | 3 | 3 ✅ | 0 |
-| Internal Errors | 3 | 1 ✅ | 2 ⚠️ |
-| **Total** | **18** | **4** | **14** |
+| Category           | Total  | Keep error | Change to warn |
+| ------------------ | ------ | ---------- | -------------- |
+| Already Fixed      | 4      | 0          | 4 ✅           |
+| Expected Errors    | 8      | 0          | 8 ⚠️           |
+| Programming Errors | 3      | 3 ✅       | 0              |
+| Internal Errors    | 3      | 1 ✅       | 2 ⚠️           |
+| **Total**          | **18** | **4**      | **14**         |
 
 **Recommendation:** Change 14 additional console.error() → console.warn()
 
@@ -256,11 +272,12 @@ Chrome extensions use `console.error()` as a signal that something is critically
 ### How to Reproduce
 
 **Test 1: Trigger Expected Errors**
+
 ```javascript
 // Send command with invalid tabId
 await sendCommand({
   type: 'closeTab',
-  params: { tabId: 999999 }
+  params: { tabId: 999999 },
 });
 
 // Expected: console.warn (yellow)
@@ -268,6 +285,7 @@ await sendCommand({
 ```
 
 **Test 2: Check Error Handler**
+
 ```javascript
 // 1. Open chrome://extensions
 // 2. Click "service worker" link for Chrome Dev Assist
@@ -277,12 +295,13 @@ await sendCommand({
 ```
 
 **Test 3: Stress Test (Multiple Errors)**
+
 ```javascript
 // Send 10 invalid commands rapidly
 for (let i = 0; i < 10; i++) {
   await sendCommand({
     type: 'closeTab',
-    params: { tabId: 999999 + i }
+    params: { tabId: 999999 + i },
   });
 }
 
@@ -293,6 +312,7 @@ for (let i = 0; i < 10; i++) {
 ### Generic Detection Pattern
 
 **For ANY error handler:**
+
 1. Identify error scenarios (expected vs unexpected)
 2. Check console output color:
    - 🟡 Yellow (console.warn) = Expected error, handled gracefully
@@ -317,6 +337,7 @@ for (let i = 0; i < 10; i++) {
 ---
 
 **Pattern to Avoid:**
+
 ```javascript
 try {
   await chrome.tabs.close(tabId);
@@ -326,6 +347,7 @@ try {
 ```
 
 **Correct Pattern:**
+
 ```javascript
 try {
   await chrome.tabs.close(tabId);

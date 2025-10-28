@@ -16,11 +16,13 @@ This document analyzes our problem-solving approaches for two major issues docum
 ## ISSUE-011: WebSocket Connection Stability ✅ RESOLVED
 
 ### Problem
-User report: *"the extension has been unstable for a while despite your fixes"*
+
+User report: _"the extension has been unstable for a while despite your fixes"_
 
 ### What We Did RIGHT ✅
 
 #### 1. Systematic Persona-Based Investigation
+
 ```
 Approach: Used 4 personas with specific missions
 - Auditor: Find ALL unsafe code paths
@@ -32,6 +34,7 @@ Result: Found 6 issues, not just visible symptoms
 ```
 
 **Why This Worked:**
+
 - Comprehensive: Each persona had specific lens (lifecycle, logic, design, quality)
 - Systematic: Used grep, code tracing, state machine diagrams
 - Exhaustive: Didn't stop at first issue - found all 6
@@ -41,6 +44,7 @@ Result: Found 6 issues, not just visible symptoms
 ---
 
 #### 2. Test-First Implementation
+
 ```
 Approach: Wrote 65 tests BEFORE writing fixes
 - 23 unit tests for core logic
@@ -51,6 +55,7 @@ Result: 23/23 passed on first run, zero debugging needed
 ```
 
 **Why This Worked:**
+
 - Tests clarified WHAT we needed to fix
 - Logic errors caught by tests, not users
 - Implementation followed clear specifications
@@ -60,6 +65,7 @@ Result: 23/23 passed on first run, zero debugging needed
 ---
 
 #### 3. Root Cause Analysis, Not Symptom Fixing
+
 ```
 Symptom: "Extension is unstable"
 
@@ -77,6 +83,7 @@ Found: 6 underlying issues causing one visible symptom
 ---
 
 #### 4. Industry Standards Research
+
 ```
 Approach: Researched Socket.IO, Puppeteer, retry libraries
 
@@ -93,23 +100,25 @@ Applied: Implemented proven algorithm, not custom logic
 
 ### Results
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Error Recovery | 15s | 1-2s | **87% faster** |
-| Server Load (restart) | 100+ attempts/100s | 6 attempts/32s | **95% reduction** |
-| Crash Rate | Frequent | Zero | **100% elimination** |
-| Test Pass Rate | N/A | 23/23 | **100%** |
+| Metric                | Before             | After          | Improvement          |
+| --------------------- | ------------------ | -------------- | -------------------- |
+| Error Recovery        | 15s                | 1-2s           | **87% faster**       |
+| Server Load (restart) | 100+ attempts/100s | 6 attempts/32s | **95% reduction**    |
+| Crash Rate            | Frequent           | Zero           | **100% elimination** |
+| Test Pass Rate        | N/A                | 23/23          | **100%**             |
 
 ---
 
 ## ISSUE-001: Metadata Leak ❌ UNRESOLVED
 
 ### Problem
+
 Data URI iframe metadata leaks to main page, violating cross-origin isolation.
 
 ### What We Did RIGHT ✅
 
 #### 1. Defense-in-Depth Approach
+
 ```
 Attempt 1: Protocol blocking (data:, about:, javascript:, blob:)
 Attempt 2: allFrames: false enforcement
@@ -119,6 +128,7 @@ Result: All 3 layers FAILED, but approach was sound
 ```
 
 **Why This Was Right:**
+
 - Multiple security layers is correct approach
 - Each layer addressed different attack vector
 - Thorough, not superficial
@@ -128,6 +138,7 @@ Result: All 3 layers FAILED, but approach was sound
 ---
 
 #### 2. Systematic Verification
+
 ```
 Verified:
 1. Main page HTML has NO data-secret ✓
@@ -147,6 +158,7 @@ Result: Eliminated test fixture issues, confirmed real bug
 ### What We Did WRONG ❌
 
 #### 1. Gave Up Too Early
+
 ```
 Attempts: 3 fixes
 Status: Moved to TO-FIX.md without deeper investigation
@@ -161,6 +173,7 @@ What We Didn't Try:
 ```
 
 **Better Approach:**
+
 ```javascript
 // We SHOULD have added this immediately:
 const results = await chrome.scripting.executeScript({
@@ -170,18 +183,21 @@ const results = await chrome.scripting.executeScript({
       url: window.location.href,
       protocol: window.location.protocol,
       isTop: window === window.top,
-      hasSecret: !!document.body.dataset.secret
+      hasSecret: !!document.body.dataset.secret,
     });
 
     return extractMetadata();
-  }
+  },
 });
 
-console.log('[DEBUG] Results:', results.map(r => ({
-  frameId: r.frameId,
-  documentId: r.documentId,
-  hasSecret: !!r.result.secret
-})));
+console.log(
+  '[DEBUG] Results:',
+  results.map(r => ({
+    frameId: r.frameId,
+    documentId: r.documentId,
+    hasSecret: !!r.result.secret,
+  }))
+);
 ```
 
 **Lesson:** When defensive layers fail, add observability to understand WHY.
@@ -189,6 +205,7 @@ console.log('[DEBUG] Results:', results.map(r => ({
 ---
 
 #### 2. Didn't Test Theories Systematically
+
 ```
 Theories Documented:
 1. Chrome API bug (allFrames doesn't work)
@@ -200,6 +217,7 @@ Theories TESTED: None (just documented)
 ```
 
 **Better Approach:**
+
 ```javascript
 // Test Theory 1: Check if multiple results returned
 if (results.length > 1) {
@@ -222,6 +240,7 @@ if (mainFrame && mainFrame.result.secret) {
 ---
 
 #### 3. Fixated on One API (Tunnel Vision)
+
 ```
 Problem: chrome.scripting.executeScript not working
 
@@ -235,12 +254,13 @@ Approaches Tried: None
 ```
 
 **Better Approach:**
+
 ```javascript
 // Option 1: Use CDP directly
-const client = await chrome.debugger.attach({tabId});
-await chrome.debugger.sendCommand({tabId}, 'Runtime.evaluate', {
+const client = await chrome.debugger.attach({ tabId });
+await chrome.debugger.sendCommand({ tabId }, 'Runtime.evaluate', {
   expression: 'extractMetadata()',
-  returnByValue: true
+  returnByValue: true,
 });
 
 // Option 2: Registered content script
@@ -256,6 +276,7 @@ const html = await chrome.tabs.captureVisibleTab();
 ---
 
 #### 4. Didn't Create Minimal Reproduction
+
 ```
 Test File: adversarial-security.html (complex fixture with multiple iframes)
 
@@ -279,23 +300,24 @@ Create minimal.html:
 
 ## Side-by-Side Comparison
 
-| Phase | ISSUE-011 (Success) | ISSUE-001 (Incomplete) |
-|-------|---------------------|------------------------|
-| **Investigation** | ✅ 4 personas, systematic audit | ✅ 3 defensive layers, verification |
-| **Root Cause** | ✅ Found 6 underlying issues | ⚠️ Found symptoms, not root cause |
-| **Testing** | ✅ 65 tests written first | ⚠️ Only verification tests |
-| **Observability** | ✅ Comprehensive logging added | ❌ No debug logging added |
-| **Theory Testing** | ✅ Tests verified behavior | ❌ Theories documented, not tested |
-| **Alternatives** | N/A | ❌ Fixated on one API |
-| **Minimal Repro** | ✅ Unit tests isolated logic | ❌ Complex fixture used |
-| **Persistence** | ✅ Exhausted options | ❌ Gave up after 3 attempts |
-| **Result** | ✅ Complete fix, 87% improvement | ❌ Unresolved, no understanding of WHY |
+| Phase              | ISSUE-011 (Success)              | ISSUE-001 (Incomplete)                 |
+| ------------------ | -------------------------------- | -------------------------------------- |
+| **Investigation**  | ✅ 4 personas, systematic audit  | ✅ 3 defensive layers, verification    |
+| **Root Cause**     | ✅ Found 6 underlying issues     | ⚠️ Found symptoms, not root cause      |
+| **Testing**        | ✅ 65 tests written first        | ⚠️ Only verification tests             |
+| **Observability**  | ✅ Comprehensive logging added   | ❌ No debug logging added              |
+| **Theory Testing** | ✅ Tests verified behavior       | ❌ Theories documented, not tested     |
+| **Alternatives**   | N/A                              | ❌ Fixated on one API                  |
+| **Minimal Repro**  | ✅ Unit tests isolated logic     | ❌ Complex fixture used                |
+| **Persistence**    | ✅ Exhausted options             | ❌ Gave up after 3 attempts            |
+| **Result**         | ✅ Complete fix, 87% improvement | ❌ Unresolved, no understanding of WHY |
 
 ---
 
 ## Meta-Lessons: Successful Problem-Solving Pattern
 
 ### ISSUE-011 Pattern ✅
+
 ```
 1. Comprehensive investigation (4 personas)
 2. Root cause analysis (found 6 issues, not 1 symptom)
@@ -309,6 +331,7 @@ Result: Complete fix, measurable improvements, zero regressions
 ```
 
 ### ISSUE-001 Pattern ❌
+
 ```
 1. Defense-in-depth (3 layers) ✓
 2. Verify assumptions (6 checks) ✓
@@ -373,6 +396,7 @@ Result: Unresolved, no understanding of WHY it fails
 ### For Future Blocking Issues:
 
 **When defensive fixes fail:**
+
 1. ✅ Add observability IMMEDIATELY - Log everything
 2. ✅ Test theories systematically - Code > speculation
 3. ✅ Create minimal reproductions - Isolate variables
@@ -382,6 +406,7 @@ Result: Unresolved, no understanding of WHY it fails
 ### For ISSUE-001 Specifically:
 
 **Resume investigation with:**
+
 1. Add comprehensive debug logging (see analysis above)
 2. Test each theory with code
 3. Create minimal.html reproduction
@@ -393,6 +418,7 @@ Result: Unresolved, no understanding of WHY it fails
 ## Key Takeaways
 
 ### What Made ISSUE-011 Successful:
+
 - **Multiple perspectives** (4 personas)
 - **Root cause focus** (6 issues, not 1 symptom)
 - **Test-first** (23/23 passed immediately)
@@ -400,6 +426,7 @@ Result: Unresolved, no understanding of WHY it fails
 - **Comprehensive logging** (observability)
 
 ### What Made ISSUE-001 Incomplete:
+
 - **Gave up too early** (3 attempts, then stopped)
 - **No observability** (no debug logging)
 - **Theories not tested** (just documented)
@@ -407,6 +434,7 @@ Result: Unresolved, no understanding of WHY it fails
 - **No minimal reproduction**
 
 ### Universal Pattern for Success:
+
 1. **Multiple perspectives** - Use personas
 2. **Observability** - Log everything
 3. **Test theories** - Code, not speculation
@@ -423,5 +451,5 @@ Result: Unresolved, no understanding of WHY it fails
 
 ---
 
-*Created: 2025-10-25*
-*Purpose: Learn from both successes and mistakes to improve future problem-solving*
+_Created: 2025-10-25_
+_Purpose: Learn from both successes and mistakes to improve future problem-solving_

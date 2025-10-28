@@ -48,6 +48,7 @@
 ```
 
 **What to Look For:**
+
 - ✅ `Connected to server at [timestamp]` - Connection successful
 - ✅ `Registration confirmed by server` - Ready to receive commands
 - ⚠️ `WebSocket connection issue (will reconnect)` - Expected if server down
@@ -78,6 +79,7 @@ $ curl http://localhost:9876/list-extensions
 ```
 
 **If reload button is MISSING:**
+
 - Chrome thinks extension crashed
 - Check for console.error() in service worker console
 - See RELOAD-BUTTON-FIX.md for details
@@ -91,6 +93,7 @@ $ curl http://localhost:9876/list-extensions
 **User Story:** As a developer, I want the extension to automatically connect when Chrome starts
 
 **Steps:**
+
 ```bash
 # 1. Start server
 npm run server
@@ -106,6 +109,7 @@ npm run server
 ```
 
 **What Can Go Wrong:**
+
 - Server not running → See yellow warning (console.warn)
 - Server running on different port → Connection timeout
 - Extension not loaded → Check chrome://extensions
@@ -115,6 +119,7 @@ npm run server
 **User Story:** As a developer, I want the extension to reconnect when I restart the server
 
 **Steps:**
+
 ```bash
 # 1. Start server and connect extension (Scenario 1)
 
@@ -141,6 +146,7 @@ npm run server
 **User Story:** As a test, I want to send commands to the extension
 
 **Steps:**
+
 ```bash
 # 1. Connect extension (Scenario 1)
 
@@ -165,6 +171,7 @@ curl http://localhost:9876/get-console/test-123
 ```
 
 **What Can Go Wrong:**
+
 - Extension not registered → Command rejected
 - Invalid command type → console.error in service worker
 - Tab blocked by popup blocker → Check Chrome settings
@@ -174,6 +181,7 @@ curl http://localhost:9876/get-console/test-123
 **User Story:** As a developer, I want to verify the extension doesn't crash Chrome
 
 **Steps:**
+
 ```bash
 # 1. Stop server
 kill $(cat .server-pid)
@@ -196,6 +204,7 @@ kill $(cat .server-pid)
 ```
 
 **Why This Matters:**
+
 - console.error() triggers Chrome crash detection
 - Chrome hides reload button for "crashed" extensions
 - See RELOAD-BUTTON-FIX.md for root cause analysis
@@ -205,6 +214,7 @@ kill $(cat .server-pid)
 **User Story:** As a tester, I want to verify the extension handles message queue overflow
 
 **Steps:**
+
 ```bash
 # 1. Connect extension with server STOPPED (queues messages)
 
@@ -248,12 +258,14 @@ Before considering extension "working", verify:
 ## When to Ask User for Manual Testing
 
 **DO ask user when:**
+
 1. Verifying reload button visibility (can't automate Chrome UI inspection)
 2. Testing across Chrome restarts (requires user action)
 3. Debugging visual issues (screenshots needed)
 4. Testing user-facing features (popup, options page)
 
 **DON'T ask user when:**
+
 1. Running automated Jest tests (run directly)
 2. Checking server logs (curl requests work)
 3. Verifying code exists (Read tool works)
@@ -274,6 +286,7 @@ extension/
 ```
 
 **Key Files for Testing:**
+
 - `background.js:569` - Auto-connects on extension load
 - `background.js:516-530` - ws.onerror handler (uses console.warn)
 - `background.js:532-556` - ws.onclose handler (triggers reconnection)
@@ -285,19 +298,23 @@ extension/
 ## Test Categories
 
 ### Unit Tests
+
 - `tests/unit/timeout-wrapper.test.js` - Async timeout handling
 - `tests/unit/websocket-mock.test.js` - WebSocket mocking utilities
 
 ### Integration Tests
+
 - `tests/integration/reconnection-behavior.test.js` - Full reconnection flow
 - `tests/integration/reload-button-fix.test.js` - Chrome crash prevention
 - `tests/integration/chrome-crash-prevention.test.js` - Error handling patterns
 - `tests/integration/resource-cleanup.test.js` - Cleanup verification
 
 ### Security Tests
+
 - `tests/security/websocket-client-security.test.js` - 6 known vulnerabilities
 
 ### HTML Tests (Manual)
+
 - `tests/html/test-reload-button-persistence.html` - Interactive reload button test
 
 ---
@@ -309,6 +326,7 @@ extension/
 **Symptoms:** No "Connected to server" message in service worker console
 
 **Diagnosis:**
+
 ```bash
 # Check server running
 curl http://localhost:9876/health
@@ -324,6 +342,7 @@ curl http://localhost:9876/health
 ```
 
 **Fixes:**
+
 1. Start server: `npm run server`
 2. Reload extension: Click reload button (↻) in chrome://extensions
 3. Check port: Verify server on port 9876 (not 9877, etc.)
@@ -335,6 +354,7 @@ curl http://localhost:9876/health
 **Root Cause:** Chrome saw console.error() in error handlers
 
 **Diagnosis:**
+
 ```bash
 # Check service worker console
 # Look for RED console.error messages
@@ -356,6 +376,7 @@ curl http://localhost:9876/health
 **Root Cause:** See REGISTRATION-TIMEOUT-DEBUG-FINDINGS.md
 
 **Diagnosis:**
+
 ```bash
 # 1. Connect extension
 # 2. Kill server: kill $(cat .server-pid)
@@ -376,6 +397,7 @@ curl http://localhost:9876/health
 ## Useful Commands
 
 ### Server Management
+
 ```bash
 # Start server
 npm run server
@@ -394,6 +416,7 @@ kill $(cat .server-pid)
 ```
 
 ### Extension Management
+
 ```bash
 # Launch Chrome with extension
 ./scripts/launch-chrome-with-extension.sh
@@ -406,6 +429,7 @@ kill $(cat .server-pid)
 ```
 
 ### Test Execution
+
 ```bash
 # Run all tests
 npm test

@@ -11,6 +11,7 @@
 After reloading the Chrome Dev Assist extension, the reload button in `chrome://extensions` would disappear, making it impossible to reload the extension again without toggling it off/on or refreshing the extensions page.
 
 **User Experience:**
+
 ```
 1. User reloads extension
 2. Extension shows error: "WebSocket connection failed: ERR_CONNECTION_REFUSED"
@@ -37,6 +38,7 @@ Chrome marks extensions as "crashed" when it detects **console.error() calls** f
 ### Why This Happens
 
 **Line 569 in background.js:**
+
 ```javascript
 if (typeof chrome !== 'undefined' && typeof WebSocket !== 'undefined') {
   connectToServer(); // ❌ Connects IMMEDIATELY on extension load
@@ -46,6 +48,7 @@ if (typeof chrome !== 'undefined' && typeof WebSocket !== 'undefined') {
 **The Issue:** Extension tries to connect to WebSocket server BEFORE server is guaranteed to be running. This is a **startup race condition**.
 
 **Expected Scenarios Where Connection Fails:**
+
 - Server hasn't started yet
 - Server was restarted (new PID)
 - Server is not running (during development)
@@ -66,8 +69,9 @@ All of these are **expected, recoverable situations** with exponential backoff r
 **1. WebSocket Error Handler (line 512-526)**
 
 **Before:**
+
 ```javascript
-ws.onerror = (err) => {
+ws.onerror = err => {
   console.error('[ChromeDevAssist] WebSocket error:', err); // ❌ Chrome sees this as crash
   if (ws && (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
     console.log('[ChromeDevAssist] Error triggered reconnection');
@@ -79,8 +83,9 @@ ws.onerror = (err) => {
 ```
 
 **After:**
+
 ```javascript
-ws.onerror = (err) => {
+ws.onerror = err => {
   // ✅ FIX: Use console.warn instead of console.error to prevent Chrome
   // from marking extension as "crashed" on connection failures
   // Connection failures are EXPECTED (server not running yet, server restart, etc.)
@@ -99,6 +104,7 @@ ws.onerror = (err) => {
 **2. Connection Timeout (line 259-269)**
 
 **Before:**
+
 ```javascript
 const connectTimeout = setTimeout(() => {
   if (ws && ws.readyState === WebSocket.CONNECTING) {
@@ -112,12 +118,15 @@ const connectTimeout = setTimeout(() => {
 ```
 
 **After:**
+
 ```javascript
 const connectTimeout = setTimeout(() => {
   if (ws && ws.readyState === WebSocket.CONNECTING) {
     // ✅ FIX: Use console.warn instead of console.error
     // Connection timeout is expected when server is not running
-    console.warn('[ChromeDevAssist] Connection timeout after 5s (server not responding, will retry)');
+    console.warn(
+      '[ChromeDevAssist] Connection timeout after 5s (server not responding, will retry)'
+    );
     ws.close();
     isConnecting = false;
     reconnectAttempts++;
@@ -129,6 +138,7 @@ const connectTimeout = setTimeout(() => {
 **3. Registration Timeout (line 335-344)**
 
 **Before:**
+
 ```javascript
 registrationTimeout = setTimeout(() => {
   if (registrationPending) {
@@ -141,12 +151,15 @@ registrationTimeout = setTimeout(() => {
 ```
 
 **After:**
+
 ```javascript
 registrationTimeout = setTimeout(() => {
   if (registrationPending) {
     // ✅ FIX: Use console.warn instead of console.error
     // Registration timeout is expected if server is old version or connection is slow
-    console.warn('[ChromeDevAssist] Registration acknowledgment not received within 5s, reconnecting...');
+    console.warn(
+      '[ChromeDevAssist] Registration acknowledgment not received within 5s, reconnecting...'
+    );
     registrationPending = false;
     isRegistered = false;
     ws.close();
@@ -157,6 +170,7 @@ registrationTimeout = setTimeout(() => {
 **4. Command Error Handler (line 495-499)** ⚠️ **NEWLY DISCOVERED 2025-10-25**
 
 **Before:**
+
 ```javascript
 } catch (error) {
   console.error('[ChromeDevAssist] Command failed:', error); // ❌ Line 496
@@ -169,6 +183,7 @@ registrationTimeout = setTimeout(() => {
 ```
 
 **After:**
+
 ```javascript
 } catch (error) {
   // ✅ FIX: Use console.warn instead of console.error to prevent Chrome crash detection
@@ -184,6 +199,7 @@ registrationTimeout = setTimeout(() => {
 ```
 
 **Why This Was Discovered:**
+
 - Tests sent command with invalid tabId (999999)
 - Extension caught error and logged `console.error()` at line 496
 - Chrome saw console.error() → marked extension as crashed → hid reload button
@@ -194,6 +210,7 @@ registrationTimeout = setTimeout(() => {
 ## Testing the Fix
 
 ### Before Fix
+
 ```bash
 # 1. Kill server
 kill $(cat .server-pid)
@@ -203,6 +220,7 @@ kill $(cat .server-pid)
 ```
 
 ### After Fix
+
 ```bash
 # 1. Kill server
 kill $(cat .server-pid)
@@ -219,6 +237,7 @@ kill $(cat .server-pid)
 ## Impact
 
 ### Before Fix
+
 - ❌ Reload button disappears on connection failure
 - ❌ Reload button disappears on command errors (invalid parameters)
 - ❌ Extension appears "crashed" to Chrome
@@ -227,6 +246,7 @@ kill $(cat .server-pid)
 - ❌ Tests with intentional errors trigger crash detection
 
 ### After Fix
+
 - ✅ Reload button always visible
 - ✅ Extension remains healthy in Chrome's view
 - ✅ Connection failures treated as warnings (expected behavior)
@@ -242,11 +262,13 @@ kill $(cat .server-pid)
 ### 1. **console.error() Has Side Effects in Chrome Extensions**
 
 Chrome uses `console.error()` as a signal that something is critically wrong with an extension. Use it only for:
+
 - Actual bugs in extension code
 - Unrecoverable errors
 - Programming mistakes
 
 **Don't use it for:**
+
 - Expected environmental conditions (server not running)
 - Recoverable errors (connection failures with retry logic)
 - Temporary issues (network problems)
@@ -254,6 +276,7 @@ Chrome uses `console.error()` as a signal that something is critically wrong wit
 ### 2. **Distinguish Between Errors and Expected Conditions**
 
 **Error (use console.error):**
+
 ```javascript
 // This is a bug in our code
 if (!message.command.type) {
@@ -263,9 +286,10 @@ if (!message.command.type) {
 ```
 
 **Expected Condition (use console.warn):**
+
 ```javascript
 // This is an expected environmental condition
-ws.onerror = (err) => {
+ws.onerror = err => {
   console.warn('Server not available, will reconnect');
   scheduleReconnect();
 };
@@ -274,6 +298,7 @@ ws.onerror = (err) => {
 ### 3. **Test Extensions in Realistic Conditions**
 
 Always test:
+
 - Extension loads before server starts
 - Extension loads after server crashes
 - Server restarts during extension operation

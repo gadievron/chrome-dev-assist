@@ -13,10 +13,12 @@
 **File:** `~/Documents/Claude Code/.claude/commands/validate.md`
 
 **Changes Made:**
+
 - Added 3 new validation items (8, 9, 10)
 - Total checklist items: 7 → 10
 
 **New Items:**
+
 ```
 [ ] 8. Test Reality Check (tests call production code, not mocks) ⭐ NEW
 [ ] 9. Resource Cleanup (all processes killed, files removed) ⭐ NEW
@@ -24,6 +26,7 @@
 ```
 
 **Impact:**
+
 - Prevents fake tests from passing validation
 - Forces cleanup before task completion
 - Ensures temporary debug code is removed
@@ -38,12 +41,13 @@
 
 **New Section to Add:**
 
-```markdown
+````markdown
 ## Resource Cleanup Protocol (MANDATORY)
 
 **THE RULE:** All background processes and temporary files MUST be cleaned up before marking any task complete.
 
 ### Before Starting Background Processes
+
 1. Check if port/resource already in use
 2. Document PID/resource ID in session notes
 3. Plan cleanup strategy
@@ -51,6 +55,7 @@
 ### When Starting Background Processes
 
 **ALWAYS capture PID:**
+
 ```bash
 # For shell scripts
 ./script.sh &
@@ -67,17 +72,20 @@ echo "Server PID: $SERVER_PID"
 # Script outputs: "Chrome launched (PID: 12345)"
 # Record: CHROME_PID=12345
 ```
+````
 
 ### After Test/Debug Session (MANDATORY)
 
 **Cleanup checklist:**
+
 - [ ] Kill all processes started (Chrome, server, tests)
 - [ ] Verify processes are dead: `ps -p <PID>` returns non-zero
-- [ ] Remove temporary files (test-*.js, reload-*.sh, etc.)
+- [ ] Remove temporary files (test-_.js, reload-_.sh, etc.)
 - [ ] Kill background shell processes (use KillShell tool)
 - [ ] Check for orphaned processes
 
 **Verification commands:**
+
 ```bash
 # Check for orphaned Chrome/node processes
 ps aux | grep -E "(chrome|node.*server)" | grep -v grep
@@ -86,6 +94,7 @@ ps aux | grep -E "(chrome|node.*server)" | grep -v grep
 ```
 
 **Automated cleanup (if script exists):**
+
 ```bash
 ./scripts/cleanup-test-session.sh
 ```
@@ -93,16 +102,19 @@ ps aux | grep -E "(chrome|node.*server)" | grep -v grep
 ### Enforcement
 
 **This is NOT optional. /validate command REQUIRES:**
+
 - Item 9: All processes killed and verified dead
 - Item 10: All temporary files removed
 - Item 11: No debug logging left in code
 
 **Validation FAILS if:**
+
 - Any test Chrome instance still running
 - Any server process still running
-- Any temporary files present (test-*.js, etc.)
+- Any temporary files present (test-\*.js, etc.)
 - Debug logging found in code (🔍 DEBUG markers)
-```
+
+````
 
 **Priority:** P0 CRITICAL
 **Estimated Time:** 15 minutes
@@ -145,9 +157,10 @@ describe('Production function', () => {
     expect(result).toBe(expected);
   });
 });
-```
+````
 
 **Bad test pattern (FAKE TEST):**
+
 ```javascript
 // ❌ BAD: Defines function being tested locally
 function localMockFunction(input) {
@@ -167,16 +180,14 @@ describe('Function', () => {
 ### Verification Test Pattern
 
 **For complex implementations, add verification test:**
+
 ```javascript
 describe('Verification: Production Code Exists', () => {
   it('should verify function exists in production file', () => {
     const fs = require('fs');
     const path = require('path');
 
-    const sourceCode = fs.readFileSync(
-      path.join(__dirname, '../../src/production.js'),
-      'utf8'
-    );
+    const sourceCode = fs.readFileSync(path.join(__dirname, '../../src/production.js'), 'utf8');
 
     // Verify function exists
     expect(sourceCode).toContain('function actualFunction(');
@@ -201,13 +212,15 @@ describe('Verification: Production Code Exists', () => {
 ### Red Flags - Fake Tests Detected
 
 **If you see these patterns, tests are FAKE:**
+
 - ❌ Test file defines function being tested
-- ❌ Mock implementation in test file (not in __mocks__)
+- ❌ Mock implementation in test file (not in **mocks**)
 - ❌ No require/import of production code
 - ❌ Tests pass even when production code is broken
 - ❌ Test creates local copy of production logic
 
 **Example of fake test discovered:**
+
 ```javascript
 // timeout-wrapper.test.js had this:
 async function withTimeout(promise, timeout, operation) {
@@ -221,16 +234,19 @@ async function withTimeout(promise, timeout, operation) {
 ### Enforcement
 
 **/validate command checks:**
+
 - Item 8: Test Reality Check
 - Tests must import production code
 - Verification tests exist for complex code
 - Can trace test → production
 
 **Validation FAILS if:**
+
 - Tests define functions being tested
 - No imports of production code
 - Tests can't be traced to production
-```
+
+````
 
 **Priority:** P0 CRITICAL
 **Estimated Time:** 20 minutes
@@ -301,7 +317,7 @@ async function withTimeout(promise, timeout, operation) {
 
    # Connections
    # Check server logs for connections
-   ```
+````
 
 5. **When did it last work?**
    - Timestamp of last success
@@ -311,6 +327,7 @@ async function withTimeout(promise, timeout, operation) {
 ### Only AFTER Answering Above
 
 **Now you can:**
+
 - Read code
 - Add debug logging
 - Create test scripts
@@ -319,6 +336,7 @@ async function withTimeout(promise, timeout, operation) {
 ### Time Box Investigations
 
 **Set time limits:**
+
 - 10 minutes: State checking (questions above)
 - 30 minutes: Initial investigation
 - 60 minutes: Deep dive
@@ -327,6 +345,7 @@ async function withTimeout(promise, timeout, operation) {
 ### Avoid Assumption Traps
 
 **Common mistakes:**
+
 ```
 ❌ "Error says X, so X is broken"
 ✅ "Error says X, but what STATE caused X?"
@@ -341,6 +360,7 @@ async function withTimeout(promise, timeout, operation) {
 ### Example: Registration Timeout Investigation
 
 **Wrong approach (90 minutes wasted):**
+
 1. Read registration ACK code
 2. Add debug logging to ACK sending
 3. Add debug logging to ACK receiving
@@ -348,6 +368,7 @@ async function withTimeout(promise, timeout, operation) {
 5. Eventually discover: extension not connected to server
 
 **Right approach (10 minutes):**
+
 1. Is server running? YES (PID 75422)
 2. Is extension connected? Check server logs... NO
 3. When did extension connect? Last at 19:12 to old server (PID 71941)
@@ -358,16 +379,19 @@ async function withTimeout(promise, timeout, operation) {
 ### Enforcement
 
 **Use this protocol for:**
+
 - All error investigations
 - All "why isn't X working" questions
 - All debugging sessions
 - Before adding any debug logging
 
 **Skip for:**
+
 - Trivial issues (typo, syntax error)
 - Already know root cause
 - Reproducing known bug
-```
+
+````
 
 **Priority:** P1 HIGH
 **Estimated Time:** 25 minutes
@@ -424,7 +448,7 @@ async function withTimeout(promise, timeout, operation) {
    ```bash
    ./scripts/cleanup-test-session.sh
    # Should detect processes, files, debug logging
-   ```
+````
 
 3. Test fake test detection:
    - Create test file with local mock
@@ -436,6 +460,7 @@ async function withTimeout(promise, timeout, operation) {
 ## Files Created/Modified
 
 **Already Complete:**
+
 1. ✅ `/validate` command updated (global)
 2. ✅ `scripts/cleanup-test-session.sh` created
 3. ✅ `LESSONS-LEARNED-TESTING-DEBUGGING.md` created
@@ -443,6 +468,7 @@ async function withTimeout(promise, timeout, operation) {
 5. ✅ `REGISTRATION-TIMEOUT-DEBUG-FINDINGS.md` created
 
 **Pending:**
+
 1. ⏳ `~/Documents/Claude Code/base-rules/bootstrap.md` (2 sections to add)
 2. ⏳ `~/Documents/Claude Code/base-rules/tier1/testing.md` (1 section to add)
 3. ⏳ `~/Documents/Claude Code/base-rules/tier1/websocket-testing.md` (new file)

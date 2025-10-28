@@ -18,9 +18,11 @@
 ## FILES WITH PLACEHOLDER TESTS
 
 ### 1. websocket-server-security.test.js (9 placeholders)
+
 **Location:** tests/security/websocket-server-security.test.js
 
 **Placeholder Tests:**
+
 - Line 304: Placeholder
 - Line 309: Placeholder
 - Line 314: Placeholder
@@ -38,9 +40,11 @@
 ---
 
 ### 2. api-client.test.js (5 placeholders)
+
 **Location:** tests/integration/api-client.test.js
 
 **Placeholder Tests:**
+
 - Line 83: Placeholder
 - Line 96: Placeholder
 - Line 107: Placeholder
@@ -54,9 +58,11 @@
 ---
 
 ### 3. native-messaging.test.js (3 placeholders)
+
 **Location:** tests/integration/native-messaging.test.js
 
 **Placeholder Tests:**
+
 - Line 17: "should send command through native host to extension" - Placeholder
 - Line 22: "should handle extension not found error" - Placeholder
 - Line 27: "should handle timeout if extension doesn't respond" - Placeholder
@@ -68,9 +74,11 @@
 ---
 
 ### 4. metadata-leak-debug.test.js (2 placeholders)
+
 **Location:** tests/unit/metadata-leak-debug.test.js
 
 **Placeholder Tests:**
+
 - Line 64: Placeholder
 - Line 71: Placeholder
 
@@ -81,6 +89,7 @@
 ---
 
 ### 5. timeout-wrapper.test.js (1 placeholder)
+
 **Location:** tests/unit/timeout-wrapper.test.js
 **Line:** 112
 
@@ -93,6 +102,7 @@
 ---
 
 ### 6. websocket-client-security.test.js (1 placeholder)
+
 **Location:** tests/security/websocket-client-security.test.js
 **Line:** 415
 
@@ -103,6 +113,7 @@
 ---
 
 ### 7. reload-button-fix.test.js (1 placeholder)
+
 **Location:** tests/integration/reload-button-fix.test.js
 **Line:** 229
 
@@ -113,6 +124,7 @@
 ---
 
 ### 8. chrome-crash-prevention.test.js (1 placeholder)
+
 **Location:** tests/integration/chrome-crash-prevention.test.js
 **Line:** 172
 
@@ -123,6 +135,7 @@
 ---
 
 ### 9. test-reality-check.test.js (1 placeholder)
+
 **Location:** tests/meta/test-reality-check.test.js
 **Line:** 341
 
@@ -137,6 +150,7 @@
 **Connection:** Some placeholder tests may be testing phantom APIs
 
 **Analysis Needed:**
+
 - metadata-leak-debug.test.js → May test getPageMetadata() phantom
 - api-client.test.js → May test phantom APIs
 - native-messaging.test.js → Tests unimplemented native messaging
@@ -147,19 +161,20 @@
 
 ## PLACEHOLDER TEST BREAKDOWN
 
-| Category | Count | Impact | Recommendation |
-|----------|-------|--------|----------------|
-| Security Tests | 11 | HIGH | Implement immediately |
-| Integration Tests | 9 | MEDIUM | Implement or remove |
-| Debug/Meta Tests | 3 | LOW-MEDIUM | Implement or document |
-| Bug Fix Verification | 1 | LOW | Verify and remove |
-| **TOTAL** | **24** | | |
+| Category             | Count  | Impact     | Recommendation        |
+| -------------------- | ------ | ---------- | --------------------- |
+| Security Tests       | 11     | HIGH       | Implement immediately |
+| Integration Tests    | 9      | MEDIUM     | Implement or remove   |
+| Debug/Meta Tests     | 3      | LOW-MEDIUM | Implement or document |
+| Bug Fix Verification | 1      | LOW        | Verify and remove     |
+| **TOTAL**            | **24** |            |                       |
 
 ---
 
 ## SKIPPED TESTS ANALYSIS
 
 **Need to analyze:**
+
 - it.skip() patterns
 - test.skip() patterns
 - describe.skip() patterns
@@ -169,6 +184,7 @@
 **Total Found:** 94+ skipped tests (from grep count)
 
 **Next Steps:**
+
 1. Categorize all skipped tests
 2. Determine why each is skipped
 3. Create action plan for each
@@ -178,16 +194,19 @@
 ## RECOMMENDATIONS
 
 ### Immediate Actions
+
 1. **Implement security placeholder tests** (11 tests) - HIGH PRIORITY
 2. **Document native messaging status** - Is this feature planned?
 3. **Verify bug fixes** - Remove placeholders for fixed bugs
 
 ### Short Term
+
 4. **Implement or remove integration placeholders** (9 tests)
 5. **Cross-reference with phantom APIs** - Are placeholders testing phantoms?
 6. **Analyze all 94+ skipped tests** - Why skipped? Still relevant?
 
 ### Long Term
+
 7. **Policy on placeholders** - Ban expect(true).toBe(true) in PRs
 8. **CI enforcement** - Fail if placeholder pattern detected
 9. **Test debt tracking** - Track incomplete tests in TO-FIX.md
@@ -201,9 +220,10 @@
 **Systematic Check:** **16 phantom APIs**
 
 **Error:** Only checked obvious test files (test-orchestration.test.js, page-metadata.test.js)
-**Lesson:** Must grep ALL test files for chromeDevAssist.* patterns
+**Lesson:** Must grep ALL test files for chromeDevAssist.\* patterns
 
 **Phantom APIs Found:**
+
 1. abortTest
 2. captureScreenshot
 3. captureServiceWorkerLogs

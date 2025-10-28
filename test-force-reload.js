@@ -26,20 +26,22 @@ ws.on('open', () => {
   commandId = 'force-reload-' + Date.now();
 
   console.log('🔄 Sending forceReload command...');
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: commandId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'forceReload'
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: commandId,
+      targetExtensionId: EXTENSION_ID,
+      command: {
+        type: 'forceReload',
+      },
+    })
+  );
 
   console.log(`📤 Command sent (ID: ${commandId})`);
   console.log('\n⏳ Waiting for response (extension will reload)...\n');
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.id === commandId) {
@@ -94,7 +96,6 @@ ws.on('message', (data) => {
       console.log('─'.repeat(70));
 
       setTimeout(() => ws.close(), 1000);
-
     } else if (message.type === 'error') {
       console.error('❌ Force reload failed:');
       console.error(JSON.stringify(message.error, null, 2));
@@ -103,7 +104,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ Connection error:', err.message);
   process.exit(1);
 });

@@ -12,6 +12,7 @@
 **Total Security Restrictions Found:** 35+ distinct restrictions
 **Categories:** 7 major categories
 **Severity Levels:**
+
 - 🔴 **HARD BLOCKS** - Cannot be bypassed (19 restrictions)
 - 🟡 **SOFT LIMITS** - Can fail but with graceful errors (12 restrictions)
 - 🟢 **DESIGN LIMITS** - Intentional constraints (4 restrictions)
@@ -32,11 +33,13 @@ if (extension.id === chrome.runtime.id) {
 ```
 
 **Why:**
+
 - **Security:** Prevents infinite reload loops
 - **Stability:** Prevents self-destruction mid-operation
 - **Chrome Limitation:** chrome.management.setEnabled() fails on self
 
 **Impact:**
+
 - ❌ You cannot reload the Chrome Dev Assist extension itself using the API
 - ❌ Attempting to reload `chrome.runtime.id` will throw error
 - ✅ You CAN reload it manually via chrome://extensions
@@ -54,6 +57,7 @@ if (extension.id === chrome.runtime.id) {
 **What:** Extensions installed by enterprise policy may have `mayDisable: false`
 
 **Code:**
+
 ```javascript
 // getExtensionInfo returns:
 {
@@ -67,6 +71,7 @@ if (extension.id === chrome.runtime.id) {
 ```
 
 **chrome.management.setEnabled() behavior:**
+
 ```javascript
 // This will FAIL if mayDisable === false
 await chrome.management.setEnabled(extensionId, false);
@@ -74,16 +79,19 @@ await chrome.management.setEnabled(extensionId, false);
 ```
 
 **Why:**
+
 - **Enterprise Control:** IT admins can force-install extensions
 - **Chrome API Limitation:** chrome.management.setEnabled() respects enterprise policies
 - **Security:** Users cannot disable mandatory security extensions
 
 **Impact:**
+
 - ❌ Cannot reload extensions with `installType: 'admin'` and `mayDisable: false`
 - ❌ Attempting to reload will throw: `"Failed to disable extension: ..."`
 - ✅ You CAN still get info about the extension with `getExtensionInfo()`
 
 **How to Detect:**
+
 ```javascript
 const info = await chromeDevAssist.getExtensionInfo(extensionId);
 if (!info.mayDisable) {
@@ -107,10 +115,12 @@ if (!info.mayDisable) {
 ```
 
 **Why:**
+
 - **Consistency:** Since you can't reload self, don't list self
 - **User Experience:** Prevents confusion
 
 **Impact:**
+
 - ❌ Chrome Dev Assist will NOT appear in `getAllExtensions()` results
 - ✅ This is intentional and correct
 
@@ -127,14 +137,17 @@ if (!info.mayDisable) {
 ```
 
 **Why:**
+
 - **Chrome API Limitation:** chrome.management.setEnabled() doesn't work on Chrome Apps
 - **Correctness:** Only list things you can actually reload
 
 **Impact:**
+
 - ❌ Chrome Apps (type === 'app') will NOT appear in results
 - ✅ Only extensions (type === 'extension') are returned
 
 **Examples of Chrome Apps:**
+
 - Chrome Web Store (not an extension)
 - Google Docs Offline (deprecated)
 
@@ -158,17 +171,20 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 ```
 
 **Blocked Protocols:**
+
 1. ❌ `javascript:` - Code injection attacks
 2. ❌ `data:` - XSS via data URLs
 3. ❌ `vbscript:` - Legacy IE attacks
 4. ❌ `file:` - Local file access (security risk)
 
 **Why:**
+
 - **Security:** Prevents code injection via openUrl()
 - **XSS Prevention:** data: URLs can contain malicious scripts
 - **Sandboxing:** file: URLs bypass web security
 
 **Impact:**
+
 - ❌ You CANNOT use `openUrl('javascript:alert(1)')`
 - ❌ You CANNOT use `openUrl('data:text/html,<script>...')`
 - ❌ You CANNOT use `openUrl('file:///etc/passwd')`
@@ -187,15 +203,18 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 **What:** Chrome prevents extensions from opening chrome:// URLs via chrome.tabs.create()
 
 **Examples:**
+
 - ❌ `chrome://extensions` - Likely blocked
 - ❌ `chrome://settings` - Likely blocked
 - ❌ `chrome://flags` - Likely blocked
 
 **Why:**
+
 - **Chrome Security:** Extensions cannot manipulate Chrome's internal pages
 - **Privilege Separation:** Prevents extension privilege escalation
 
 **Impact:**
+
 - ❌ `openUrl('chrome://extensions')` will likely fail or redirect
 - ❌ Cannot programmatically navigate to Chrome internal pages
 
@@ -212,14 +231,17 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 **What:** You CAN open chrome-extension:// URLs, but only if extension grants permission
 
 **Examples:**
+
 - ✅ `chrome-extension://abc.../popup.html` - Allowed if public
 - ❌ `chrome-extension://xyz.../background.js` - Blocked (not web accessible)
 
 **Why:**
+
 - **Extension Sandboxing:** Each extension controls its own resources
 - **manifest.json Control:** `web_accessible_resources` defines what's public
 
 **Impact:**
+
 - ✅ You CAN open another extension's public pages
 - ❌ You CANNOT access non-public extension resources
 
@@ -240,6 +262,7 @@ const HOST = '127.0.0.1'; // localhost only for security
 ```
 
 **Server Binding:**
+
 ```javascript
 httpServer.listen(PORT, HOST, () => {
   console.log(`[Server] WebSocket server running on ws://${HOST}:${PORT}`);
@@ -247,16 +270,19 @@ httpServer.listen(PORT, HOST, () => {
 ```
 
 **Why:**
+
 - **Security:** Prevents remote network access
 - **Threat Model:** No external attackers can connect
 - **Best Practice:** Development tools should not expose ports
 
 **Impact:**
+
 - ❌ Server CANNOT be accessed from other machines on network
 - ❌ Server CANNOT be accessed from VMs or containers (unless port forwarding)
 - ✅ Server CAN ONLY be accessed from 127.0.0.1 (localhost)
 
 **What This Means:**
+
 ```bash
 # ✅ This works:
 curl http://127.0.0.1:9876/fixtures/test.html
@@ -271,6 +297,7 @@ curl http://0.0.0.0:9876/fixtures/test.html  # Server not bound to 0.0.0.0
 **Test:** Verified in docs/SECURITY.md
 
 **Workaround:**
+
 - Change `HOST = '127.0.0.1'` to `HOST = '0.0.0.0'` (NOT RECOMMENDED - security risk)
 - Use SSH port forwarding for remote access (RECOMMENDED)
 
@@ -281,11 +308,13 @@ curl http://0.0.0.0:9876/fixtures/test.html  # Server not bound to 0.0.0.0
 **Location:** `server/websocket-server.js:26` (uses `http.createServer` not `https`)
 
 **Why HTTP:**
+
 - Traffic on 127.0.0.1 never leaves machine
 - HTTPS provides zero security benefit for localhost
 - Industry standard (Jest, Playwright, Cypress all use HTTP for localhost)
 
 **Impact:**
+
 - ✅ Test fixtures served over http://localhost:9876
 - ❌ NOT served over https://localhost:9876
 - ✅ No TLS encryption (unnecessary for localhost loopback)
@@ -314,15 +343,18 @@ curl http://0.0.0.0:9876/fixtures/test.html  # Server not bound to 0.0.0.0
 ```
 
 **What It Enables:**
+
 - `chrome.management.getAll()` - List extensions
 - `chrome.management.get(id)` - Get extension info
 - `chrome.management.setEnabled(id, bool)` - Enable/disable extensions
 
 **What Happens Without It:**
+
 - ❌ Extension installation fails
 - ❌ Chrome shows permission warning: "Manage your apps, extensions, and themes"
 
 **Impact:**
+
 - ✅ Users MUST grant "management" permission
 - ⚠️ Users see scary permission warning (necessary evil)
 
@@ -343,18 +375,22 @@ curl http://0.0.0.0:9876/fixtures/test.html  # Server not bound to 0.0.0.0
 ```
 
 **Why:**
+
 - Console capture needs to inject scripts into ALL pages
 - Cannot predict which URLs users will test
 
 **What It Enables:**
+
 - Content scripts run on all URLs
 - Console capture works on any website
 
 **What Happens Without It:**
+
 - ❌ Console capture fails
 - ❌ inject-console-capture.js cannot load
 
 **Impact:**
+
 - ✅ Users MUST grant access to all websites
 - ⚠️ Users see permission warning: "Read and change all your data on all websites"
 
@@ -380,10 +416,12 @@ curl http://0.0.0.0:9876/fixtures/test.html  # Server not bound to 0.0.0.0
 ```
 
 **Why:**
+
 - Must intercept console before page scripts run
 - Layer 1 truncation happens before data leaves page
 
 **Impact:**
+
 - ✅ Console logs captured from page load
 - ❌ Content script runs on EVERY page (performance cost)
 
@@ -410,17 +448,20 @@ if (!/^[a-p]{32}$/.test(extensionId)) {
 ```
 
 **Chrome Extension ID Format:**
+
 - **Exactly 32 characters**
 - **Lowercase letters ONLY**
 - **Range: a-p ONLY** (not a-z!)
 - Generated from extension's public key
 
 **Why:**
+
 - **Security:** Prevents injection attacks
 - **Correctness:** Invalid IDs will fail Chrome API calls anyway
 - **Early Detection:** Better error messages
 
 **Impact:**
+
 - ❌ `getExtensionInfo('short')` → Error
 - ❌ `getExtensionInfo('ABCD...')` → Error (uppercase)
 - ❌ `getExtensionInfo('abc123...')` → Error (contains numbers)
@@ -464,11 +505,13 @@ if (duration > MAX_DURATION) {
 ```
 
 **Why:**
+
 - **API Layer:** User-facing limit (60 seconds / 1 minute)
 - **Extension Layer:** Hard limit (600 seconds / 10 minutes)
 - **Reason:** Prevent runaway captures, memory exhaustion
 
 **Impact:**
+
 - ❌ `captureLogs(0)` → Error
 - ❌ `captureLogs(-1000)` → Error
 - ❌ `captureLogs(120000)` → Error (>60s at API layer)
@@ -497,10 +540,12 @@ if (typeof tabId !== 'number' || tabId <= 0) {
 ```
 
 **Why:**
+
 - **Chrome API:** Tab IDs are positive integers starting from 1
 - **Security:** Prevents invalid API calls
 
 **Impact:**
+
 - ❌ `reloadTab(-1)` → Error
 - ❌ `reloadTab(0)` → Error
 - ❌ `reloadTab('123')` → Error (string)
@@ -525,10 +570,12 @@ try {
 ```
 
 **Why:**
+
 - **Correctness:** Chrome will reject invalid URLs anyway
 - **Early Detection:** Better error messages
 
 **Impact:**
+
 - ❌ `openUrl('not-a-url')` → Error
 - ❌ `openUrl('example.com')` → Error (missing protocol)
 - ✅ `openUrl('http://example.com')` → Works
@@ -550,10 +597,12 @@ if (jsonSize > METADATA_SIZE_LIMIT) {
 ```
 
 **Why:**
+
 - **DoS Prevention:** Prevents huge metadata from exhausting memory
 - **Reasonableness:** Normal metadata should be <1KB
 
 **Impact:**
+
 - ❌ Sending >10KB of metadata → Error
 - ✅ Normal metadata (<1KB) → Works
 
@@ -578,17 +627,19 @@ if (state.logs.length < MAX_LOGS_PER_CAPTURE) {
     message: '[ChromeDevAssist] Log limit reached (10000). Further logs will be dropped.',
     timestamp: new Date().toISOString(),
     source: 'chrome-dev-assist',
-    tabId: logEntry.tabId
+    tabId: logEntry.tabId,
   });
 }
 // else: silently drop logs exceeding limit
 ```
 
 **Why:**
+
 - **Memory Protection:** Prevents OOM from pages with excessive console output
 - **Performance:** Large arrays slow down processing
 
 **Impact:**
+
 - ✅ First 10,000 logs captured
 - ⚠️ Log #10,001 is a warning message
 - ❌ Logs #10,002+ silently dropped
@@ -602,6 +653,7 @@ if (state.logs.length < MAX_LOGS_PER_CAPTURE) {
 ### 6.2 ✅ VERIFIED: 10,000 Character Message Truncation (Dual-Layer)
 
 **Layer 1:** `extension/inject-console-capture.js:36-39`
+
 ```javascript
 const MAX_MESSAGE_LENGTH = 10000;
 if (message.length > MAX_MESSAGE_LENGTH) {
@@ -610,6 +662,7 @@ if (message.length > MAX_MESSAGE_LENGTH) {
 ```
 
 **Layer 2:** `extension/background.js:687-691`
+
 ```javascript
 const MAX_MESSAGE_LENGTH = 10000;
 let truncatedMessage = message.message;
@@ -619,11 +672,13 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 ```
 
 **Why:**
+
 - **Memory Protection:** Prevents huge messages from exhausting memory
 - **Performance:** Truncate early to reduce data transfer
 - **Defense-in-Depth:** Two layers ensure enforcement
 
 **Impact:**
+
 - ✅ Messages ≤10,000 chars captured fully
 - ⚠️ Messages >10,000 chars truncated to 10,000 + "... [truncated]"
 
@@ -638,13 +693,13 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 **Location:** `extension/background.js:22-37`
 
 ```javascript
-const CLEANUP_INTERVAL_MS = 60000;    // 60 seconds
-const MAX_CAPTURE_AGE_MS = 300000;    // 5 minutes
+const CLEANUP_INTERVAL_MS = 60000; // 60 seconds
+const MAX_CAPTURE_AGE_MS = 300000; // 5 minutes
 
 setInterval(() => {
   const now = Date.now();
   for (const [commandId, state] of captureState.entries()) {
-    if (!state.active && state.endTime && (now - state.endTime > MAX_CAPTURE_AGE_MS)) {
+    if (!state.active && state.endTime && now - state.endTime > MAX_CAPTURE_AGE_MS) {
       console.log(`[ChromeDevAssist] Cleaning up stale capture: ${commandId}`);
       cleanupCapture(commandId);
     }
@@ -653,10 +708,12 @@ setInterval(() => {
 ```
 
 **Why:**
+
 - **Memory Leak Prevention:** Stale captures consume memory
 - **Automatic Cleanup:** No manual intervention needed
 
 **Impact:**
+
 - ✅ Captures auto-deleted 5 minutes after completion
 - ✅ Runs every 60 seconds
 - ⚠️ Accessing logs >5 minutes old → Error
@@ -674,14 +731,17 @@ setInterval(() => {
 **Location:** `server/websocket-server.js` (extension registration logic)
 
 **What:**
+
 - WebSocket server tracks ONE extension connection
 - If second extension connects, first is replaced
 
 **Why:**
+
 - **Simplicity:** v1.0.0 design choice
 - **Use Case:** Single developer testing one extension
 
 **Impact:**
+
 - ❌ Cannot control multiple Chrome Dev Assist instances simultaneously
 - ✅ One extension connection is enough for 99% of use cases
 
@@ -706,22 +766,25 @@ setInterval(() => {
 ```javascript
 if (typeof arg === 'object') {
   try {
-    return JSON.stringify(arg);  // ← Fails on circular refs
+    return JSON.stringify(arg); // ← Fails on circular refs
   } catch (e) {
-    return String(arg);  // ← Returns "[object Object]"
+    return String(arg); // ← Returns "[object Object]"
   }
 }
 ```
 
 **What:**
+
 - Objects with circular references captured as `"[object Object]"`
 - NOT captured as `{ name: 'parent', self: '[Circular]' }`
 
 **Why:**
+
 - Uses native JSON.stringify() which throws on circular refs
 - safeStringify() exists but not used for captured logs
 
 **Impact:**
+
 - ⚠️ Circular reference objects NOT nicely serialized
 - ✅ Page doesn't crash (error caught)
 - ✅ Chrome DevTools still shows full object
@@ -739,14 +802,17 @@ if (typeof arg === 'object') {
 **Location:** Chrome API limitation
 
 **What:**
+
 - Changes to manifest.json require extension reload
 - Cannot dynamically change permissions
 
 **Why:**
+
 - **Chrome Security:** Permission changes require user approval
 - **Chrome Design:** Manifest is loaded at install time
 
 **Impact:**
+
 - ❌ Cannot add permissions dynamically
 - ❌ Cannot change host_permissions at runtime
 - ✅ Must reload extension after manifest changes
@@ -757,43 +823,43 @@ if (typeof arg === 'object') {
 
 ## 📊 SUMMARY TABLE: ALL RESTRICTIONS
 
-| # | Restriction | Category | Severity | Bypass? | Location |
-|---|------------|----------|----------|---------|----------|
-| 1 | Cannot reload self | Extension | 🔴 Hard | No | background.js:228 |
-| 2 | Cannot reload mayDisable:false | Extension | 🔴 Hard | No | Chrome API |
-| 3 | getAllExtensions excludes self | Extension | 🟢 Design | No | background.js:298 |
-| 4 | getAllExtensions excludes apps | Extension | 🟢 Design | No | background.js:298 |
-| 5 | javascript: blocked | URL | 🔴 Hard | No | background.js:398 |
-| 6 | data: blocked | URL | 🔴 Hard | No | background.js:398 |
-| 7 | vbscript: blocked | URL | 🔴 Hard | No | background.js:398 |
-| 8 | file: blocked | URL | 🔴 Hard | No | background.js:398 |
-| 9 | chrome:// blocked | URL | 🔴 Hard | No | Chrome |
-| 10 | Server localhost-only | Network | 🔴 Hard | Config | server.js:34 |
-| 11 | HTTP only (not HTTPS) | Network | 🟢 Design | Config | server.js:26 |
-| 12 | Requires "management" perm | Permission | 🔴 Hard | No | manifest.json:8 |
-| 13 | Requires <all_urls> | Permission | 🔴 Hard | No | manifest.json:14 |
-| 14 | Extension ID format | Validation | 🟡 Soft | No | validation.js:38 |
-| 15 | Duration 1-60000ms | Validation | 🟡 Soft | No | index.js:66 |
-| 16 | Duration max 10 min | Validation | 🟡 Soft | No | background.js:421 |
-| 17 | Tab ID positive int | Validation | 🟡 Soft | No | index.js:167 |
-| 18 | URL must be valid | Validation | 🟡 Soft | No | index.js:134 |
-| 19 | Metadata 10KB max | Validation | 🟡 Soft | No | validation.js:65 |
-| 20 | 10K log limit | Memory | 🟡 Soft | No | background.js:728 |
-| 21 | 10K char truncation L1 | Memory | 🟡 Soft | No | inject:36 |
-| 22 | 10K char truncation L2 | Memory | 🟡 Soft | No | background.js:687 |
-| 23 | 5 min capture cleanup | Memory | 🟢 Design | No | background.js:22 |
-| 24 | One extension connection | Design | 🟢 Design | Future | server.js |
-| 25 | Circular ref gap | Design | 🟡 Soft | Future | inject:24 |
-| 26 | manifest.json immutable | Chrome API | 🔴 Hard | No | Chrome |
-| 27 | Duration NaN blocked | Validation | 🟡 Soft | No | background.js:416 |
-| 28 | Duration Infinity blocked | Validation | 🟡 Soft | No | background.js:408 |
-| 29 | Duration negative blocked | Validation | 🟡 Soft | No | background.js:412 |
-| 30 | URL empty blocked | Validation | 🟡 Soft | No | background.js:392 |
-| 31 | extensionId required | Validation | 🟡 Soft | No | index.js:315 |
-| 32 | extensionId must be string | Validation | 🟡 Soft | No | index.js:319 |
-| 33 | extensionId must be 32 chars | Validation | 🟡 Soft | No | index.js:323 |
-| 34 | tabId required | Validation | 🟡 Soft | No | index.js:163,191 |
-| 35 | url required | Validation | 🟡 Soft | No | index.js:123 |
+| #   | Restriction                    | Category   | Severity  | Bypass? | Location          |
+| --- | ------------------------------ | ---------- | --------- | ------- | ----------------- |
+| 1   | Cannot reload self             | Extension  | 🔴 Hard   | No      | background.js:228 |
+| 2   | Cannot reload mayDisable:false | Extension  | 🔴 Hard   | No      | Chrome API        |
+| 3   | getAllExtensions excludes self | Extension  | 🟢 Design | No      | background.js:298 |
+| 4   | getAllExtensions excludes apps | Extension  | 🟢 Design | No      | background.js:298 |
+| 5   | javascript: blocked            | URL        | 🔴 Hard   | No      | background.js:398 |
+| 6   | data: blocked                  | URL        | 🔴 Hard   | No      | background.js:398 |
+| 7   | vbscript: blocked              | URL        | 🔴 Hard   | No      | background.js:398 |
+| 8   | file: blocked                  | URL        | 🔴 Hard   | No      | background.js:398 |
+| 9   | chrome:// blocked              | URL        | 🔴 Hard   | No      | Chrome            |
+| 10  | Server localhost-only          | Network    | 🔴 Hard   | Config  | server.js:34      |
+| 11  | HTTP only (not HTTPS)          | Network    | 🟢 Design | Config  | server.js:26      |
+| 12  | Requires "management" perm     | Permission | 🔴 Hard   | No      | manifest.json:8   |
+| 13  | Requires <all_urls>            | Permission | 🔴 Hard   | No      | manifest.json:14  |
+| 14  | Extension ID format            | Validation | 🟡 Soft   | No      | validation.js:38  |
+| 15  | Duration 1-60000ms             | Validation | 🟡 Soft   | No      | index.js:66       |
+| 16  | Duration max 10 min            | Validation | 🟡 Soft   | No      | background.js:421 |
+| 17  | Tab ID positive int            | Validation | 🟡 Soft   | No      | index.js:167      |
+| 18  | URL must be valid              | Validation | 🟡 Soft   | No      | index.js:134      |
+| 19  | Metadata 10KB max              | Validation | 🟡 Soft   | No      | validation.js:65  |
+| 20  | 10K log limit                  | Memory     | 🟡 Soft   | No      | background.js:728 |
+| 21  | 10K char truncation L1         | Memory     | 🟡 Soft   | No      | inject:36         |
+| 22  | 10K char truncation L2         | Memory     | 🟡 Soft   | No      | background.js:687 |
+| 23  | 5 min capture cleanup          | Memory     | 🟢 Design | No      | background.js:22  |
+| 24  | One extension connection       | Design     | 🟢 Design | Future  | server.js         |
+| 25  | Circular ref gap               | Design     | 🟡 Soft   | Future  | inject:24         |
+| 26  | manifest.json immutable        | Chrome API | 🔴 Hard   | No      | Chrome            |
+| 27  | Duration NaN blocked           | Validation | 🟡 Soft   | No      | background.js:416 |
+| 28  | Duration Infinity blocked      | Validation | 🟡 Soft   | No      | background.js:408 |
+| 29  | Duration negative blocked      | Validation | 🟡 Soft   | No      | background.js:412 |
+| 30  | URL empty blocked              | Validation | 🟡 Soft   | No      | background.js:392 |
+| 31  | extensionId required           | Validation | 🟡 Soft   | No      | index.js:315      |
+| 32  | extensionId must be string     | Validation | 🟡 Soft   | No      | index.js:319      |
+| 33  | extensionId must be 32 chars   | Validation | 🟡 Soft   | No      | index.js:323      |
+| 34  | tabId required                 | Validation | 🟡 Soft   | No      | index.js:163,191  |
+| 35  | url required                   | Validation | 🟡 Soft   | No      | index.js:123      |
 
 **Total:** 35 distinct restrictions
 
@@ -832,6 +898,7 @@ if (typeof arg === 'object') {
 **Confidence:** 100%
 
 **Source Files Reviewed:**
+
 - extension/background.js (7 handlers, 19 restrictions)
 - server/validation.js (8 functions, 6 restrictions)
 - claude-code/index.js (8 functions, 8 restrictions)

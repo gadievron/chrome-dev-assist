@@ -9,7 +9,6 @@ const HealthManager = require('../../src/health/health-manager');
 const WebSocket = require('ws');
 
 describe('HealthManager - Real WebSocket Integration', () => {
-
   let server;
   let client;
 
@@ -19,13 +18,13 @@ describe('HealthManager - Real WebSocket Integration', () => {
       client.close();
     }
     if (server) {
-      await new Promise((resolve) => {
+      await new Promise(resolve => {
         server.close(resolve);
       });
     }
   });
 
-  test('should work with real WebSocket in OPEN state', (done) => {
+  test('should work with real WebSocket in OPEN state', done => {
     const health = new HealthManager();
 
     // Create real WebSocket server
@@ -51,13 +50,13 @@ describe('HealthManager - Real WebSocket Integration', () => {
         done();
       });
 
-      client.on('error', (err) => {
+      client.on('error', err => {
         done(err);
       });
     });
   }, 5000);
 
-  test('should detect real WebSocket close event', (done) => {
+  test('should detect real WebSocket close event', done => {
     const health = new HealthManager();
 
     server = new WebSocket.Server({ port: 0 });
@@ -71,7 +70,7 @@ describe('HealthManager - Real WebSocket Integration', () => {
         health.getHealthStatus(); // Establish baseline
 
         // Listen for health change event
-        health.on('health-changed', (event) => {
+        health.on('health-changed', event => {
           expect(event.previous.healthy).toBe(true);
           expect(event.current.healthy).toBe(false);
           done();
@@ -91,13 +90,13 @@ describe('HealthManager - Real WebSocket Integration', () => {
         }, 100);
       });
 
-      client.on('error', (err) => {
+      client.on('error', err => {
         done(err);
       });
     });
   }, 5000);
 
-  test('should track real WebSocket state transitions', (done) => {
+  test('should track real WebSocket state transitions', done => {
     const health = new HealthManager();
 
     server = new WebSocket.Server({ port: 0 });
@@ -115,7 +114,7 @@ describe('HealthManager - Real WebSocket Integration', () => {
         const state = client.readyState;
         stateChanges.push({
           readyState: state,
-          connected: health.isExtensionConnected()
+          connected: health.isExtensionConnected(),
         });
 
         if (state === WebSocket.OPEN && stateChanges.length === 1) {
@@ -128,8 +127,12 @@ describe('HealthManager - Real WebSocket Integration', () => {
 
           // Verify we saw the transition
           const hadConnecting = stateChanges.some(s => s.readyState === WebSocket.CONNECTING);
-          const hadOpen = stateChanges.some(s => s.readyState === WebSocket.OPEN && s.connected === true);
-          const hadClosed = stateChanges.some(s => s.readyState === WebSocket.CLOSED && s.connected === false);
+          const hadOpen = stateChanges.some(
+            s => s.readyState === WebSocket.OPEN && s.connected === true
+          );
+          const hadClosed = stateChanges.some(
+            s => s.readyState === WebSocket.CLOSED && s.connected === false
+          );
 
           expect(hadConnecting || hadOpen).toBe(true); // Must have been connecting or open
           expect(hadOpen).toBe(true); // Must have been open
@@ -139,14 +142,14 @@ describe('HealthManager - Real WebSocket Integration', () => {
         }
       }, 10);
 
-      client.on('error', (err) => {
+      client.on('error', err => {
         clearInterval(checkState);
         done(err);
       });
     });
   }, 5000);
 
-  test('should emit events for real WebSocket state changes', (done) => {
+  test('should emit events for real WebSocket state changes', done => {
     const health = new HealthManager();
 
     server = new WebSocket.Server({ port: 0 });
@@ -163,7 +166,7 @@ describe('HealthManager - Real WebSocket Integration', () => {
       health.getHealthStatus();
 
       // Listen for connection state change
-      health.on('connection-state-changed', (event) => {
+      health.on('connection-state-changed', event => {
         if (event.current.readyState === WebSocket.OPEN) {
           connectionEventFired = true;
         }
@@ -181,10 +184,9 @@ describe('HealthManager - Real WebSocket Integration', () => {
         }, 50);
       });
 
-      client.on('error', (err) => {
+      client.on('error', err => {
         done(err);
       });
     });
   }, 5000);
-
 });

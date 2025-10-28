@@ -11,11 +11,12 @@
 > "what about knowing if extension has errors, if reload button is there or disappeared, and grabbing the extension errors?"
 > "and if service worker is active"
 > "also these? We should add these API functions:
->   await wakeServiceWorker();
->   const status = await getServiceWorkerStatus(); // Returns: { running: true/false, connected: true/false }
->   const logs = await captureServiceWorkerLogs(duration);"
+> await wakeServiceWorker();
+> const status = await getServiceWorkerStatus(); // Returns: { running: true/false, connected: true/false }
+> const logs = await captureServiceWorkerLogs(duration);"
 
 **Nine capabilities needed:**
+
 1. **Detect if extension has errors** - Know when extension enters error state (internal errors)
 2. **Check if red "Errors" button is visible** - Infer if chrome://extensions shows red error button
 3. **Get error count** - Know how many errors the red button would show
@@ -33,6 +34,7 @@
 ### ✅ What Already Exists
 
 **ErrorLogger (extension/lib/error-logger.js):**
+
 - Centralized error logging utility
 - Distinguishes expected vs unexpected errors
 - Uses `console.warn` for expected errors (prevents Chrome crash detection)
@@ -40,11 +42,13 @@
 - **GAP:** Only logs to console, doesn't store errors
 
 **Usage in background.js:**
+
 - 7 locations using `ErrorLogger.logExpectedError()`
 - Used for: queue overflow, message send failures, tab cleanup failures
 - **GAP:** No usage of `logUnexpectedError()` or `logCritical()`
 
 **Known Issue (from error-logger.js:8-9):**
+
 > "Chrome marks extensions as 'crashed' when it sees console.error() in error handlers, causing the reload button to disappear in chrome://extensions."
 
 ### ❌ What's Missing
@@ -96,6 +100,7 @@ static clearErrors() {
 ```
 
 **Why this approach:**
+
 - Minimal changes (add storage to existing system)
 - Maintains existing API (backward compatible)
 - Centralized (all errors go through one place)
@@ -108,7 +113,7 @@ static clearErrors() {
 // In background.js initialization
 
 // Catch unhandled errors
-self.addEventListener('error', (event) => {
+self.addEventListener('error', event => {
   ErrorLogger.logUnexpectedError(
     'unhandledError',
     'Unhandled error in service worker',
@@ -117,16 +122,13 @@ self.addEventListener('error', (event) => {
 });
 
 // Catch unhandled promise rejections
-self.addEventListener('unhandledrejection', (event) => {
-  ErrorLogger.logUnexpectedError(
-    'unhandledRejection',
-    'Unhandled promise rejection',
-    event.reason
-  );
+self.addEventListener('unhandledrejection', event => {
+  ErrorLogger.logUnexpectedError('unhandledRejection', 'Unhandled promise rejection', event.reason);
 });
 ```
 
 **Why this approach:**
+
 - Catches errors that slip through try/catch
 - No code changes needed elsewhere
 - Complements existing ErrorLogger usage
@@ -157,6 +159,7 @@ case 'getExtensionStatus':
 ```
 
 **Why this approach:**
+
 - Consistent with existing command pattern
 - Provides comprehensive status info
 - Easy to call from tests
@@ -200,12 +203,14 @@ case 'getExtensionStatus':
 ```
 
 **Why this approach:**
+
 - Leverages existing onSuspend listener (background.js:1706)
 - Minimal overhead (just updating timestamps)
 - Provides useful debugging info (suspend count, uptime)
 - Integrates with existing crash detection
 
 **Alternative: chrome.management API**
+
 ```javascript
 // Can query extension state from outside
 const info = await chrome.management.getSelf();
@@ -213,6 +218,7 @@ const info = await chrome.management.getSelf();
 ```
 
 **Why NOT this alternative:**
+
 - Doesn't provide service worker specific status
 - Can't detect active vs suspended (extension may be enabled but worker suspended)
 - Approach 4 provides more granular info
@@ -233,6 +239,7 @@ async function checkExtensionErrorState() {
 ```
 
 **Why NOT this approach:**
+
 - chrome:// pages have restricted access
 - UI scraping is fragile (breaks with Chrome updates)
 - Approach 3 (status command) is more reliable
@@ -256,11 +263,13 @@ case 'wakeServiceWorker':
 ```
 
 **Why this approach:**
+
 - Simple: Just sending a message wakes it up
 - The act of handling the message proves it's awake
 - No additional logic needed
 
 **Alternative: Dedicated ping/pong**
+
 ```javascript
 case 'ping':
   ws.send(JSON.stringify({ type: 'pong', commandId: message.commandId }));
@@ -268,6 +277,7 @@ case 'ping':
 ```
 
 **Why NOT this alternative:**
+
 - Redundant with Approach 6
 - Any message wakes service worker
 - Keep it simple
@@ -296,11 +306,13 @@ case 'getServiceWorkerStatus':
 ```
 
 **Why this approach:**
+
 - Lightweight (returns immediately)
 - Focused (just status, not full extension state)
 - Complements getExtensionStatus (which is heavier)
 
 **Difference from getExtensionStatus:**
+
 - `getServiceWorkerStatus`: Lightweight, just running/connected
 - `getExtensionStatus`: Comprehensive, includes errors, crash info, etc.
 
@@ -370,16 +382,19 @@ case 'getServiceWorkerLogs':
 ```
 
 **Why this approach:**
+
 - Captures ALL console output (not just errors)
 - Non-invasive (original console still works)
 - Memory-safe (MAX_SW_LOGS limit)
 - Useful for debugging extension internals
 
 **Difference from page console capture:**
+
 - **Page console**: inject-console-capture.js intercepts page's console
 - **Service worker console**: This intercepts background.js console
 
 **Use cases:**
+
 - Debug extension initialization
 - Monitor WebSocket messages
 - Track tab operations
@@ -451,6 +466,7 @@ function calculateHealth() {
 ```
 
 **Why this approach:**
+
 - **Can't directly access chrome://extensions UI** - Restricted chrome:// pages
 - **Can infer Chrome's view** - Chrome sees the same errors we do
 - **Correlation:**
@@ -459,28 +475,33 @@ function calculateHealth() {
   - No errors → No red button
 
 **What triggers red "Errors" button in chrome://extensions:**
+
 1. **console.error() calls** - ErrorLogger.logUnexpectedError() uses console.error()
 2. **Uncaught errors** - Global error handler catches, logs with console.error()
 3. **Uncaught promise rejections** - Global handler catches, logs with console.error()
 4. **Content script errors** - Also visible to Chrome's error tracking
 
 **How we track the same errors:**
+
 - ErrorLogger.errorHistory stores all errors with severity and context
 - console.error() count = errors with severity='unexpected'
 - Uncaught error count = errors with context='unhandledError'/'unhandledRejection'
 - Total = errorCount shown on red button
 
 **How errors can be cleared:**
+
 1. **User clicks "Clear all" in chrome://extensions** - Clears Chrome's error log (we won't know)
 2. **ErrorLogger.clearErrors() called** - Clears our error history
 3. **Extension reloaded** - Service worker restarts, errorHistory resets to []
 
 **How we detect error clearing:**
+
 - Track previousErrorCount (persisted across status checks)
 - If previousErrorCount > 0 && currentErrorCount === 0 → errorsCleared = true
 - This tells you: "Extension was in error state, now recovered"
 
 **Limitations:**
+
 - ❌ Can't read actual error count from chrome://extensions (UI is restricted)
 - ❌ Can't detect if user manually cleared Chrome's errors (unless we also clear ours)
 - ✅ Can infer with near-perfect accuracy (we see the same console output)
@@ -488,6 +509,7 @@ function calculateHealth() {
 - ✅ Good enough for testing purposes (99% accurate)
 
 **Alternative: chrome.management API**
+
 ```javascript
 const info = await chrome.management.getSelf();
 // info.enabled - Is extension enabled?
@@ -495,6 +517,7 @@ const info = await chrome.management.getSelf();
 ```
 
 **Why NOT this alternative:**
+
 - Doesn't provide error state or reload button info
 - Only tells if extension is enabled/disabled
 - Not granular enough for our needs
@@ -508,9 +531,11 @@ const info = await chrome.management.getSelf();
 ### Phase 1: Extend ErrorLogger (PRIORITY 1)
 
 **Files to modify:**
+
 - `extension/lib/error-logger.js` (add storage)
 
 **Changes:**
+
 1. Add `static errorHistory = []`
 2. Add `static MAX_ERRORS = 100`
 3. Modify `logExpectedError()` to store errors
@@ -520,6 +545,7 @@ const info = await chrome.management.getSelf();
 7. Add `static getErrorStats()`
 
 **Tests to write (FIRST):**
+
 - `tests/unit/error-logger-storage.test.js` (~15 tests)
   - Test error storage
   - Test max errors limit (memory leak prevention)
@@ -530,14 +556,17 @@ const info = await chrome.management.getSelf();
 ### Phase 2: Global Error Handlers (PRIORITY 1)
 
 **Files to modify:**
+
 - `extension/background.js` (add event listeners)
 
 **Changes:**
+
 1. Add `error` event listener
 2. Add `unhandledrejection` event listener
 3. Log to ErrorLogger with context
 
 **Tests to write (FIRST):**
+
 - `tests/unit/global-error-handlers.test.js` (~10 tests)
   - Test error event captured
   - Test unhandledrejection captured
@@ -547,15 +576,18 @@ const info = await chrome.management.getSelf();
 ### Phase 3: Service Worker Status Tracking (PRIORITY 1)
 
 **Files to modify:**
+
 - `extension/background.js` (add status tracking)
 
 **Changes:**
+
 1. Add `serviceWorkerStatus` object
 2. Update status on startup (set to 'active')
 3. Update status in onSuspend listener (set to 'suspending')
 4. Track suspend count, uptime, active duration
 
 **Tests to write (FIRST):**
+
 - `tests/unit/service-worker-status.test.js` (~8 tests)
   - Test status initialized to 'active'
   - Test status updated on suspend
@@ -566,15 +598,18 @@ const info = await chrome.management.getSelf();
 ### Phase 4: Extension Status Command (PRIORITY 1)
 
 **Files to modify:**
+
 - `extension/background.js` (add command handler)
 - `server/websocket-server.js` (add command documentation)
 
 **Changes:**
+
 1. Add `getExtensionStatus` command handler
 2. Return comprehensive status object
 3. Include error history, crash info, uptime, service worker status
 
 **Tests to write (FIRST):**
+
 - `tests/unit/get-extension-status.test.js` (~14 tests)
   - Test status includes errors
   - Test status includes crash info
@@ -586,16 +621,19 @@ const info = await chrome.management.getSelf();
 ### Phase 5: New API Commands (PRIORITY 1)
 
 **Files to modify:**
+
 - `extension/background.js` (add command handlers)
 - `server/websocket-server.js` (add command documentation)
 
 **Changes:**
+
 1. Add `wakeServiceWorker` command handler (simple acknowledgement)
 2. Add console interception for service worker logs
 3. Add `startServiceWorkerLogCapture` command (duration-based)
 4. Add `getServiceWorkerLogs` command (immediate retrieval)
 
 **Tests to write (FIRST):**
+
 - `tests/unit/wake-service-worker.test.js` (~4 tests)
   - Test wake command returns acknowledgement
   - Test timestamp included
@@ -615,12 +653,14 @@ const info = await chrome.management.getSelf();
 ### Phase 6: HTML Integration Tests (PRIORITY 2)
 
 **Files to create:**
+
 - `tests/html/test-extension-errors.html`
 - `tests/html/test-error-detection.html`
 - `tests/html/test-service-worker-status.html`
 - `tests/html/test-service-worker-logs.html`
 
 **Tests:**
+
 1. Trigger expected error, verify captured in getExtensionStatus
 2. Trigger unexpected error, verify captured
 3. Trigger unhandled error, verify captured
@@ -635,6 +675,7 @@ const info = await chrome.management.getSelf();
 ## 🎯 Success Criteria
 
 **Functional:**
+
 - ✅ All errors logged to ErrorLogger are stored
 - ✅ Unhandled errors/rejections are captured
 - ✅ Tests can query error history via command
@@ -642,6 +683,7 @@ const info = await chrome.management.getSelf();
 - ✅ Error filtering works (by severity, context, time)
 
 **Quality:**
+
 - ✅ Test-first discipline followed (all tests written before code)
 - ✅ All tests passing (target: 37 new tests)
 - ✅ No regressions (existing 53 tests still pass)
@@ -649,6 +691,7 @@ const info = await chrome.management.getSelf();
 - ✅ Surgical changes only
 
 **Performance:**
+
 - ✅ No memory leaks (MAX_ERRORS limit enforced)
 - ✅ Error storage O(1) insertion
 - ✅ Error retrieval O(n) with filters
@@ -658,18 +701,22 @@ const info = await chrome.management.getSelf();
 ## 🚨 Risks & Mitigations
 
 **Risk 1: Memory leaks from unbounded error storage**
+
 - **Mitigation:** MAX_ERRORS limit (100 errors = ~10KB max)
 - **Detection:** Test with 1000+ errors, verify oldest dropped
 
 **Risk 2: console.error triggers Chrome crash detection**
+
 - **Mitigation:** Already handled by ErrorLogger design (uses console.warn for expected errors)
 - **Detection:** Monitor chrome://extensions during tests
 
 **Risk 3: Global error handlers interfere with existing error handling**
+
 - **Mitigation:** Only log, don't preventDefault() or interfere
 - **Detection:** Run all existing tests, verify no behavior changes
 
 **Risk 4: Performance impact from error filtering**
+
 - **Mitigation:** Simple array filter, 100 errors max = trivial overhead
 - **Detection:** Benchmark getErrors() with 100 errors
 
@@ -678,22 +725,28 @@ const info = await chrome.management.getSelf();
 ## 📊 Test Count Estimate
 
 **Phase 1: ErrorLogger Storage**
+
 - 15 unit tests
 
 **Phase 2: Global Error Handlers**
+
 - 10 unit tests
 
 **Phase 3: Service Worker Status Tracking**
+
 - 8 unit tests
 
 **Phase 4: Extension Status Command (getExtensionStatus)**
+
 - 14 unit tests
 
 **Phase 5: New API Commands**
+
 - wake-service-worker.test.js: 4 unit tests
 - service-worker-log-capture.test.js: 14 unit tests
 
 **Phase 6: HTML Integration Tests**
+
 - 8 HTML tests (not Jest)
 
 **Total:** 65 new Jest tests + 8 HTML tests = 73 total new tests
@@ -707,16 +760,19 @@ const info = await chrome.management.getSelf();
 ## 🔄 Deferred Features
 
 **chrome://extensions Page Monitoring** (Approach 4)
+
 - **Why deferred:** Complex, fragile, low ROI
 - **Alternative:** Use Approach 3 (status command) instead
 - **Reconsider if:** Status command proves insufficient
 
 **External Error Reporting**
+
 - **Why deferred:** externalLoggingConfig exists but unused
 - **Scope:** Out of current request
 - **Future work:** Could send errors to external service
 
 **Error Analytics Dashboard**
+
 - **Why deferred:** Not requested by user
 - **Scope:** Out of current request
 - **Future work:** Could visualize error trends
@@ -771,19 +827,23 @@ docs/
 ## 🎓 Key Design Decisions
 
 **Decision 1: Extend existing ErrorLogger vs create new system**
+
 - **Choice:** Extend ErrorLogger
 - **Reason:** Minimal changes, already integrated, maintains consistency
 
 **Decision 2: Store errors in memory vs chrome.storage**
+
 - **Choice:** Memory only (for now)
 - **Reason:** Faster, simpler, sufficient for testing use case
 - **Future:** Could add chrome.storage.local persistence if needed
 
 **Decision 3: Global error handlers vs manual try/catch everywhere**
+
 - **Choice:** Global handlers
 - **Reason:** Catches errors we miss, complements existing error handling
 
 **Decision 4: Status command vs chrome://extensions scraping**
+
 - **Choice:** Status command
 - **Reason:** More reliable, easier to test, not fragile to Chrome updates
 
@@ -796,6 +856,7 @@ docs/
 **Risk Level:** LOW (well-scoped, surgical changes, extends existing systems)
 
 **Redundancy Resolution:** ✅ COMPLETED
+
 - Removed duplicate `getServiceWorkerStatus` command
 - All service worker status included in comprehensive `getExtensionStatus`
 - See: API-DESIGN-SIMPLIFIED-2025-10-26.md

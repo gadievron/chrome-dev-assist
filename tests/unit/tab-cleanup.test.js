@@ -23,7 +23,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     global.console = {
       log: jest.fn((...args) => consoleLogs.push({ type: 'log', args })),
       warn: jest.fn((...args) => consoleLogs.push({ type: 'warn', args })),
-      error: jest.fn((...args) => consoleLogs.push({ type: 'error', args }))
+      error: jest.fn((...args) => consoleLogs.push({ type: 'error', args })),
     };
 
     // Mock Chrome API
@@ -31,16 +31,16 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
+        executeScript: jest.fn().mockResolvedValue([]),
       },
       runtime: {
         onMessage: {
-          addListener: jest.fn()
-        }
-      }
+          addListener: jest.fn(),
+        },
+      },
     };
 
     // Set global chrome for tests
@@ -57,13 +57,13 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
       url: 'https://example.com',
       autoClose: true,
       captureConsole: false, // Skip console capture for simpler test
-      duration: 100
+      duration: 100,
     });
 
     // Verify tab was created
     expect(mockChrome.tabs.create).toHaveBeenCalledWith({
       url: 'https://example.com',
-      active: true
+      active: true,
     });
 
     // Verify tab exists check was performed
@@ -81,7 +81,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     const result = await handleOpenUrlCommand('cmd-2', {
       url: 'https://example.com',
       autoClose: false,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Tab created
@@ -99,7 +99,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     // When autoClose not specified, defaults to false
     const result = await handleOpenUrlCommand('cmd-3', {
       url: 'https://example.com',
-      captureConsole: false
+      captureConsole: false,
       // autoClose not specified
     });
 
@@ -122,7 +122,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
         url: 'https://example.com',
         autoClose: true,
         captureConsole: true, // This will fail
-        duration: 100
+        duration: 100,
       });
     } catch (err) {
       // Error expected from script injection
@@ -141,7 +141,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     const result = await handleOpenUrlCommand('cmd-5', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Tab creation attempted
@@ -164,7 +164,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     const result = await handleOpenUrlCommand('cmd-6', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Tab creation attempted
@@ -179,16 +179,18 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     // Error should be logged (check console.error was called)
     const errorLogs = consoleLogs.filter(log => log.type === 'error');
     expect(errorLogs.length).toBeGreaterThan(0);
-    expect(errorLogs.some(log =>
-      log.args.some(arg => typeof arg === 'string' && arg.includes('TAB CLEANUP FAILED'))
-    )).toBe(true);
+    expect(
+      errorLogs.some(log =>
+        log.args.some(arg => typeof arg === 'string' && arg.includes('TAB CLEANUP FAILED'))
+      )
+    ).toBe(true);
   });
 
   test('should include tabClosed status in response', async () => {
     const result = await handleOpenUrlCommand('cmd-7', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Response has required fields
@@ -205,7 +207,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     await handleOpenUrlCommand('cmd-8', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Check that verbose logging is present
@@ -229,7 +231,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
   test('chrome.tabs.remove should return Promise (API compatibility check)', async () => {
     // Track what chrome.tabs.remove returns
     let removeReturnValue;
-    mockChrome.tabs.remove.mockImplementation((tabId) => {
+    mockChrome.tabs.remove.mockImplementation(tabId => {
       removeReturnValue = Promise.resolve();
       return removeReturnValue;
     });
@@ -237,7 +239,7 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
     await handleOpenUrlCommand('cmd-9', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Verify remove was called
@@ -249,9 +251,11 @@ describe('Tab Cleanup - REAL Implementation Tests', () => {
 
     // Should log that it detected a Promise
     // (This will help debug if the real Chrome API doesn't return Promise)
-    expect(logMessages.some(msg =>
-      typeof msg === 'string' && msg.includes('chrome.tabs.remove returned')
-    )).toBe(true);
+    expect(
+      logMessages.some(
+        msg => typeof msg === 'string' && msg.includes('chrome.tabs.remove returned')
+      )
+    ).toBe(true);
   });
 });
 

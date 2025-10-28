@@ -25,11 +25,13 @@ The test will open a tab and leave it open for inspection.
 ### 3. Check Service Worker Console
 
 Look for this message in the service worker console:
+
 ```
 [ChromeDevAssist DEBUG BACKGROUND] Received console message: ...
 ```
 
 **Question 1: Do you see this debug message?**
+
 - **YES** → Messages ARE reaching background.js (problem is in storage)
 - **NO** → Messages NOT reaching background.js (problem earlier in chain)
 
@@ -40,6 +42,7 @@ Look for this message in the service worker console:
 3. Look at Console tab
 
 **Question 2: Do you see this message in the page console?**
+
 ```
 [ChromeDevAssist] Console capture initialized in main world
 ```
@@ -50,28 +53,33 @@ Look for this message in the service worker console:
 ### 5. Quick Test (If Step 4 was YES)
 
 In the page console, type:
+
 ```javascript
-window.__chromeDevAssistInjected
+window.__chromeDevAssistInjected;
 ```
 
 **Question 3: What does this return?**
+
 - **true** → Inject script loaded successfully
 - **undefined** → Inject script didn't load
 
 ### 6. Console Wrapping Test (If Step 5 was true)
 
 In the page console, type:
+
 ```javascript
-console.log.toString()
+console.log.toString();
 ```
 
 **Question 4: Does the output include "originalLog"?**
+
 - **YES** → Console IS wrapped
 - **NO** → Console NOT wrapped (shows "[native code]")
 
 ### 7. Manual Message Test (If Step 6 was YES)
 
 In the page console, type:
+
 ```javascript
 console.log('[MANUAL TEST] Hello');
 ```
@@ -79,6 +87,7 @@ console.log('[MANUAL TEST] Hello');
 Then switch to the service worker console.
 
 **Question 5: Do you see "[ChromeDevAssist DEBUG BACKGROUND] Received console message: log [MANUAL TEST] Hello"?**
+
 - **YES** → Pipeline IS working! (Problem is timing)
 - **NO** → Pipeline broken (messages not forwarding)
 

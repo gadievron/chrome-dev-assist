@@ -13,30 +13,27 @@
 const chromeDevAssist = require('../../claude-code/index.js');
 
 describe('Test Orchestration Protocol', () => {
-
   describe('API Function Validation', () => {
-
     describe('startTest()', () => {
-
       test('should reject missing testId', async () => {
-        await expect(chromeDevAssist.startTest(null))
-          .rejects.toThrow('testId is required');
+        await expect(chromeDevAssist.startTest(null)).rejects.toThrow('testId is required');
       });
 
       test('should reject non-string testId', async () => {
-        await expect(chromeDevAssist.startTest(123))
-          .rejects.toThrow('testId is required and must be a string');
+        await expect(chromeDevAssist.startTest(123)).rejects.toThrow(
+          'testId is required and must be a string'
+        );
       });
 
       test('should reject testId that is too long', async () => {
         const longId = 'a'.repeat(101);
-        await expect(chromeDevAssist.startTest(longId))
-          .rejects.toThrow('testId too long');
+        await expect(chromeDevAssist.startTest(longId)).rejects.toThrow('testId too long');
       });
 
       test('should reject testId with invalid characters', async () => {
-        await expect(chromeDevAssist.startTest('test;DROP TABLE'))
-          .rejects.toThrow('testId contains invalid characters');
+        await expect(chromeDevAssist.startTest('test;DROP TABLE')).rejects.toThrow(
+          'testId contains invalid characters'
+        );
       });
 
       test('should accept valid testId', async () => {
@@ -57,18 +54,20 @@ describe('Test Orchestration Protocol', () => {
     });
 
     describe('endTest()', () => {
-
       test('should reject missing testId', async () => {
         await expect(chromeDevAssist.endTest(null)).rejects.toThrow('testId is required');
       });
 
       test('should reject non-string testId', async () => {
-        await expect(chromeDevAssist.endTest(123)).rejects.toThrow('testId is required and must be a string');
+        await expect(chromeDevAssist.endTest(123)).rejects.toThrow(
+          'testId is required and must be a string'
+        );
       });
 
       test('should reject invalid result value', async () => {
-        await expect(chromeDevAssist.endTest('test-001', 'invalid'))
-          .rejects.toThrow('result must be one of: passed, failed, aborted');
+        await expect(chromeDevAssist.endTest('test-001', 'invalid')).rejects.toThrow(
+          'result must be one of: passed, failed, aborted'
+        );
       });
 
       test('should accept valid result: passed', async () => {
@@ -93,7 +92,6 @@ describe('Test Orchestration Protocol', () => {
     });
 
     describe('getTestStatus()', () => {
-
       test('should not require parameters', async () => {
         const promise = chromeDevAssist.getTestStatus();
 
@@ -102,13 +100,14 @@ describe('Test Orchestration Protocol', () => {
     });
 
     describe('abortTest()', () => {
-
       test('should reject missing testId', async () => {
         await expect(chromeDevAssist.abortTest(null)).rejects.toThrow('testId is required');
       });
 
       test('should reject non-string testId', async () => {
-        await expect(chromeDevAssist.abortTest(123)).rejects.toThrow('testId is required and must be a string');
+        await expect(chromeDevAssist.abortTest(123)).rejects.toThrow(
+          'testId is required and must be a string'
+        );
       });
 
       test('should accept valid testId with reason', async () => {
@@ -123,7 +122,6 @@ describe('Test Orchestration Protocol', () => {
     });
 
     describe('verifyCleanup()', () => {
-
       test('should accept empty expectedClosedTabs (defaults to [])', async () => {
         const promise = chromeDevAssist.verifyCleanup();
 
@@ -132,7 +130,7 @@ describe('Test Orchestration Protocol', () => {
 
       test('should accept array of tab IDs', async () => {
         const promise = chromeDevAssist.verifyCleanup({
-          expectedClosedTabs: [123, 456, 789]
+          expectedClosedTabs: [123, 456, 789],
         });
 
         await expect(promise).rejects.toThrow(); // WebSocket error expected
@@ -141,7 +139,6 @@ describe('Test Orchestration Protocol', () => {
   });
 
   describe('Integration Tests (requires WebSocket server)', () => {
-
     // These tests will only run if WebSocket server is available
     // They test the full protocol end-to-end
 
@@ -150,7 +147,7 @@ describe('Test Orchestration Protocol', () => {
         projectName: 'chrome-dev-assist',
         testName: 'Integration Test',
         testId: 'int-001',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       expect(result).toHaveProperty('testId', 'int-001');
@@ -168,7 +165,7 @@ describe('Test Orchestration Protocol', () => {
         projectName: 'chrome-dev-assist',
         testName: 'Status Test',
         testId: 'status-001',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // Check status
@@ -187,12 +184,12 @@ describe('Test Orchestration Protocol', () => {
         projectName: 'chrome-dev-assist',
         testName: 'End Test',
         testId: 'end-001',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // End the test
       const endResult = await chromeDevAssist.endTest('end-001', {
-        result: 'passed'
+        result: 'passed',
       });
 
       expect(endResult).toHaveProperty('testId', 'end-001');
@@ -212,16 +209,18 @@ describe('Test Orchestration Protocol', () => {
         projectName: 'chrome-dev-assist',
         testName: 'First Test',
         testId: 'overlap-001',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // Try to start second test (should fail)
-      await expect(chromeDevAssist.startTest({
-        projectName: 'chrome-dev-assist',
-        testName: 'Second Test',
-        testId: 'overlap-002',
-        version: '1.0.0'
-      })).rejects.toThrow('TEST_ALREADY_RUNNING');
+      await expect(
+        chromeDevAssist.startTest({
+          projectName: 'chrome-dev-assist',
+          testName: 'Second Test',
+          testId: 'overlap-002',
+          version: '1.0.0',
+        })
+      ).rejects.toThrow('TEST_ALREADY_RUNNING');
     });
 
     test.skip('INTEGRATION: abortTest() should emergency cleanup', async () => {
@@ -230,12 +229,12 @@ describe('Test Orchestration Protocol', () => {
         projectName: 'chrome-dev-assist',
         testName: 'Abort Test',
         testId: 'abort-001',
-        version: '1.0.0'
+        version: '1.0.0',
       });
 
       // Abort it
       const abortResult = await chromeDevAssist.abortTest('abort-001', {
-        reason: 'Testing abort functionality'
+        reason: 'Testing abort functionality',
       });
 
       expect(abortResult).toHaveProperty('testId', 'abort-001');
@@ -254,7 +253,7 @@ describe('Test Orchestration Protocol', () => {
 
       // Verify cleanup (without closing tab)
       const cleanup = await chromeDevAssist.verifyCleanup({
-        expectedClosedTabs: [tabId]
+        expectedClosedTabs: [tabId],
       });
 
       expect(cleanup).toHaveProperty('verified', false);
@@ -268,7 +267,6 @@ describe('Test Orchestration Protocol', () => {
   });
 
   describe('State Machine Tests', () => {
-
     test('should export all orchestration functions', () => {
       expect(chromeDevAssist).toHaveProperty('startTest');
       expect(chromeDevAssist).toHaveProperty('endTest');
@@ -285,15 +283,9 @@ describe('Test Orchestration Protocol', () => {
   });
 
   describe('Test Fixture Template Tests', () => {
-
     test('should validate test fixture has required metadata', () => {
       // Test that our fixture template includes all required fields
-      const requiredMetaTags = [
-        'test-project',
-        'test-id',
-        'test-version',
-        'test-name'
-      ];
+      const requiredMetaTags = ['test-project', 'test-id', 'test-version', 'test-name'];
 
       // This would normally load the actual HTML fixture
       // For now, we're just documenting the requirement
@@ -307,14 +299,9 @@ describe('Test Orchestration Protocol', () => {
       // - Status indicator (#test-status)
       // - updateTestStatus() helper function
 
-      const requiredElements = [
-        'test-banner',
-        'test-status'
-      ];
+      const requiredElements = ['test-banner', 'test-status'];
 
-      const requiredFunctions = [
-        'updateTestStatus'
-      ];
+      const requiredFunctions = ['updateTestStatus'];
 
       expect(requiredElements).toHaveLength(2);
       expect(requiredFunctions).toHaveLength(1);

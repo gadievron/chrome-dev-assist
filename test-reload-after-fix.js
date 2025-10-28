@@ -24,20 +24,22 @@ ws.on('open', () => {
 
   console.log('📤 Sending forceReload command...\n');
 
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: commandId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'forceReload',
-      params: {
-        extensionId: EXTENSION_ID
-      }
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: commandId,
+      targetExtensionId: EXTENSION_ID,
+      command: {
+        type: 'forceReload',
+        params: {
+          extensionId: EXTENSION_ID,
+        },
+      },
+    })
+  );
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.type === 'response') {
@@ -52,7 +54,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ WebSocket error:', err.message);
   console.error('\nIs the server running? Try: node server.js\n');
   process.exit(1);

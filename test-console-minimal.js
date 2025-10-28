@@ -32,34 +32,38 @@ ws.on('open', () => {
 
   const cmdId = 'test-' + Date.now();
 
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: cmdId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'openUrl',
-      params: {
-        url: 'http://127.0.0.1:9876/fixtures/test-console-simple.html',
-        captureConsole: true,
-        duration: 3000,
-        autoClose: true
-      }
-    }
-  }));
-
-  setTimeout(() => {
-    ws.send(JSON.stringify({
+  ws.send(
+    JSON.stringify({
       type: 'command',
-      id: cmdId + '-status',
+      id: cmdId,
       targetExtensionId: EXTENSION_ID,
       command: {
-        type: 'ping'
-      }
-    }));
+        type: 'openUrl',
+        params: {
+          url: 'http://127.0.0.1:9876/fixtures/test-console-simple.html',
+          captureConsole: true,
+          duration: 3000,
+          autoClose: true,
+        },
+      },
+    })
+  );
+
+  setTimeout(() => {
+    ws.send(
+      JSON.stringify({
+        type: 'command',
+        id: cmdId + '-status',
+        targetExtensionId: EXTENSION_ID,
+        command: {
+          type: 'ping',
+        },
+      })
+    );
   }, 5000);
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   console.log('📨 Message type:', message.type);
@@ -88,7 +92,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

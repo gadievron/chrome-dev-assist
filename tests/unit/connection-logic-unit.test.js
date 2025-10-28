@@ -11,9 +11,7 @@
 const { describe, it, expect } = require('@jest/globals');
 
 describe('Connection Logic Unit Tests (No Chrome)', () => {
-
   describe('getReconnectDelay() Logic', () => {
-
     // Extract the logic from background.js
     function getReconnectDelay(attempt) {
       const seconds = Math.min(Math.pow(2, attempt), 30);
@@ -69,7 +67,6 @@ describe('Connection Logic Unit Tests (No Chrome)', () => {
   });
 
   describe('safeSend() State Logic (Mock WebSocket)', () => {
-
     // Mock WebSocket with different states
     class MockWebSocket {
       constructor(readyState) {
@@ -175,7 +172,7 @@ describe('Connection Logic Unit Tests (No Chrome)', () => {
       const message = {
         type: 'command',
         id: '12345',
-        data: { foo: 'bar', nested: { value: 42 } }
+        data: { foo: 'bar', nested: { value: 42 } },
       };
 
       safeSend(ws, message);
@@ -187,7 +184,6 @@ describe('Connection Logic Unit Tests (No Chrome)', () => {
   });
 
   describe('Connection State Machine Logic', () => {
-
     it('should track isConnecting flag correctly', () => {
       let isConnecting = false;
 
@@ -253,7 +249,6 @@ describe('Connection Logic Unit Tests (No Chrome)', () => {
   });
 
   describe('Exponential Backoff Timeline', () => {
-
     it('should produce correct timeline for 10 attempts', () => {
       const timeline = [];
       let totalTime = 0;
@@ -263,22 +258,22 @@ describe('Connection Logic Unit Tests (No Chrome)', () => {
         timeline.push({
           attempt: attempt + 1,
           delaySeconds,
-          totalTime: totalTime + delaySeconds
+          totalTime: totalTime + delaySeconds,
         });
         totalTime += delaySeconds;
       }
 
       // Verify timeline
-      expect(timeline[0].delaySeconds).toBe(1);   // 1st attempt: 1s
-      expect(timeline[1].delaySeconds).toBe(2);   // 2nd attempt: 2s
-      expect(timeline[2].delaySeconds).toBe(4);   // 3rd attempt: 4s
-      expect(timeline[3].delaySeconds).toBe(8);   // 4th attempt: 8s
-      expect(timeline[4].delaySeconds).toBe(16);  // 5th attempt: 16s
-      expect(timeline[5].delaySeconds).toBe(30);  // 6th attempt: 30s (capped)
-      expect(timeline[6].delaySeconds).toBe(30);  // 7th attempt: 30s (capped)
-      expect(timeline[7].delaySeconds).toBe(30);  // 8th attempt: 30s (capped)
-      expect(timeline[8].delaySeconds).toBe(30);  // 9th attempt: 30s (capped)
-      expect(timeline[9].delaySeconds).toBe(30);  // 10th attempt: 30s (capped)
+      expect(timeline[0].delaySeconds).toBe(1); // 1st attempt: 1s
+      expect(timeline[1].delaySeconds).toBe(2); // 2nd attempt: 2s
+      expect(timeline[2].delaySeconds).toBe(4); // 3rd attempt: 4s
+      expect(timeline[3].delaySeconds).toBe(8); // 4th attempt: 8s
+      expect(timeline[4].delaySeconds).toBe(16); // 5th attempt: 16s
+      expect(timeline[5].delaySeconds).toBe(30); // 6th attempt: 30s (capped)
+      expect(timeline[6].delaySeconds).toBe(30); // 7th attempt: 30s (capped)
+      expect(timeline[7].delaySeconds).toBe(30); // 8th attempt: 30s (capped)
+      expect(timeline[8].delaySeconds).toBe(30); // 9th attempt: 30s (capped)
+      expect(timeline[9].delaySeconds).toBe(30); // 10th attempt: 30s (capped)
 
       // Total time after 10 attempts
       expect(timeline[9].totalTime).toBe(1 + 2 + 4 + 8 + 16 + 30 + 30 + 30 + 30 + 30);
@@ -298,9 +293,8 @@ describe('Connection Logic Unit Tests (No Chrome)', () => {
   });
 
   describe('Implementation Verification', () => {
-
     it('should have exponential backoff formula: 2^n seconds, max 30', () => {
-      const formula = (n) => Math.min(Math.pow(2, n), 30);
+      const formula = n => Math.min(Math.pow(2, n), 30);
 
       expect(formula(0)).toBe(1);
       expect(formula(1)).toBe(2);
@@ -312,7 +306,7 @@ describe('Connection Logic Unit Tests (No Chrome)', () => {
     });
 
     it('should convert seconds to minutes for chrome.alarms', () => {
-      const secondsToMinutes = (seconds) => seconds / 60;
+      const secondsToMinutes = seconds => seconds / 60;
 
       expect(secondsToMinutes(1)).toBe(1 / 60);
       expect(secondsToMinutes(2)).toBe(2 / 60);

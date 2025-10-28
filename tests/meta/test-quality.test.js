@@ -13,7 +13,7 @@ const glob = require('glob');
 describe('Testing Expert: Fake Test Detection', () => {
   test('all test files should import real implementations', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['tests/meta/**', 'node_modules/**']
+      ignore: ['tests/meta/**', 'node_modules/**'],
     });
 
     const fakeTests = [];
@@ -38,24 +38,25 @@ describe('Testing Expert: Fake Test Detection', () => {
         if (!hasHelperComment) {
           fakeTests.push({
             file,
-            reason: 'Defines functions but does not import real implementation'
+            reason: 'Defines functions but does not import real implementation',
           });
         }
       }
 
       // Pattern 3: Tests that only mock, never use real objects
       const onlyUsesMocks = /jest\.fn\(\)/g.test(content) && !importsRealCode;
-      if (onlyUsesMocks && content.length > 500) {  // Ignore very small test files
+      if (onlyUsesMocks && content.length > 500) {
+        // Ignore very small test files
         fakeTests.push({
           file,
-          reason: 'Only uses mocks, never imports real implementation'
+          reason: 'Only uses mocks, never imports real implementation',
         });
       }
     });
 
     if (fakeTests.length > 0) {
-      const message = 'Fake tests detected:\n' +
-        fakeTests.map(t => `  - ${t.file}: ${t.reason}`).join('\n');
+      const message =
+        'Fake tests detected:\n' + fakeTests.map(t => `  - ${t.file}: ${t.reason}`).join('\n');
       throw new Error(message);
     }
 
@@ -64,7 +65,7 @@ describe('Testing Expert: Fake Test Detection', () => {
 
   test('test files should not be larger than implementation × 3', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['tests/meta/**', 'node_modules/**']
+      ignore: ['tests/meta/**', 'node_modules/**'],
     });
 
     const oversizedTests = [];
@@ -93,7 +94,7 @@ describe('Testing Expert: Fake Test Detection', () => {
             impl: implPath,
             testLines,
             implLines,
-            ratio: (testLines / implLines).toFixed(1)
+            ratio: (testLines / implLines).toFixed(1),
           });
         }
       }
@@ -108,12 +109,12 @@ describe('Testing Expert: Fake Test Detection', () => {
     }
 
     // Allow some oversized tests, but not too many
-    expect(oversizedTests.length).toBeLessThan(testFiles.length * 0.3);  // Max 30%
+    expect(oversizedTests.length).toBeLessThan(testFiles.length * 0.3); // Max 30%
   });
 
   test('all test files should have describe blocks', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['node_modules/**']
+      ignore: ['node_modules/**'],
     });
 
     const missingDescribe = [];
@@ -131,7 +132,7 @@ describe('Testing Expert: Fake Test Detection', () => {
 
   test('all test files should have at least one test', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['node_modules/**']
+      ignore: ['node_modules/**'],
     });
 
     const noTests = [];
@@ -153,7 +154,7 @@ describe('Testing Expert: Fake Test Detection', () => {
 describe('Testing Expert: Test Effectiveness', () => {
   test('tests should use assertions (expect)', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['tests/meta/**', 'node_modules/**']
+      ignore: ['tests/meta/**', 'node_modules/**'],
     });
 
     const noAssertions = [];
@@ -172,7 +173,7 @@ describe('Testing Expert: Test Effectiveness', () => {
         noAssertions.push({
           file,
           tests: testCount,
-          assertions: assertionCount
+          assertions: assertionCount,
         });
       }
     });
@@ -186,12 +187,12 @@ describe('Testing Expert: Test Effectiveness', () => {
     }
 
     // Most tests should have assertions
-    expect(noAssertions.length).toBeLessThan(testFiles.length * 0.2);  // Max 20%
+    expect(noAssertions.length).toBeLessThan(testFiles.length * 0.2); // Max 20%
   });
 
   test('test files should not define implementation functions', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['tests/meta/**', 'node_modules/**', 'tests/**/helpers/**']
+      ignore: ['tests/meta/**', 'node_modules/**', 'tests/**/helpers/**'],
     });
 
     const suspiciousPatterns = [];
@@ -217,7 +218,7 @@ describe('Testing Expert: Test Effectiveness', () => {
             suspiciousPatterns.push({
               file,
               pattern: name,
-              example: matches[0]
+              example: matches[0],
             });
           }
         }
@@ -239,7 +240,7 @@ describe('Testing Expert: Test Effectiveness', () => {
 describe('Testing Expert: Test Organization', () => {
   test('test files should be in appropriate directories', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['node_modules/**']
+      ignore: ['node_modules/**'],
     });
 
     const misplaced = [];
@@ -289,7 +290,7 @@ describe('Testing Expert: Test Organization', () => {
       'security',
       'boundary',
       'unit',
-      'integration'
+      'integration',
       // Performance, chaos, etc. can be added as they're implemented
     ];
 
@@ -310,7 +311,7 @@ describe('Testing Expert: Test Organization', () => {
 describe('Testing Expert: Test Naming Conventions', () => {
   test('test files should follow naming convention', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['node_modules/**']
+      ignore: ['node_modules/**'],
     });
 
     const badNames = [];
@@ -322,7 +323,7 @@ describe('Testing Expert: Test Naming Conventions', () => {
       if (!basename.endsWith('.test.js')) {
         badNames.push({
           file,
-          issue: 'Should end with .test.js'
+          issue: 'Should end with .test.js',
         });
       }
 
@@ -330,7 +331,7 @@ describe('Testing Expert: Test Naming Conventions', () => {
       if (basename.includes(' ')) {
         badNames.push({
           file,
-          issue: 'Should not contain spaces'
+          issue: 'Should not contain spaces',
         });
       }
 
@@ -338,7 +339,7 @@ describe('Testing Expert: Test Naming Conventions', () => {
       if (basename.includes('_') && !basename.startsWith('_')) {
         badNames.push({
           file,
-          issue: 'Should use kebab-case or camelCase, not snake_case'
+          issue: 'Should use kebab-case or camelCase, not snake_case',
         });
       }
     });
@@ -348,7 +349,7 @@ describe('Testing Expert: Test Naming Conventions', () => {
 
   test('test descriptions should be clear and specific', () => {
     const testFiles = glob.sync('tests/**/*.test.js', {
-      ignore: ['tests/meta/**', 'node_modules/**']
+      ignore: ['tests/meta/**', 'node_modules/**'],
     });
 
     const vagueDescriptions = [];
@@ -368,13 +369,13 @@ describe('Testing Expert: Test Naming Conventions', () => {
           /^works$/i,
           /^test$/i,
           /^it works$/i,
-          /^works correctly$/i
+          /^works correctly$/i,
         ];
 
         if (vague.some(pattern => pattern.test(description))) {
           vagueDescriptions.push({
             file,
-            description
+            description,
           });
         }
       }
@@ -396,7 +397,7 @@ describe('Testing Expert: Code Coverage Gaps', () => {
     // Check that our most important functions have test coverage
     const criticalFunctions = [
       { name: 'handleOpenUrlCommand', file: 'extension/background.js' },
-      { name: 'HealthManager', file: 'src/health/health-manager.js' }
+      { name: 'HealthManager', file: 'src/health/health-manager.js' },
     ];
 
     const untested = [];
@@ -408,8 +409,9 @@ describe('Testing Expert: Code Coverage Gaps', () => {
       const hasCoverage = testFiles.some(testFile => {
         const content = fs.readFileSync(testFile, 'utf8');
         const importsFunction = content.includes(name);
-        const testsFunction = new RegExp(`test\\(['"].*${name}`, 'i').test(content) ||
-                               new RegExp(`describe\\(['"].*${name}`, 'i').test(content);
+        const testsFunction =
+          new RegExp(`test\\(['"].*${name}`, 'i').test(content) ||
+          new RegExp(`describe\\(['"].*${name}`, 'i').test(content);
 
         return importsFunction || testsFunction;
       });

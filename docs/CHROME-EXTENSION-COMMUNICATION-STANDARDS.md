@@ -20,23 +20,21 @@ Chrome provides **two** messaging patterns:
 
 ```javascript
 // Content Script → Service Worker
-chrome.runtime.sendMessage(
-  { type: 'getStatus' },
-  (response) => {
-    console.log(response.status);
-  }
-);
+chrome.runtime.sendMessage({ type: 'getStatus' }, response => {
+  console.log(response.status);
+});
 
 // Service Worker (listener)
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === 'getStatus') {
     sendResponse({ status: 'active' });
   }
-  return true;  // Keep channel open for async
+  return true; // Keep channel open for async
 });
 ```
 
 **Characteristics**:
+
 - ✅ Simple API
 - ✅ Automatic request-response pairing
 - ✅ Built-in error handling
@@ -58,13 +56,13 @@ const port = chrome.runtime.connect({ name: 'test-channel' });
 port.postMessage({ type: 'startTest', testId: 'test-001' });
 port.postMessage({ type: 'endTest', testId: 'test-001' });
 
-port.onMessage.addListener((msg) => {
+port.onMessage.addListener(msg => {
   console.log('Response:', msg);
 });
 
 // Service Worker (listener)
-chrome.runtime.onConnect.addListener((port) => {
-  port.onMessage.addListener((msg) => {
+chrome.runtime.onConnect.addListener(port => {
+  port.onMessage.addListener(msg => {
     // Handle message
     port.postMessage({ status: 'ok' });
   });
@@ -72,6 +70,7 @@ chrome.runtime.onConnect.addListener((port) => {
 ```
 
 **Characteristics**:
+
 - ✅ Efficient for multiple messages
 - ✅ Bidirectional communication
 - ✅ Connection lifecycle (disconnect events)
@@ -85,11 +84,13 @@ chrome.runtime.onConnect.addListener((port) => {
 **Critical**: Service workers shut down after **5 minutes** of inactivity
 
 **Implications**:
+
 1. **In-memory state is lost** when service worker suspends
 2. **Connections close** (Ports disconnect)
 3. **Event listeners must be at top level** (not async)
 
 **Solutions**:
+
 ```javascript
 // ✅ GOOD: Event listener at top level
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -125,7 +126,7 @@ Service Worker
 window.postMessage({ type: 'test', data: '...' }, '*');
 
 // Content Script
-window.addEventListener('message', (event) => {
+window.addEventListener('message', event => {
   // SECURITY: Validate origin
   if (event.source !== window) return;
 
@@ -138,7 +139,7 @@ window.addEventListener('message', (event) => {
 
 ```javascript
 // Content Script
-chrome.runtime.sendMessage({ type: 'test', data: '...' }, (response) => {
+chrome.runtime.sendMessage({ type: 'test', data: '...' }, response => {
   // Send back to web page
   window.postMessage(response, '*');
 });
@@ -153,13 +154,13 @@ chrome.runtime.sendMessage({ type: 'test', data: '...' }, (response) => {
 **CRITICAL**: Always validate `message.origin`
 
 ```javascript
-window.addEventListener('message', (event) => {
+window.addEventListener('message', event => {
   // ❌ BAD: Accept all messages
   handleMessage(event.data);
 
   // ✅ GOOD: Validate origin
   if (event.origin !== 'https://trusted-domain.com') {
-    return;  // Reject
+    return; // Reject
   }
   handleMessage(event.data);
 });
@@ -172,13 +173,11 @@ window.addEventListener('message', (event) => {
 ### 2. External Connectivity
 
 **manifest.json**:
+
 ```json
 {
   "externally_connectable": {
-    "matches": [
-      "https://trusted-domain.com/*",
-      "http://localhost:*"
-    ]
+    "matches": ["https://trusted-domain.com/*", "http://localhost:*"]
   }
 }
 ```
@@ -194,7 +193,7 @@ window.addEventListener('message', (event) => {
 ```javascript
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // ❌ BAD: Execute untrusted input
-  eval(msg.code);  // NEVER
+  eval(msg.code); // NEVER
 
   // ✅ GOOD: Validate and sanitize
   if (typeof msg.testId !== 'string') {
@@ -233,13 +232,13 @@ Extension Service Worker
 
 **Why WebSocket Instead of chrome.runtime?**
 
-| Feature | chrome.runtime | WebSocket |
-|---------|----------------|-----------|
-| External API (Node.js) | ❌ No | ✅ Yes |
-| Bidirectional | ✅ Yes | ✅ Yes |
-| Reconnection | ⚠️ Manual | ✅ Built-in |
-| Persistence | ❌ No | ✅ Server-side |
-| Complexity | ✅ Low | ⚠️ Medium |
+| Feature                | chrome.runtime | WebSocket      |
+| ---------------------- | -------------- | -------------- |
+| External API (Node.js) | ❌ No          | ✅ Yes         |
+| Bidirectional          | ✅ Yes         | ✅ Yes         |
+| Reconnection           | ⚠️ Manual      | ✅ Built-in    |
+| Persistence            | ❌ No          | ✅ Server-side |
+| Complexity             | ✅ Low         | ⚠️ Medium      |
 
 **Conclusion**: WebSocket is correct choice for our use case (external API)
 
@@ -250,6 +249,7 @@ Extension Service Worker
 ### 1. Message Structure (Aligned with Chrome Patterns)
 
 **Our Current (Good)**:
+
 ```javascript
 {
   type: 'command',  // Like chrome.runtime message type
@@ -268,13 +268,16 @@ Extension Service Worker
 ### 2. Registration (Connection Establishment)
 
 **Our Current (Good)**:
+
 ```javascript
 // Extension → Server
-ws.send(JSON.stringify({
-  type: 'register',
-  client: 'extension',
-  extensionId: chrome.runtime.id
-}));
+ws.send(
+  JSON.stringify({
+    type: 'register',
+    client: 'extension',
+    extensionId: chrome.runtime.id,
+  })
+);
 ```
 
 **Aligned with**: `chrome.runtime.connect({ name: 'channel' })` pattern
@@ -284,12 +287,13 @@ ws.send(JSON.stringify({
 ### 3. Reconnection (Service Worker Suspension)
 
 **Our Current (Good)**:
+
 ```javascript
 ws.onclose = () => {
   chrome.alarms.create('reconnect-websocket', { delayInMinutes: 0.017 });
 };
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === 'reconnect-websocket') {
     connectToServer();
   }
@@ -303,6 +307,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 ### 4. State Persistence (NEW REQUIREMENT)
 
 **Chrome Best Practice**:
+
 ```javascript
 // Save state on changes
 async function updateTestState(changes) {
@@ -318,6 +323,7 @@ if (saved.testState) {
 ```
 
 **Why chrome.storage.session?**
+
 - ✅ Persists across service worker restarts
 - ✅ Cleared when browser closes (no permanent storage)
 - ✅ Fast (in-memory + disk backup)
@@ -335,6 +341,7 @@ if (saved.testState) {
 ### 2. Add chrome.storage.session Persistence ⭐ CRITICAL
 
 **Implement**:
+
 ```javascript
 // In background.js
 
@@ -366,6 +373,7 @@ async function handleStartTestCommand(params) {
 ### 3. Align Message Format with Chrome Standards ✅
 
 **Current** (already aligned):
+
 ```javascript
 {
   type: 'command',
@@ -375,6 +383,7 @@ async function handleStartTestCommand(params) {
 ```
 
 **Chrome standard**:
+
 ```javascript
 chrome.runtime.sendMessage(
   { type: 'startTest', params: {...} },
@@ -389,6 +398,7 @@ chrome.runtime.sendMessage(
 ### 4. Add Security Validation ⭐ IMPORTANT
 
 **Implement**:
+
 ```javascript
 // Validate testId (prevent injection)
 function validateTestId(testId) {
@@ -419,9 +429,10 @@ async function handleStartTestCommand(params) {
 ### 5. Event Listeners at Top Level ✅
 
 **Current** (already correct):
+
 ```javascript
 // ✅ GOOD: Listener at top level
-ws.onmessage = async (event) => {
+ws.onmessage = async event => {
   const message = JSON.parse(event.data);
   // ... handle
 };
@@ -433,15 +444,15 @@ ws.onmessage = async (event) => {
 
 ## 📊 COMPARISON: Our Protocol vs Chrome Standards
 
-| Standard | Chrome | Our Protocol | Status |
-|----------|--------|--------------|--------|
-| Message pairing | `sendMessage + callback` | `command.id → response.id` | ✅ Aligned |
-| Bidirectional | Ports | WebSocket | ✅ Aligned |
-| Reconnection | Manual | chrome.alarms | ✅ Aligned |
-| State persistence | chrome.storage.session | ❌ Missing | ⚠️ **MUST ADD** |
-| Security validation | Origin check | ❌ Missing | ⚠️ **SHOULD ADD** |
-| Event listeners | Top-level | Top-level | ✅ Aligned |
-| Error handling | try/catch | try/catch + error response | ✅ Aligned |
+| Standard            | Chrome                   | Our Protocol               | Status            |
+| ------------------- | ------------------------ | -------------------------- | ----------------- |
+| Message pairing     | `sendMessage + callback` | `command.id → response.id` | ✅ Aligned        |
+| Bidirectional       | Ports                    | WebSocket                  | ✅ Aligned        |
+| Reconnection        | Manual                   | chrome.alarms              | ✅ Aligned        |
+| State persistence   | chrome.storage.session   | ❌ Missing                 | ⚠️ **MUST ADD**   |
+| Security validation | Origin check             | ❌ Missing                 | ⚠️ **SHOULD ADD** |
+| Event listeners     | Top-level                | Top-level                  | ✅ Aligned        |
+| Error handling      | try/catch                | try/catch + error response | ✅ Aligned        |
 
 **Overall Alignment**: 5/7 (71%) → **ADD** state persistence + security validation
 
@@ -455,6 +466,7 @@ ws.onmessage = async (event) => {
 **Why**: Service worker restarts every 5 minutes, state is lost
 
 **Implementation**:
+
 - [ ] Load testState on service worker startup
 - [ ] Save testState on every change (startTest, endTest, tab creation)
 - [ ] Add error handling for storage failures
@@ -469,6 +481,7 @@ ws.onmessage = async (event) => {
 **Why**: Prevent injection, DoS attacks
 
 **Implementation**:
+
 - [ ] Validate testId format
 - [ ] Validate all input parameters
 - [ ] Add rate limiting (max 1 startTest/sec)
@@ -484,6 +497,7 @@ ws.onmessage = async (event) => {
 **Why**: User requested "keep it simple", persona review agrees
 
 **Implementation**:
+
 - [ ] Remove unused fields (history, expectedTabs, expectedDuration)
 - [ ] Make projectName/testName/version optional
 - [ ] Simplify state to { activeTestId, trackedTabs }
@@ -495,12 +509,14 @@ ws.onmessage = async (event) => {
 ## 📚 REFERENCES
 
 ### Official Chrome Documentation
+
 - [Message Passing](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)
 - [Service Workers](https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers)
 - [chrome.storage API](https://developer.chrome.com/docs/extensions/reference/storage/)
 - [Security Best Practices](https://developer.chrome.com/docs/extensions/mv3/security/)
 
 ### Industry Articles
+
 - [Message Passing & Security in Chrome Extensions (Duo Security)](https://duo.com/labs/tech-notes/message-passing-and-security-considerations-in-chrome-extensions)
 - [Service Workers in Browser Extensions (Madhura Mehendale, Medium)](https://medium.com/whatfix-techblog/service-worker-in-browser-extensions-a3727cd9117a)
 - [Chrome Extensions For Beginners - Manifest V3 (Jimmy Lam, Medium)](https://jl978.medium.com/chrome-extensions-for-beginners-46019a826cd6)

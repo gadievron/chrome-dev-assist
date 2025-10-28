@@ -12,7 +12,7 @@ async function testAPI() {
     const captureResult = await chromeDevAssist.captureLogs(2000);
     console.log('✓ Capture result:', {
       consoleLogs: captureResult.consoleLogs?.length || 0,
-      entries: 'entries'
+      entries: 'entries',
     });
 
     console.log('\n✓ SUCCESS - API works!\n');

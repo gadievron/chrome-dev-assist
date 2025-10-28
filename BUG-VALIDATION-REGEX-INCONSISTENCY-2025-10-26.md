@@ -16,17 +16,20 @@ The `validateExtensionId()` function in `server/validation.js` uses incorrect re
 ## Bug Details
 
 ### Location
+
 **File:** `server/validation.js`
 **Line:** 38
 **Function:** `validateExtensionId()`
 
 ### Current Code (WRONG)
+
 ```javascript
 function validateExtensionId(extensionId) {
   if (!extensionId || typeof extensionId !== 'string') {
     throw new Error('extensionId must be non-empty string');
   }
-  if (!/^[a-z]{32}$/.test(extensionId)) {  // ← BUG: Should be [a-p]{32}
+  if (!/^[a-z]{32}$/.test(extensionId)) {
+    // ← BUG: Should be [a-p]{32}
     throw new Error('Invalid extension ID format (must be 32 lowercase letters)');
   }
   return true;
@@ -34,12 +37,14 @@ function validateExtensionId(extensionId) {
 ```
 
 ### Expected Code (CORRECT)
+
 ```javascript
 function validateExtensionId(extensionId) {
   if (!extensionId || typeof extensionId !== 'string') {
     throw new Error('extensionId must be non-empty string');
   }
-  if (!/^[a-p]{32}$/.test(extensionId)) {  // ← FIX: Use [a-p]{32}
+  if (!/^[a-p]{32}$/.test(extensionId)) {
+    // ← FIX: Use [a-p]{32}
     throw new Error('Invalid extension ID format (must be 32 lowercase letters a-p)');
   }
   return true;
@@ -53,6 +58,7 @@ function validateExtensionId(extensionId) {
 ### Chrome Extension ID Format
 
 Chrome extension IDs use **base-32 encoding** with alphabet **a-p only**:
+
 - Valid alphabet: `abcdefghijklmnop` (16 letters)
 - Invalid letters: `qrstuvwxyz` (10 letters)
 - Length: Exactly 32 characters
@@ -61,6 +67,7 @@ Chrome extension IDs use **base-32 encoding** with alphabet **a-p only**:
 **Example invalid ID:** `gnojocphflllgichkehjhkojkihcixyz` (contains x, y, z)
 
 ### Reference
+
 See **docs/API.md** Input Validation section (lines 502-540) for full explanation.
 
 ---
@@ -70,9 +77,10 @@ See **docs/API.md** Input Validation section (lines 502-540) for full explanatio
 ### What This Allows (Incorrectly)
 
 The current regex would **incorrectly accept** extension IDs like:
+
 ```javascript
-'abcdefghijklmnopqrstuvwxyzabcdef'  // Contains q-z (invalid)
-'gnojocphflllgichkehjhkojkihcixyz'  // Contains x, y, z (invalid)
+'abcdefghijklmnopqrstuvwxyzabcdef'; // Contains q-z (invalid)
+'gnojocphflllgichkehjhkojkihcixyz'; // Contains x, y, z (invalid)
 ```
 
 These are **NOT valid Chrome extension IDs** but would pass validation.
@@ -80,11 +88,13 @@ These are **NOT valid Chrome extension IDs** but would pass validation.
 ### Real-World Impact
 
 **LOW** - Because:
+
 1. Chrome's `chrome.management.getAll()` won't return IDs with q-z
 2. Users would get "Extension not found" error later (not validation error)
 3. The API layer (`claude-code/index.js`) uses correct regex
 
 **However:**
+
 - Inconsistency between two validation layers (bad practice)
 - Could cause confusion when debugging
 - Violates defense-in-depth principle (both layers should be correct)
@@ -94,15 +104,19 @@ These are **NOT valid Chrome extension IDs** but would pass validation.
 ## Other Validation Implementations (For Comparison)
 
 ### ✅ CORRECT: `claude-code/index.js:327-328`
+
 ```javascript
-if (!/^[a-p]{32}$/.test(extensionId)) {  // ✅ Correct: a-p only
+if (!/^[a-p]{32}$/.test(extensionId)) {
+  // ✅ Correct: a-p only
   throw new Error('Invalid extensionId format (must be 32 lowercase letters a-p)');
 }
 ```
 
 ### ❌ WRONG: `server/validation.js:38`
+
 ```javascript
-if (!/^[a-z]{32}$/.test(extensionId)) {  // ❌ Wrong: a-z (too permissive)
+if (!/^[a-z]{32}$/.test(extensionId)) {
+  // ❌ Wrong: a-z (too permissive)
   throw new Error('Invalid extension ID format (must be 32 lowercase letters)');
 }
 ```
@@ -132,7 +146,8 @@ function validateExtensionId(extensionId) {
   if (!extensionId || typeof extensionId !== 'string') {
     throw new Error('extensionId must be non-empty string');
   }
-  if (!/^[a-p]{32}$/.test(extensionId)) {  // Fix: a-p only
+  if (!/^[a-p]{32}$/.test(extensionId)) {
+    // Fix: a-p only
     throw new Error('Invalid extension ID format (must be 32 lowercase letters a-p)');
   }
   return true;
@@ -176,6 +191,7 @@ function validateExtensionId(extensionId) {
 ```
 
 Update error message:
+
 ```diff
 - throw new Error('Invalid extension ID format (must be 32 lowercase letters)');
 + throw new Error('Invalid extension ID format (must be 32 lowercase letters a-p)');
@@ -193,9 +209,9 @@ test('validateExtensionId rejects IDs with letters q-z', () => {
 
   // IDs containing letters outside a-p range
   const invalidIds = [
-    'abcdefghijklmnopqrstuvwxyzabcdef',  // Contains q-z
-    'gnojocphflllgichkehjhkojkihcixyz',  // Contains xyz
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaazzzz',  // Contains z
+    'abcdefghijklmnopqrstuvwxyzabcdef', // Contains q-z
+    'gnojocphflllgichkehjhkojkihcixyz', // Contains xyz
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaazzzz', // Contains z
   ];
 
   for (const id of invalidIds) {
@@ -207,9 +223,9 @@ test('validateExtensionId accepts IDs with only a-p letters', () => {
   const { validateExtensionId } = require('../../server/validation');
 
   const validIds = [
-    'gnojocphflllgichkehjhkojkihcihfn',  // Real extension ID
-    'abcdefghijklmnopabcdefghijklmnop',  // All a-p letters
-    'pppppppppppppppppppppppppppppppp',  // All p's
+    'gnojocphflllgichkehjhkojkihcihfn', // Real extension ID
+    'abcdefghijklmnopabcdefghijklmnop', // All a-p letters
+    'pppppppppppppppppppppppppppppppp', // All p's
   ];
 
   for (const id of validIds) {
@@ -238,6 +254,7 @@ test('validateExtensionId accepts IDs with only a-p letters', () => {
 ## Priority
 
 **MEDIUM** - Should be fixed for consistency and correctness, but low real-world impact because:
+
 1. API layer already validates correctly
 2. Chrome won't return invalid IDs
 3. No production issues reported

@@ -55,6 +55,7 @@
 **URL:** `chrome://serviceworker-internals`
 
 **Steps:**
+
 1. Open Chrome and navigate to `chrome://serviceworker-internals`
 2. Find your extension by searching for its ID in the "Scope" column
 3. Check status indicators:
@@ -62,6 +63,7 @@
    - **STOPPED**: Service worker is inactive
 
 **Limitations:**
+
 - Manual only (requires user interaction)
 - Can't be automated from Node.js
 - Useful for manual debugging only
@@ -73,6 +75,7 @@
 **URL:** `chrome://extensions`
 
 **Steps:**
+
 1. Enable Developer mode (toggle in top-right)
 2. Find your extension
 3. Look for:
@@ -81,6 +84,7 @@
 4. Click the link to inspect (opens DevTools)
 
 **Limitations:**
+
 - Manual only
 - Opening DevTools keeps service worker alive (changes behavior)
 - Can't be programmatically accessed
@@ -92,6 +96,7 @@
 **Approach:** Send a message to the service worker and check if it responds.
 
 **From Content Script or Popup:**
+
 ```javascript
 async function isServiceWorkerActive() {
   try {
@@ -105,6 +110,7 @@ async function isServiceWorkerActive() {
 ```
 
 **In Service Worker (background.js):**
+
 ```javascript
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'ping') {
@@ -115,12 +121,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ```
 
 **Advantages:**
+
 - ✅ Works programmatically
 - ✅ Can be called from content scripts, popups, or external scripts
 - ✅ Doesn't keep service worker alive unnecessarily
 - ✅ Fast response (< 100ms)
 
 **Limitations:**
+
 - ❌ If service worker is stopped, sending a message will wake it up
 - ❌ Can't distinguish between "stopped" and "crashed"
 
@@ -131,10 +139,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 **Approach:** Use BroadcastChannel API for cross-context communication.
 
 **In Service Worker:**
+
 ```javascript
 const channel = new BroadcastChannel('service-worker-status');
 
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener(message => {
   if (message.type === 'status-check') {
     channel.postMessage({ status: 'active', timestamp: Date.now() });
   }
@@ -142,17 +151,18 @@ chrome.runtime.onMessage.addListener((message) => {
 ```
 
 **From Content Script:**
+
 ```javascript
 async function checkServiceWorkerStatus() {
   const channel = new BroadcastChannel('service-worker-status');
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const timeout = setTimeout(() => {
       channel.close();
       resolve({ active: false });
     }, 1000);
 
-    channel.onmessage = (event) => {
+    channel.onmessage = event => {
       clearTimeout(timeout);
       channel.close();
       resolve({ active: true, data: event.data });
@@ -164,10 +174,12 @@ async function checkServiceWorkerStatus() {
 ```
 
 **Advantages:**
+
 - ✅ Doesn't interfere with service worker lifecycle
 - ✅ Can broadcast to multiple listeners
 
 **Limitations:**
+
 - ❌ More complex to set up
 - ❌ Still wakes service worker if stopped
 
@@ -178,7 +190,7 @@ async function checkServiceWorkerStatus() {
 **WARNING:** This method has limitations!
 
 ```javascript
-navigator.serviceWorker.ready.then((registration) => {
+navigator.serviceWorker.ready.then(registration => {
   if (registration.active) {
     console.log('Service worker active');
   }
@@ -186,6 +198,7 @@ navigator.serviceWorker.ready.then((registration) => {
 ```
 
 **Limitations:**
+
 - ❌ Returns same result for active and inactive states
 - ❌ Can't reliably determine exact state
 - ❌ **NOT RECOMMENDED** for Chrome extensions
@@ -205,17 +218,19 @@ Service workers automatically wake when:
 5. **External message received** (from web page via chrome.runtime.sendMessage)
 
 **Example - Wake via Message:**
+
 ```javascript
 // From anywhere (content script, web page, Node.js via native messaging)
 chrome.runtime.sendMessage(EXTENSION_ID, { type: 'wake' });
 ```
 
 **Example - Wake via Alarm:**
+
 ```javascript
 // Set up periodic wake (in service worker)
 chrome.alarms.create('keepAlive', { periodInMinutes: 0.5 }); // Every 30s
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === 'keepAlive') {
     console.log('[Service Worker] Staying alive');
   }
@@ -240,7 +255,7 @@ const puppeteer = require('puppeteer');
 async function wakeServiceWorker(extensionId) {
   const browser = await puppeteer.launch({
     headless: false,
-    args: [`--disable-extensions-except=/path/to/extension`, `--load-extension=/path/to/extension`]
+    args: [`--disable-extensions-except=/path/to/extension`, `--load-extension=/path/to/extension`],
   });
 
   const targets = await browser.targets();
@@ -271,6 +286,7 @@ async function wakeServiceWorker(extensionId) {
 5. View all `console.log()`, `console.error()`, etc. from service worker
 
 **Limitations:**
+
 - ❌ Manual only
 - ❌ Keeps service worker alive (changes behavior)
 - ❌ Can't be automated
@@ -282,11 +298,12 @@ async function wakeServiceWorker(extensionId) {
 **IMPORTANT:** The extension can use `chrome.debugger` to attach to its OWN tabs, but **CANNOT attach to itself**.
 
 **Attach to a Tab (for tab console logs):**
+
 ```javascript
 // This works - attach to a tab
 async function captureTabLogs(tabId) {
-  await chrome.debugger.attach({ tabId }, "1.3");
-  await chrome.debugger.sendCommand({ tabId }, "Runtime.enable");
+  await chrome.debugger.attach({ tabId }, '1.3');
+  await chrome.debugger.sendCommand({ tabId }, 'Runtime.enable');
 
   chrome.debugger.onEvent.addListener((source, method, params) => {
     if (source.tabId === tabId && method === 'Runtime.consoleAPICalled') {
@@ -297,6 +314,7 @@ async function captureTabLogs(tabId) {
 ```
 
 **Limitations for Service Worker:**
+
 - ❌ Cannot attach debugger to own service worker
 - ❌ `chrome.debugger.attach({ extensionId: chrome.runtime.id })` - NOT SUPPORTED
 - ✅ Can only attach to tabs, not to extension's own service worker
@@ -308,6 +326,7 @@ async function captureTabLogs(tabId) {
 **This is the ONLY way to programmatically access extension service worker console logs!**
 
 **Full Example:**
+
 ```javascript
 const puppeteer = require('puppeteer');
 const path = require('path');
@@ -318,8 +337,8 @@ async function captureServiceWorkerLogs(extensionPath) {
     args: [
       `--disable-extensions-except=${extensionPath}`,
       `--load-extension=${extensionPath}`,
-      '--no-sandbox'
-    ]
+      '--no-sandbox',
+    ],
   });
 
   // Wait for service worker target
@@ -340,7 +359,7 @@ async function captureServiceWorkerLogs(extensionPath) {
   await client.send('Runtime.enable');
 
   // Listen for console API calls
-  client.on('Runtime.consoleAPICalled', (message) => {
+  client.on('Runtime.consoleAPICalled', message => {
     const args = message.args.map(arg => arg.value);
     console.log(`[Service Worker ${message.type}]`, ...args);
   });
@@ -361,12 +380,14 @@ captureServiceWorkerLogs(extensionPath)
 ```
 
 **Advantages:**
+
 - ✅ Fully programmatic
 - ✅ Real-time console log capture
 - ✅ Can be integrated into automated tests
 - ✅ Captures all console methods (log, error, warn, info, debug)
 
 **Limitations:**
+
 - ❌ Requires Puppeteer (heavyweight dependency)
 - ❌ Must run headful (headless mode doesn't support extensions)
 - ❌ Keeps service worker alive while monitoring
@@ -381,11 +402,13 @@ captureServiceWorkerLogs(extensionPath)
 **URL:** `chrome://serviceworker-internals`
 
 **How it works:**
+
 - Plain-text logging output shown on the page
 - **Does NOT keep service worker alive** (unlike DevTools)
 - Logs persist even after service worker terminates
 
 **Limitations:**
+
 - ❌ Manual only (no programmatic access)
 - ❌ Logs are plain text (no structured data)
 - ❌ Limited history (may lose old logs)
@@ -399,18 +422,19 @@ captureServiceWorkerLogs(extensionPath)
 **Recommended approach for production monitoring:**
 
 **In Service Worker:**
+
 ```javascript
 // Override console methods to also log to external storage
 const originalLog = console.log;
 const originalError = console.error;
 
-console.log = function(...args) {
+console.log = function (...args) {
   originalLog.apply(console, args);
   // Send to external logging service
   sendToLoggingService('log', args);
 };
 
-console.error = function(...args) {
+console.error = function (...args) {
   originalError.apply(console, args);
   sendToLoggingService('error', args);
 };
@@ -423,19 +447,21 @@ function sendToLoggingService(level, args) {
       level,
       message: args.join(' '),
       timestamp: Date.now(),
-      extensionId: chrome.runtime.id
-    })
+      extensionId: chrome.runtime.id,
+    }),
   }).catch(() => {}); // Silent fail
 }
 ```
 
 **Advantages:**
+
 - ✅ Works in production
 - ✅ Doesn't affect service worker lifecycle
 - ✅ Persistent logs (stored externally)
 - ✅ Can aggregate logs from all users
 
 **Limitations:**
+
 - ❌ Requires external service
 - ❌ Network overhead
 - ❌ Privacy concerns (sending user data)
@@ -451,11 +477,12 @@ function sendToLoggingService(level, args) {
 ### Acceptable Patterns
 
 **1. Alarm-Based Keep-Alive (for specific use cases):**
+
 ```javascript
 // Minimum period is 30 seconds (matches service worker timeout)
 chrome.alarms.create('keepAlive', { periodInMinutes: 0.5 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === 'keepAlive') {
     console.log('[KeepAlive] Service worker still active');
   }
@@ -463,11 +490,13 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 ```
 
 **Use cases:**
+
 - Real-time monitoring required
 - Background tasks that must run continuously
 - WebSocket connections (Chrome 116+ extends lifetime for active WebSockets)
 
 **2. WebSocket Connection (Chrome 116+):**
+
 ```javascript
 // Active WebSocket connections now extend service worker lifetime
 const socket = new WebSocket('wss://your-server.com');
@@ -476,16 +505,17 @@ socket.onopen = () => {
   console.log('WebSocket connected - service worker will stay alive');
 };
 
-socket.onmessage = (event) => {
+socket.onmessage = event => {
   // Handle messages - keeps service worker alive
 };
 ```
 
 **3. Long-Running Port Connection (Chrome 110+):**
+
 ```javascript
 // Service workers stay alive as long as they're receiving events
-chrome.runtime.onConnect.addListener((port) => {
-  port.onMessage.addListener((message) => {
+chrome.runtime.onConnect.addListener(port => {
+  port.onMessage.addListener(message => {
     // Handle message - keeps service worker alive
   });
 });
@@ -524,8 +554,8 @@ class ServiceWorkerInspector {
         `--disable-extensions-except=${this.extensionPath}`,
         `--load-extension=${this.extensionPath}`,
         '--no-sandbox',
-        '--disable-setuid-sandbox'
-      ]
+        '--disable-setuid-sandbox',
+      ],
     });
 
     console.log('✓ Browser launched');
@@ -552,12 +582,12 @@ class ServiceWorkerInspector {
 
     await this.client.send('Runtime.enable');
 
-    this.client.on('Runtime.consoleAPICalled', (message) => {
+    this.client.on('Runtime.consoleAPICalled', message => {
       const logEntry = {
         type: message.type,
         args: message.args.map(arg => arg.value || arg.description),
         timestamp: Date.now(),
-        stackTrace: message.stackTrace
+        stackTrace: message.stackTrace,
       };
 
       this.logs.push(logEntry);
@@ -576,7 +606,7 @@ class ServiceWorkerInspector {
     return {
       active: !!swTarget,
       url: swTarget?.url(),
-      logsCollected: this.logs.length
+      logsCollected: this.logs.length,
     };
   }
 
@@ -636,17 +666,20 @@ module.exports = ServiceWorkerInspector;
 ### Debug Mode
 
 **Characteristics:**
+
 - DevTools open → Service worker NEVER terminates
 - Can inspect variables, set breakpoints
 - Console logs visible immediately
 - Network requests visible
 
 **Use for:**
+
 - Development
 - Manual testing
 - Debugging specific issues
 
 **Avoid for:**
+
 - Performance testing (behavior is different)
 - Service worker lifecycle testing (termination doesn't happen)
 
@@ -662,9 +695,10 @@ module.exports = ServiceWorkerInspector;
    - Track errors and exceptions
 
 2. **Use chrome.storage for Local Logging**
+
    ```javascript
    async function logToStorage(level, message) {
-     const logs = await chrome.storage.local.get('logs') || [];
+     const logs = (await chrome.storage.local.get('logs')) || [];
      logs.push({ level, message, timestamp: Date.now() });
 
      // Keep only last 1000 logs
@@ -723,9 +757,7 @@ test('service worker should log initialization', async () => {
   await new Promise(resolve => setTimeout(resolve, 2000));
 
   const logs = inspector.getLogs('log');
-  expect(logs.some(log =>
-    log.args.join(' ').includes('Service worker initialized')
-  )).toBe(true);
+  expect(logs.some(log => log.args.join(' ').includes('Service worker initialized'))).toBe(true);
 
   await inspector.close();
 });
@@ -741,7 +773,7 @@ test('service worker should log initialization', async () => {
 // Set up keep-alive alarm
 chrome.alarms.create('keepAlive', { periodInMinutes: 0.5 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
+chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name === 'keepAlive') {
     // Perform periodic task
     checkForUpdates();
@@ -780,15 +812,15 @@ function stopKeepAlive() {
 
 ## Quick Reference
 
-| **Task** | **Method** | **Complexity** | **Production-Safe** |
-|----------|-----------|----------------|---------------------|
-| Check if active | chrome.runtime.sendMessage | Low | ✅ Yes |
-| Wake service worker | chrome.runtime.sendMessage | Low | ✅ Yes |
-| Access console logs (manual) | chrome://extensions DevTools | Low | ❌ Debug only |
-| Access console logs (automated) | Puppeteer + CDP | High | ❌ Testing only |
-| Production logging | External service | Medium | ✅ Yes |
-| Keep alive | chrome.alarms | Low | ⚠️ Use sparingly |
-| View logs without affecting lifecycle | chrome://serviceworker-internals | Low | ✅ Yes |
+| **Task**                              | **Method**                       | **Complexity** | **Production-Safe** |
+| ------------------------------------- | -------------------------------- | -------------- | ------------------- |
+| Check if active                       | chrome.runtime.sendMessage       | Low            | ✅ Yes              |
+| Wake service worker                   | chrome.runtime.sendMessage       | Low            | ✅ Yes              |
+| Access console logs (manual)          | chrome://extensions DevTools     | Low            | ❌ Debug only       |
+| Access console logs (automated)       | Puppeteer + CDP                  | High           | ❌ Testing only     |
+| Production logging                    | External service                 | Medium         | ✅ Yes              |
+| Keep alive                            | chrome.alarms                    | Low            | ⚠️ Use sparingly    |
+| View logs without affecting lifecycle | chrome://serviceworker-internals | Low            | ✅ Yes              |
 
 ---
 

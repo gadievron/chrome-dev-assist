@@ -1,4 +1,5 @@
 # Multi-Persona Architecture Analysis
+
 **Proposed Improvements from EXTENSION-TESTING-AND-IMPROVEMENTS.md**
 
 **Date:** 2025-10-25
@@ -31,6 +32,7 @@ Component 3: Node.js API
 ```
 
 ### Recent Changes (ISSUE-011 - COMPLETED)
+
 1. ✅ Added `safeSend()` wrapper (state validation)
 2. ✅ Added exponential backoff (1s→2s→4s→8s→16s→30s)
 3. ✅ Added `isConnecting` flag (race condition prevention)
@@ -48,25 +50,27 @@ Component 3: Node.js API
 **Analysis:**
 
 **Current Implementation:**
+
 ```javascript
 // Fire-and-forget registration
 ws.onopen = () => {
-  safeSend({type: 'register', client: 'extension', extensionId: chrome.runtime.id});
+  safeSend({ type: 'register', client: 'extension', extensionId: chrome.runtime.id });
   // Immediately processes commands
 };
 ```
 
 **Proposed Implementation:**
+
 ```javascript
 let isRegistered = false;
 let registrationPending = false;
 
 ws.onopen = () => {
   registrationPending = true;
-  safeSend({type: 'register', client: 'extension', extensionId: chrome.runtime.id});
+  safeSend({ type: 'register', client: 'extension', extensionId: chrome.runtime.id });
 };
 
-ws.onmessage = (event) => {
+ws.onmessage = event => {
   const message = JSON.parse(event.data);
 
   if (message.type === 'registration-ack') {
@@ -88,28 +92,33 @@ ws.onmessage = (event) => {
 **Developer Assessment:**
 
 **Complexity:** ⚠️ MEDIUM
+
 - Extension changes: Simple (add ACK handler, check flag)
 - Server changes: MODERATE (must send ACK, track registration state)
 - Protocol changes: New message type (`registration-ack`)
 
 **Maintainability:** ✅ GOOD
+
 - Clear state tracking (isRegistered flag)
 - Explicit registration flow
 - Easy to debug (logged transitions)
 
 **Implementation Effort:**
+
 - Extension: 30 minutes (flag + handler)
 - Server: 1-2 hours (ACK logic, state tracking)
 - Testing: 1 hour (verify ACK flow)
 - Total: 2-3 hours
 
 **Edge Cases to Handle:**
+
 1. Registration timeout (server doesn't ACK in 5 seconds)
 2. Registration ACK arrives after disconnect
 3. Multiple registration attempts (reconnection)
 4. Command arrives before ACK (queue or reject?)
 
 **Code Quality Impact:** ✅ POSITIVE
+
 - Explicit state machine (clearer than fire-and-forget)
 - Prevents race condition (command before registration)
 - Testable (can mock ACK delay)
@@ -121,6 +130,7 @@ ws.onmessage = (event) => {
 **Analysis:**
 
 **Current Implementation:**
+
 ```javascript
 function safeSend(message) {
   if (ws.readyState === WebSocket.CONNECTING) {
@@ -131,6 +141,7 @@ function safeSend(message) {
 ```
 
 **Proposed Implementation:**
+
 ```javascript
 const messageQueue = [];
 
@@ -157,27 +168,32 @@ function safeSend(message) {
 **Developer Assessment:**
 
 **Complexity:** ✅ LOW
+
 - Simple queue (array + push/shift)
 - No external dependencies
 - Localized to `safeSend()` function
 
 **Maintainability:** ⚠️ MODERATE
+
 - Queue must be cleared on disconnect (prevent memory leak)
 - Queue size must be bounded (prevent infinite growth)
 - Queue ordering must be guaranteed (FIFO)
 
 **Implementation Effort:**
+
 - Extension: 1 hour (queue logic + tests)
 - Testing: 30 minutes (verify FIFO, bounds)
 - Total: 1-2 hours
 
 **Edge Cases to Handle:**
+
 1. Queue overflow (bound at 100 messages?)
 2. Disconnect before queue drains (clear queue on close)
 3. Messages in queue become stale (timeout?)
 4. Queue priority (should registration always be first?)
 
 **Code Quality Impact:** ✅ POSITIVE
+
 - Prevents message loss during reconnection
 - Simple, understandable pattern
 - Easy to test
@@ -191,15 +207,18 @@ function safeSend(message) {
 **Analysis:**
 
 **What We Have:**
+
 - 5-second timeout for CONNECTING state ✅
 
 **What We Need to Audit:**
+
 ```bash
 # Find all async Chrome API calls
 grep -n "await chrome\." extension/background.js
 ```
 
 **Typical Chrome API calls needing timeouts:**
+
 1. `chrome.scripting.executeScript()` - Can hang if tab crashes
 2. `chrome.tabs.reload()` - Can hang if page stuck
 3. `chrome.management.get()` - Usually fast, but can fail
@@ -208,11 +227,13 @@ grep -n "await chrome\." extension/background.js
 **Developer Assessment:**
 
 **Complexity:** ⚠️ MEDIUM
+
 - Need timeout wrapper for all async calls
 - Different timeout values for different operations
 - Proper cleanup on timeout
 
 **Proposed Wrapper:**
+
 ```javascript
 async function withTimeout(promise, timeoutMs, operation) {
   return Promise.race([
@@ -232,6 +253,7 @@ const result = await withTimeout(
 ```
 
 **Implementation Effort:**
+
 - Wrapper function: 30 minutes
 - Audit all async calls: 1 hour
 - Apply to each call: 2-3 hours
@@ -239,6 +261,7 @@ const result = await withTimeout(
 - Total: 4-6 hours
 
 **Code Quality Impact:** ✅ STRONGLY POSITIVE
+
 - Prevents hangs
 - Better error messages
 - Predictable failure modes
@@ -258,6 +281,7 @@ const result = await withTimeout(
 **Test Scenarios:**
 
 **Unit Tests (Extension):**
+
 ```javascript
 describe('Registration Confirmation', () => {
   it('should not process commands before ACK', () => {
@@ -297,6 +321,7 @@ describe('Registration Confirmation', () => {
 ```
 
 **Integration Tests (System):**
+
 ```javascript
 test('registration race condition prevented', async () => {
   // Start server
@@ -307,7 +332,7 @@ test('registration race condition prevented', async () => {
   await extension.connect();
 
   // Send command IMMEDIATELY (before ACK)
-  const commandPromise = api.sendCommand({type: 'reload'});
+  const commandPromise = api.sendCommand({ type: 'reload' });
 
   // Command should wait for registration, then execute
   const result = await commandPromise;
@@ -317,6 +342,7 @@ test('registration race condition prevented', async () => {
 ```
 
 **Testability:** ✅ EXCELLENT
+
 - Clear state transitions (not registered → pending → registered)
 - Easy to mock delays
 - Observable via logs
@@ -328,6 +354,7 @@ test('registration race condition prevented', async () => {
 **Test Scenarios:**
 
 **Unit Tests:**
+
 ```javascript
 describe('Message Queuing', () => {
   it('should queue messages during CONNECTING', () => {
@@ -335,8 +362,8 @@ describe('Message Queuing', () => {
     ws.readyState = WebSocket.CONNECTING;
 
     // When: Multiple messages sent
-    safeSend({type: 'msg1'});
-    safeSend({type: 'msg2'});
+    safeSend({ type: 'msg1' });
+    safeSend({ type: 'msg2' });
 
     // Then: Messages queued
     expect(messageQueue).toHaveLength(2);
@@ -345,18 +372,18 @@ describe('Message Queuing', () => {
 
   it('should drain queue FIFO on OPEN', () => {
     // Given: Queue has 3 messages
-    messageQueue.push({type: 'msg1'}, {type: 'msg2'}, {type: 'msg3'});
+    messageQueue.push({ type: 'msg1' }, { type: 'msg2' }, { type: 'msg3' });
     ws.readyState = WebSocket.OPEN;
 
     // When: New message sent
-    safeSend({type: 'msg4'});
+    safeSend({ type: 'msg4' });
 
     // Then: Queue drained in FIFO order, new message sent last
     expect(ws.send).toHaveBeenCalledTimes(4);
-    expect(ws.send.calls[0]).toEqual({type: 'msg1'});
-    expect(ws.send.calls[1]).toEqual({type: 'msg2'});
-    expect(ws.send.calls[2]).toEqual({type: 'msg3'});
-    expect(ws.send.calls[3]).toEqual({type: 'msg4'});
+    expect(ws.send.calls[0]).toEqual({ type: 'msg1' });
+    expect(ws.send.calls[1]).toEqual({ type: 'msg2' });
+    expect(ws.send.calls[2]).toEqual({ type: 'msg3' });
+    expect(ws.send.calls[3]).toEqual({ type: 'msg4' });
   });
 
   it('should bound queue at 100 messages', () => {
@@ -365,7 +392,7 @@ describe('Message Queuing', () => {
     ws.readyState = WebSocket.CONNECTING;
 
     // When: New message queued
-    const result = safeSend({type: 'msg101'});
+    const result = safeSend({ type: 'msg101' });
 
     // Then: Rejected
     expect(result).toBe(false);
@@ -374,7 +401,7 @@ describe('Message Queuing', () => {
 
   it('should clear queue on disconnect', () => {
     // Given: Queue has messages
-    messageQueue.push({type: 'msg1'}, {type: 'msg2'});
+    messageQueue.push({ type: 'msg1' }, { type: 'msg2' });
 
     // When: WebSocket closes
     ws.onclose();
@@ -386,6 +413,7 @@ describe('Message Queuing', () => {
 ```
 
 **Testability:** ✅ EXCELLENT
+
 - Queue is observable (array length)
 - FIFO order easily verified
 - Edge cases well-defined
@@ -397,6 +425,7 @@ describe('Message Queuing', () => {
 **Test Scenarios:**
 
 **Unit Tests:**
+
 ```javascript
 describe('Timeout Wrapper', () => {
   it('should resolve if operation completes in time', async () => {
@@ -410,14 +439,15 @@ describe('Timeout Wrapper', () => {
   it('should reject if operation times out', async () => {
     const slowOp = new Promise(resolve => setTimeout(() => resolve('done'), 2000));
 
-    await expect(
-      withTimeout(slowOp, 1000, 'slowOp')
-    ).rejects.toThrow('slowOp timeout after 1000ms');
+    await expect(withTimeout(slowOp, 1000, 'slowOp')).rejects.toThrow(
+      'slowOp timeout after 1000ms'
+    );
   });
 });
 ```
 
 **Integration Tests:**
+
 ```javascript
 test('executeScript timeout', async () => {
   // Given: Tab that will hang
@@ -425,7 +455,7 @@ test('executeScript timeout', async () => {
 
   // When: Execute script with timeout
   const resultPromise = withTimeout(
-    chrome.scripting.executeScript({tabId, func: () => {}}),
+    chrome.scripting.executeScript({ tabId, func: () => {} }),
     5000,
     'executeScript'
   );
@@ -436,6 +466,7 @@ test('executeScript timeout', async () => {
 ```
 
 **Testability:** ✅ EXCELLENT
+
 - Easy to test (artificial delays)
 - Predictable failure modes
 - Observable timeouts
@@ -445,11 +476,13 @@ test('executeScript timeout', async () => {
 ### Tester Overall Recommendation
 
 **Priority Order for Testing:**
+
 1. **Registration Confirmation** - CRITICAL (prevents race condition)
 2. **Timeout Wrapper** - HIGH (prevents hangs)
 3. **Message Queuing** - MEDIUM (prevents message loss)
 
 **Test Infrastructure Needed:**
+
 - Mock server (can delay ACK)
 - Mock Chrome APIs (can simulate hangs)
 - Time manipulation (advance clock in tests)
@@ -465,16 +498,19 @@ test('executeScript timeout', async () => {
 #### Current V3 Architecture Strengths
 
 **Component Isolation:** ✅ EXCELLENT
+
 - Server knows nothing about command logic
 - Extension knows nothing about API
 - API knows nothing about extension implementation
 
 **Protocol Simplicity:** ✅ EXCELLENT
+
 - JSON over WebSocket
 - 3 message types: register, command, response
 - UUID-based routing
 
 **Failure Domains:** ✅ WELL-ISOLATED
+
 - Server crash → Extension reconnects
 - Extension crash → API gets timeout
 - API crash → No impact on server/extension
@@ -484,6 +520,7 @@ test('executeScript timeout', async () => {
 #### Improvement 6: Registration Confirmation - Architecture Impact
 
 **Protocol Changes:**
+
 ```
 BEFORE:
 Extension → {type: 'register', client: 'extension'} → Server
@@ -498,26 +535,31 @@ Server → {type: 'registration-ack'} → Extension
 **Architecture Assessment:**
 
 **Component Isolation:** ⚠️ SLIGHTLY REDUCED
+
 - Server now must track registration STATE (not just connection)
 - Server must send ACK (new responsibility)
 - Extension must wait for ACK (added coupling)
 
 **Protocol Complexity:** ⚠️ SLIGHTLY INCREASED
+
 - New message type (registration-ack)
 - New state transitions (connecting → registering → registered)
 - Timeout handling (what if ACK never arrives?)
 
 **Failure Domain Impact:** ✅ NEUTRAL
+
 - Failure modes clearer (know if registration succeeded)
 - Timeout prevents infinite wait
 - Still isolated (server can restart, extension re-registers)
 
 **Architecture Grade:** ✅ ACCEPTABLE
+
 - Small increase in complexity justified by preventing race condition
 - Maintains component isolation
 - Protocol still simple
 
 **Recommendation:** APPROVE with conditions:
+
 1. Server must track registration state (not just connection)
 2. ACK must be idempotent (multiple registrations OK)
 3. Timeout must trigger re-registration (not failure)
@@ -527,6 +569,7 @@ Server → {type: 'registration-ack'} → Extension
 #### Improvement 7: Message Queuing - Architecture Impact
 
 **Where Queue Lives:**
+
 ```
 Option A: Extension-side queue (PROPOSED)
   - safeSend() queues messages
@@ -544,23 +587,27 @@ Option C: Both-side queues
 **Architecture Assessment:**
 
 **Option A (Extension-side):**
+
 - ✅ Component isolation maintained (server unchanged)
 - ✅ No protocol changes
 - ✅ Extension owns its send logic
 - ⚠️ Queue lost on extension crash
 
 **Option B (Server-side):**
+
 - ❌ Server must know about message semantics
 - ❌ Server stores potentially large messages
 - ✅ Queue survives extension crash
 - ❌ Violates "server is dumb router" principle
 
 **Option C (Both-side):**
+
 - ❌ Complexity explosion
 - ❌ Unclear ownership
 - ❌ Synchronization issues
 
 **Architecture Grade:** ✅ OPTION A ONLY
+
 - Maintains component isolation
 - Extension owns its outgoing message queue
 - Server remains dumb router
@@ -572,6 +619,7 @@ Option C: Both-side queues
 #### Improvement 8: Timeout Wrapper - Architecture Impact
 
 **Where Timeouts Live:**
+
 ```
 Current: Only in Extension (CONNECTING state timeout)
 
@@ -584,20 +632,24 @@ Proposed: All async operations in all components
 **Architecture Assessment:**
 
 **Component Isolation:** ✅ MAINTAINED
+
 - Each component times out its own operations
 - No cross-component timeout dependencies
 - Failure domains remain isolated
 
 **Protocol Changes:** ✅ NONE
+
 - Timeouts are implementation detail
 - Protocol unchanged (timeout → error response)
 
 **Failure Modes:** ✅ IMPROVED
+
 - Predictable failure timeouts
 - Clear error messages
 - No indefinite hangs
 
 **Architecture Grade:** ✅ EXCELLENT
+
 - Zero architectural impact
 - Pure improvement
 - No coupling added
@@ -615,6 +667,7 @@ Proposed: All async operations in all components
 3. **Registration ACK** - ⚠️ MEDIUM IMPACT (protocol change, server state)
 
 **Architectural Principles Maintained:**
+
 - Component isolation: ✅ (mostly, slight coupling in registration ACK)
 - Dumb server: ✅ (server still just routes messages)
 - Simple protocol: ⚠️ (one new message type)
@@ -638,6 +691,7 @@ All improvements maintain V3 architecture integrity.
 **Threat Model Changes:**
 
 **BEFORE (Fire-and-Forget):**
+
 ```
 Threat: Rogue client connects, claims to be extension
 Impact: Server routes commands to rogue client
@@ -645,6 +699,7 @@ Mitigation: None (server trusts first connection)
 ```
 
 **AFTER (Registration ACK):**
+
 ```
 Threat: Rogue client connects, claims to be extension
 Impact: Same (server still trusts first connection)
@@ -652,11 +707,13 @@ Mitigation: None (ACK doesn't authenticate)
 ```
 
 **Security Verdict:** ⚠️ NO SECURITY IMPROVEMENT
+
 - ACK flow prevents race condition, NOT impersonation
 - Server still has no authentication
 - Extension ID in registration message is not verified
 
 **Actual Security Issues (Unchanged):**
+
 1. **No Authentication:** Any process can connect to localhost:9876
 2. **No Authorization:** Server trusts first client claiming to be "extension"
 3. **No Encryption:** WebSocket is ws:// not wss:// (localhost only, acceptable)
@@ -665,12 +722,14 @@ Mitigation: None (ACK doesn't authenticate)
 **Security Recommendation:**
 
 If security matters (production deployment):
+
 1. Add shared secret authentication
 2. Verify extension ID via chrome.management.getSelf()
 3. Bind server to 127.0.0.1 only (not 0.0.0.0)
 4. Add rate limiting (prevent DoS)
 
 **For Current Use (Local Development):** ✅ ACCEPTABLE
+
 - Threat model is "trusted local machine"
 - No remote access
 - Risk: Low (local attacker can already read/write files)
@@ -684,6 +743,7 @@ If security matters (production deployment):
 **Security Assessment:**
 
 **New Attack Surface:**
+
 ```
 Threat: Queue overflow attack
 Method: Attacker floods CONNECTING state with messages
@@ -691,6 +751,7 @@ Impact: Memory exhaustion, DoS
 ```
 
 **Mitigation Required:**
+
 ```javascript
 const MAX_QUEUE_SIZE = 100; // Bound queue
 
@@ -707,6 +768,7 @@ function safeSend(message) {
 ```
 
 **Security Verdict:** ✅ SAFE (with bounded queue)
+
 - Unbounded queue = DoS vulnerability
 - Bounded queue = safe
 - Recommend MAX_QUEUE_SIZE = 100
@@ -722,6 +784,7 @@ function safeSend(message) {
 **Threat Model Changes:**
 
 **BEFORE (No Timeouts):**
+
 ```
 Threat: Malicious page hangs executeScript
 Method: Page creates infinite loop in injected script
@@ -730,6 +793,7 @@ Attack: Denial of Service
 ```
 
 **AFTER (With Timeouts):**
+
 ```
 Threat: Same attack attempted
 Method: Same
@@ -738,18 +802,20 @@ Attack: MITIGATED
 ```
 
 **Security Verdict:** ✅ STRONG IMPROVEMENT
+
 - Prevents DoS via hung operations
 - Limits blast radius of malicious pages
 - Predictable failure modes
 
 **Timeout Values for Security:**
+
 ```javascript
 // Conservative (security-focused)
 TIMEOUTS = {
-  executeScript: 10000,  // 10s (malicious page can't hang longer)
-  tabReload: 30000,      // 30s (legitimate slow load)
-  debuggerAttach: 5000,  // 5s (fast or fail)
-  serverConnect: 5000    // 5s (server should respond fast)
+  executeScript: 10000, // 10s (malicious page can't hang longer)
+  tabReload: 30000, // 30s (legitimate slow load)
+  debuggerAttach: 5000, // 5s (fast or fail)
+  serverConnect: 5000, // 5s (server should respond fast)
 };
 ```
 
@@ -761,13 +827,14 @@ TIMEOUTS = {
 
 **Security Impact Summary:**
 
-| Improvement | Security Impact | Grade |
-|-------------|----------------|-------|
-| Registration ACK | None (correctness only) | ⚠️ Neutral |
-| Message Queuing | DoS risk (requires bounds) | ✅ Safe with mitigation |
-| Timeout Wrapper | Prevents DoS | ✅ Strong improvement |
+| Improvement      | Security Impact            | Grade                   |
+| ---------------- | -------------------------- | ----------------------- |
+| Registration ACK | None (correctness only)    | ⚠️ Neutral              |
+| Message Queuing  | DoS risk (requires bounds) | ✅ Safe with mitigation |
+| Timeout Wrapper  | Prevents DoS               | ✅ Strong improvement   |
 
 **Security Recommendations:**
+
 1. **Implement timeout wrapper** - Prevents malicious page DoS
 2. **Bound message queue** - Prevents memory exhaustion
 3. **Consider authentication** - For production deployment
@@ -788,6 +855,7 @@ Improvements don't introduce new vulnerabilities (with proper bounds).
 **State Machine Analysis:**
 
 **BEFORE (Simple):**
+
 ```
 States: [DISCONNECTED, CONNECTING, CONNECTED]
 Transitions:
@@ -797,6 +865,7 @@ Transitions:
 ```
 
 **AFTER (With Registration):**
+
 ```
 States: [DISCONNECTED, CONNECTING, CONNECTED_UNREGISTERED, REGISTERED]
 Transitions:
@@ -811,6 +880,7 @@ Transitions:
 **Logic Issues Found:**
 
 **Issue 1: Missing timeout transition**
+
 ```javascript
 // Proposed code doesn't handle registration timeout
 ws.onopen = () => {
@@ -821,6 +891,7 @@ ws.onopen = () => {
 ```
 
 **Fix Required:**
+
 ```javascript
 ws.onopen = () => {
   registrationPending = true;
@@ -850,6 +921,7 @@ ws.onmessage = (event) => {
 ```
 
 **Issue 2: State on reconnection**
+
 ```javascript
 // When reconnecting, what happens to isRegistered?
 ws.onclose = () => {
@@ -863,6 +935,7 @@ ws.onclose = () => {
 ```
 
 **Fix Required:**
+
 ```javascript
 ws.onclose = () => {
   isRegistered = false; // ✅ Reset registration state
@@ -877,6 +950,7 @@ ws.onclose = () => {
 **Logic Grade:** ⚠️ INCOMPLETE (missing timeout + reset logic)
 
 **Required Fixes:**
+
 1. Add registration timeout (5 seconds)
 2. Reset `isRegistered` and `registrationPending` on disconnect
 3. Clear timeout on ACK
@@ -888,6 +962,7 @@ ws.onclose = () => {
 **Queue Logic Analysis:**
 
 **Proposed Logic:**
+
 ```javascript
 if (ws.readyState === WebSocket.CONNECTING) {
   messageQueue.push(message);
@@ -907,6 +982,7 @@ if (ws.readyState === WebSocket.OPEN) {
 **Logic Issues Found:**
 
 **Issue 1: Queue not cleared on disconnect**
+
 ```javascript
 ws.onclose = () => {
   // ❌ Queue still has messages from previous connection
@@ -918,6 +994,7 @@ ws.onclose = () => {
 ```
 
 **Fix Required:**
+
 ```javascript
 ws.onclose = () => {
   messageQueue.length = 0; // ✅ Clear stale messages
@@ -928,6 +1005,7 @@ ws.onclose = () => {
 ```
 
 **Issue 2: Race condition in queue draining**
+
 ```javascript
 // What if ws.send() fails partway through queue?
 while (messageQueue.length > 0) {
@@ -937,6 +1015,7 @@ while (messageQueue.length > 0) {
 ```
 
 **Fix Required:**
+
 ```javascript
 while (messageQueue.length > 0) {
   const queued = messageQueue.shift();
@@ -952,6 +1031,7 @@ while (messageQueue.length > 0) {
 ```
 
 **Issue 3: Infinite growth during fast reconnection**
+
 ```javascript
 // If CONNECTING → OPEN → CONNECTING repeatedly:
 // 1. CONNECTING: push(msg1), push(msg2)
@@ -966,6 +1046,7 @@ while (messageQueue.length > 0) {
 ```
 
 **Fix Required:**
+
 ```javascript
 const MAX_QUEUE_SIZE = 100;
 
@@ -982,6 +1063,7 @@ if (ws.readyState === WebSocket.CONNECTING) {
 **Logic Grade:** ⚠️ INCOMPLETE (missing clear on disconnect, error handling, bounds)
 
 **Required Fixes:**
+
 1. Clear queue on disconnect
 2. Handle errors during drain
 3. Bound queue at 100 messages
@@ -993,13 +1075,14 @@ if (ws.readyState === WebSocket.CONNECTING) {
 **Logic Analysis:**
 
 **Proposed Logic:**
+
 ```javascript
 async function withTimeout(promise, timeoutMs, operation) {
   return Promise.race([
     promise,
     new Promise((_, reject) =>
       setTimeout(() => reject(new Error(`${operation} timeout after ${timeoutMs}ms`)), timeoutMs)
-    )
+    ),
   ]);
 }
 ```
@@ -1007,6 +1090,7 @@ async function withTimeout(promise, timeoutMs, operation) {
 **Logic Issues Found:**
 
 **Issue 1: Timer not cleaned up on success**
+
 ```javascript
 // If promise resolves in 100ms, timeout still fires at timeoutMs
 const result = await withTimeout(fastOp, 10000, 'fastOp');
@@ -1014,6 +1098,7 @@ const result = await withTimeout(fastOp, 10000, 'fastOp');
 ```
 
 **Fix Required:**
+
 ```javascript
 async function withTimeout(promise, timeoutMs, operation) {
   let timeoutHandle;
@@ -1039,6 +1124,7 @@ async function withTimeout(promise, timeoutMs, operation) {
 **Logic Grade:** ⚠️ INCOMPLETE (missing timer cleanup)
 
 **Required Fixes:**
+
 1. Clear timeout on promise resolution
 2. Clear timeout on promise rejection
 
@@ -1048,11 +1134,11 @@ async function withTimeout(promise, timeoutMs, operation) {
 
 **Logic Correctness by Improvement:**
 
-| Improvement | Logic Grade | Issues Found | Fixes Required |
-|-------------|-------------|--------------|----------------|
-| Registration ACK | ⚠️ Incomplete | 2 | Timeout + reset logic |
-| Message Queuing | ⚠️ Incomplete | 3 | Clear + error + bounds |
-| Timeout Wrapper | ⚠️ Incomplete | 1 | Timer cleanup |
+| Improvement      | Logic Grade   | Issues Found | Fixes Required         |
+| ---------------- | ------------- | ------------ | ---------------------- |
+| Registration ACK | ⚠️ Incomplete | 2            | Timeout + reset logic  |
+| Message Queuing  | ⚠️ Incomplete | 3            | Clear + error + bounds |
+| Timeout Wrapper  | ⚠️ Incomplete | 1            | Timer cleanup          |
 
 **Overall Logic Grade:** ⚠️ ALL REQUIRE FIXES
 
@@ -1114,6 +1200,7 @@ Component 3: Node.js API
 ### Implementation Order (Logical Dependencies)
 
 **Phase 1: Foundation (No dependencies)**
+
 ```
 1. Timeout Wrapper (Extension)
    - No dependencies
@@ -1123,6 +1210,7 @@ Component 3: Node.js API
 ```
 
 **Phase 2: Queue (Depends on timeout wrapper)**
+
 ```
 2. Message Queuing (Extension)
    - Should use timeout wrapper for bounds checking
@@ -1131,6 +1219,7 @@ Component 3: Node.js API
 ```
 
 **Phase 3: Registration (Depends on queue)**
+
 ```
 3. Registration ACK (Extension + Server)
    - Registration message should be queued if CONNECTING
@@ -1183,6 +1272,7 @@ Component 3: Node.js API
 ```
 
 **File Structure:**
+
 ```
 extension/
 ├─ background.js (modify)
@@ -1203,6 +1293,7 @@ server/
 ### Unanimous Recommendations
 
 **✅ STRONGLY APPROVE (All Personas):**
+
 1. **Timeout Wrapper**
    - Developer: Simple, maintainable
    - Tester: Easily testable
@@ -1214,39 +1305,42 @@ server/
 
 ---
 
-**✅ APPROVE WITH FIXES (All Personas):**
-2. **Message Queuing**
-   - Developer: Low complexity (with bounds)
-   - Tester: Observable, testable
-   - Architecture: Extension-only, no protocol change
-   - Security: Safe with bounds
-   - Logic: Sound (with clear + error handling fixes)
+**✅ APPROVE WITH FIXES (All Personas):** 2. **Message Queuing**
+
+- Developer: Low complexity (with bounds)
+- Tester: Observable, testable
+- Architecture: Extension-only, no protocol change
+- Security: Safe with bounds
+- Logic: Sound (with clear + error handling fixes)
 
 **Priority:** P1 (HIGH - implement after timeout wrapper)
 
 **Required Fixes:**
+
 - Clear queue on disconnect
 - Handle errors during drain
 - Bound queue at 100 messages
 
 ---
 
-**⚠️ CONDITIONAL APPROVE (Mixed Reviews):**
-3. **Registration Confirmation Flow**
-   - Developer: Medium complexity, but prevents race condition
-   - Tester: Testable, but needs integration tests
-   - Architecture: Small protocol change, acceptable
-   - Security: No security benefit (correctness only)
-   - Logic: Sound (with timeout + reset fixes)
+**⚠️ CONDITIONAL APPROVE (Mixed Reviews):** 3. **Registration Confirmation Flow**
+
+- Developer: Medium complexity, but prevents race condition
+- Tester: Testable, but needs integration tests
+- Architecture: Small protocol change, acceptable
+- Security: No security benefit (correctness only)
+- Logic: Sound (with timeout + reset fixes)
 
 **Priority:** P2 (MEDIUM - nice to have, not critical)
 
 **Required Fixes:**
+
 - Add registration timeout (5s)
 - Reset isRegistered on disconnect
 - Clear timeout on ACK
 
 **Conditions:**
+
 - Implement ONLY if registration race condition is observed
 - Requires server changes (2-3 hour effort)
 - Must implement timeout logic
@@ -1256,26 +1350,30 @@ server/
 ## Implementation Plan
 
 ### Phase 1: Timeout Wrapper (Week 1)
+
 **Who:** Developer
 **Effort:** 4-6 hours
 **Files:** extension/background.js
 **Testing:** Tester verifies timeout scenarios
 
 **Deliverables:**
+
 - withTimeout() helper with timer cleanup
-- Wrap all chrome.* async calls
+- Wrap all chrome.\* async calls
 - Unit tests (resolve in time, timeout)
 - Integration test (hung page scenario)
 
 ---
 
 ### Phase 2: Message Queuing (Week 1)
+
 **Who:** Developer
 **Effort:** 1-2 hours
 **Files:** extension/background.js (enhance safeSend)
 **Testing:** Tester verifies queue FIFO, bounds
 
 **Deliverables:**
+
 - messageQueue array (bounded at 100)
 - Queue logic in safeSend()
 - Clear queue on disconnect
@@ -1285,12 +1383,14 @@ server/
 ---
 
 ### Phase 3: Registration ACK (Week 2 - OPTIONAL)
+
 **Who:** Developer (Extension + Server)
 **Effort:** 2-3 hours
 **Files:** extension/background.js, server/websocket-server.js
 **Testing:** Tester verifies ACK flow, race condition prevented
 
 **Deliverables:**
+
 - Server sends registration-ack
 - Extension waits for ACK
 - Registration timeout (5s)
@@ -1303,11 +1403,11 @@ server/
 
 ## Summary Table
 
-| Improvement | Complexity | Effort | Priority | All Personas Agree? |
-|-------------|-----------|--------|----------|---------------------|
-| Timeout Wrapper | Low | 4-6h | P0 CRITICAL | ✅ YES (strongly approve) |
-| Message Queuing | Low | 1-2h | P1 HIGH | ✅ YES (with fixes) |
-| Registration ACK | Medium | 2-3h | P2 MEDIUM | ⚠️ CONDITIONAL (with fixes) |
+| Improvement      | Complexity | Effort | Priority    | All Personas Agree?         |
+| ---------------- | ---------- | ------ | ----------- | --------------------------- |
+| Timeout Wrapper  | Low        | 4-6h   | P0 CRITICAL | ✅ YES (strongly approve)   |
+| Message Queuing  | Low        | 1-2h   | P1 HIGH     | ✅ YES (with fixes)         |
+| Registration ACK | Medium     | 2-3h   | P2 MEDIUM   | ⚠️ CONDITIONAL (with fixes) |
 
 ---
 
@@ -1316,26 +1416,30 @@ server/
 ### After Implementing All 3 Improvements
 
 **Complexity Increase:**
+
 - Lines of code: +150 lines (~60%)
 - State variables: +4 (messageQueue, isRegistered, registrationPending, registrationTimeout)
 - Message types: +1 (registration-ack)
 
 **Maintainability:**
+
 - ✅ Well-isolated changes (mostly in Extension)
 - ✅ Clear state machine
 - ⚠️ More states to debug
 - ⚠️ More edge cases to test
 
 **Technical Debt:**
+
 - None if implemented with fixes
 - Significant if implemented without fixes (logic bugs)
 
 **Overall Architectural Health:** ✅ ACCEPTABLE
+
 - Improvements are additive, not rewrite
 - Component isolation maintained
 - Protocol still simple (one new message type)
 
 ---
 
-*Analysis Complete: 2025-10-25*
-*Next Step: Implement Phase 1 (Timeout Wrapper)*
+_Analysis Complete: 2025-10-25_
+_Next Step: Implement Phase 1 (Timeout Wrapper)_

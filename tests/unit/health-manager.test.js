@@ -11,7 +11,6 @@ const HealthManager = require('../../src/health/health-manager');
 const WebSocket = require('ws');
 
 describe('HealthManager - Connection Status Checks', () => {
-
   test('should report extension as disconnected when socket is null', () => {
     const health = new HealthManager();
 
@@ -64,7 +63,6 @@ describe('HealthManager - Connection Status Checks', () => {
 });
 
 describe('HealthManager - Overall Health Status', () => {
-
   test('should report healthy when extension is connected', () => {
     const health = new HealthManager();
 
@@ -76,7 +74,7 @@ describe('HealthManager - Overall Health Status', () => {
     expect(status).toEqual({
       healthy: true,
       extension: { connected: true, readyState: WebSocket.OPEN },
-      issues: []
+      issues: [],
     });
   });
 
@@ -105,7 +103,6 @@ describe('HealthManager - Overall Health Status', () => {
 });
 
 describe('HealthManager - ensureHealthy()', () => {
-
   test('should not throw when system is healthy', async () => {
     const health = new HealthManager();
 
@@ -132,14 +129,11 @@ describe('HealthManager - ensureHealthy()', () => {
     const mockSocket = { readyState: WebSocket.CLOSING };
     health.setExtensionSocket(mockSocket);
 
-    await expect(health.ensureHealthy()).rejects.toThrow(
-      /Extension connection is CLOSING/
-    );
+    await expect(health.ensureHealthy()).rejects.toThrow(/Extension connection is CLOSING/);
   });
 });
 
 describe('HealthManager - Error Messages with Context', () => {
-
   test('should provide helpful error message for CONNECTING state', () => {
     const health = new HealthManager();
 
@@ -159,7 +153,9 @@ describe('HealthManager - Error Messages with Context', () => {
 
     const status = health.getHealthStatus();
 
-    expect(status.issues).toContain('Extension connection is closing. Will reconnect automatically.');
+    expect(status.issues).toContain(
+      'Extension connection is closing. Will reconnect automatically.'
+    );
   });
 
   test('should provide helpful error message for CLOSED state', () => {
@@ -175,7 +171,6 @@ describe('HealthManager - Error Messages with Context', () => {
 });
 
 describe('HealthManager - Multiple Checks', () => {
-
   test('should track multiple health issues', () => {
     const health = new HealthManager();
 
@@ -193,7 +188,6 @@ describe('HealthManager - Multiple Checks', () => {
 });
 
 describe('HealthManager - Integration Scenarios', () => {
-
   test('should work with real WebSocket connection lifecycle', () => {
     const health = new HealthManager();
 
@@ -230,7 +224,7 @@ describe('HealthManager - Integration Scenarios', () => {
         WebSocket.CONNECTING,
         WebSocket.OPEN,
         WebSocket.CLOSING,
-        WebSocket.CLOSED
+        WebSocket.CLOSED,
       ][i % 4];
 
       health.setExtensionSocket(socket);
@@ -244,7 +238,6 @@ describe('HealthManager - Integration Scenarios', () => {
 });
 
 describe('HealthManager - Edge Cases', () => {
-
   test('should handle undefined socket gracefully', () => {
     const health = new HealthManager();
 

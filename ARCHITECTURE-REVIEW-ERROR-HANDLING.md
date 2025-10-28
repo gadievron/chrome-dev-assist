@@ -12,6 +12,7 @@
 **Verdict:** ⚠️ **NEEDS REFACTORING** - God Object anti-pattern detected
 
 **Critical Findings:**
+
 1. ❌ **God Object:** 2213 lines in single file with 39 functions
 2. ❌ **Scattered Error Handling:** 37 console.error/warn calls with no centralization
 3. ❌ **No Error Categorization:** No distinction between expected/unexpected errors at architectural level
@@ -19,6 +20,7 @@
 5. ⚠️ **Logging Inconsistency:** Manual error classification in 37 locations
 
 **Impact:**
+
 - 🐛 **Bug Risk:** HIGH - Hard to maintain consistency across 37 logging points
 - 🧪 **Test Complexity:** HIGH - Single file with multiple responsibilities
 - 📈 **Technical Debt:** HIGH - Will get worse as features added
@@ -110,6 +112,7 @@ extension/background.js (2213 lines)
 ### Issue 1: Scattered Error Logging (37 locations)
 
 **Current Pattern:**
+
 ```javascript
 // Location 1: background.js:109
 console.error('[ChromeDevAssist] Failed to register console capture script:', err);
@@ -124,6 +127,7 @@ console.error('[ChromeDevAssist] Queue full, dropping message');
 ```
 
 **Problem:**
+
 - ❌ No centralized error categorization
 - ❌ Manual decision at each call site: error vs warn?
 - ❌ Inconsistent error message formats
@@ -133,12 +137,17 @@ console.error('[ChromeDevAssist] Queue full, dropping message');
 ### Issue 2: No Error Type Enum/Constants
 
 **Current:** Developer manually decides at each location:
+
 ```javascript
 // Developer thinks: "Is this expected? Use warn. Unexpected? Use error."
-console.warn('[ChromeDevAssist] Command failed (expected error, handled gracefully):', error.message);
+console.warn(
+  '[ChromeDevAssist] Command failed (expected error, handled gracefully):',
+  error.message
+);
 ```
 
 **Problem:**
+
 - ❌ No enforcement of error categorization
 - ❌ Easy to forget and use console.error
 - ❌ No compile-time checks
@@ -147,6 +156,7 @@ console.warn('[ChromeDevAssist] Command failed (expected error, handled graceful
 ### Issue 3: No Error Context Tracking
 
 **Current:** Errors logged but not tracked:
+
 ```javascript
 } catch (error) {
   console.warn('[ChromeDevAssist] Command failed:', error.message);
@@ -155,6 +165,7 @@ console.warn('[ChromeDevAssist] Command failed (expected error, handled graceful
 ```
 
 **Missing:**
+
 - ❌ Error frequency tracking
 - ❌ Error context (which command, what parameters)
 - ❌ Error correlation (same error multiple times)
@@ -165,6 +176,7 @@ console.warn('[ChromeDevAssist] Command failed (expected error, handled graceful
 **Location:** background.js:1000-1005
 
 **Current Code:**
+
 ```javascript
 } catch (err) {
   console.error('[ChromeDevAssist] ⚠️ TAB CLEANUP FAILED ⚠️');      // 1
@@ -177,6 +189,7 @@ console.warn('[ChromeDevAssist] Command failed (expected error, handled graceful
 ```
 
 **Problems:**
+
 1. ❌ **Chrome Crash Detection:** 6 rapid console.error = extension marked as crashed
 2. ❌ **Expected Error:** Tab may be already closed (expected scenario)
 3. ❌ **Information Disclosure:** Stack trace leaks internal structure
@@ -203,6 +216,7 @@ extension/
 ```
 
 **Implementation:**
+
 ```javascript
 // extension/lib/error-logger.js
 class ErrorLogger {
@@ -289,6 +303,7 @@ import { ErrorLogger } from './lib/error-logger.js';
 ```
 
 **Benefits:**
+
 - ✅ Centralized error logic
 - ✅ Consistent error categorization
 - ✅ Easy to change logging behavior globally
@@ -350,6 +365,7 @@ extension/
 ```
 
 **Benefits:**
+
 - ✅ Single Responsibility Principle
 - ✅ Easy to test individual modules
 - ✅ Easy to locate bugs
@@ -364,24 +380,28 @@ extension/
 ### Option C: Hybrid Approach (Recommended)
 
 **Phase 1: Create ErrorLogger (Week 1)**
+
 - Implement error-logger.js
 - Refactor 37 console.error/warn calls
 - Add tests for ErrorLogger
 - **Effort:** 12 hours
 
 **Phase 2: Extract WebSocket Manager (Week 2)**
+
 - Create websocket-manager.js
 - Move connection logic
 - Add tests
 - **Effort:** 8 hours
 
 **Phase 3: Extract Command Handlers (Week 3)**
+
 - Create commands/ directory
 - Move 20+ handlers
 - Add tests
 - **Effort:** 12 hours
 
 **Phase 4: Extract Crash Recovery (Week 4)**
+
 - Create crash-recovery.js
 - Move crash detection logic
 - Add tests
@@ -396,6 +416,7 @@ extension/
 ### Priority 1: Fix Critical Bug (background.js:1000-1005)
 
 **Current Code:**
+
 ```javascript
 } catch (err) {
   console.error('[ChromeDevAssist] ⚠️ TAB CLEANUP FAILED ⚠️');
@@ -408,6 +429,7 @@ extension/
 ```
 
 **Fix (Immediate - No Refactoring):**
+
 ```javascript
 } catch (err) {
   // Tab closure may fail if tab already closed (expected scenario)
@@ -423,6 +445,7 @@ extension/
 ```
 
 **Benefits:**
+
 - ✅ Fixes Chrome crash detection bug
 - ✅ Consolidates 6 logs into 1
 - ✅ Removes information disclosure (no stack)
@@ -435,6 +458,7 @@ extension/
 ### Priority 2: Fix Other Expected Errors
 
 **Locations to fix:**
+
 1. **background.js:173** - Queue overflow (expected under stress)
 2. **background.js:198** - Failed to send queued message (expected during disconnection)
 3. **background.js:211** - Send failed (expected during state transitions)
@@ -443,6 +467,7 @@ extension/
 6. **background.js:1817** - Failed to close orphan (expected if already closed)
 
 **Pattern:**
+
 ```javascript
 // BEFORE:
 console.error('[ChromeDevAssist] Failed to close tab', tabId, ':', err.message);
@@ -450,7 +475,7 @@ console.error('[ChromeDevAssist] Failed to close tab', tabId, ':', err.message);
 // AFTER:
 console.warn('[ChromeDevAssist] Failed to close tab (expected if already closed):', {
   tabId,
-  error: err.message
+  error: err.message,
 });
 ```
 
@@ -463,12 +488,14 @@ console.warn('[ChromeDevAssist] Failed to close tab (expected if already closed)
 ### Decision: Option C - Hybrid Approach
 
 **Rationale:**
+
 1. **Immediate Bug Fix:** Fix critical bugs now (30 min)
 2. **ErrorLogger:** Quick win with big impact (12 hours)
 3. **Incremental Refactoring:** Spread effort over 4 weeks
 4. **No Big Bang:** Avoid risky large-scale refactoring
 
 **Timeline:**
+
 - **Today:** Fix 7 critical console.error bugs
 - **Week 1:** Implement ErrorLogger + refactor all calls
 - **Week 2:** Extract WebSocket manager
@@ -476,6 +503,7 @@ console.warn('[ChromeDevAssist] Failed to close tab (expected if already closed)
 - **Week 4:** Extract crash recovery
 
 **Success Metrics:**
+
 - ✅ All tests pass after each phase
 - ✅ No console.error for expected errors
 - ✅ Chrome extension remains healthy
@@ -488,11 +516,13 @@ console.warn('[ChromeDevAssist] Failed to close tab (expected if already closed)
 ### Current Test Coverage
 
 **What We're Testing:**
+
 - ✅ Detects rapid console.error sequences
 - ✅ Detects console.error for expected errors
 - ✅ Verifies console.warn is used appropriately
 
 **What We're NOT Testing:**
+
 - ❌ Error logger functionality
 - ❌ Error categorization logic
 - ❌ Error context tracking
@@ -526,24 +556,28 @@ tests/
 ## Recommendation
 
 **Immediate Actions (Today):**
+
 1. ✅ Fix background.js:1000-1005 (6 rapid console.error → 1 console.warn)
 2. ✅ Fix 6 other expected errors to use console.warn
 3. ✅ Run tests to verify fixes
 4. ✅ Document changes
 
 **Short Term (Week 1):**
+
 1. Implement error-logger.js
 2. Refactor 37 console.error/warn calls
 3. Add ErrorLogger tests
 4. Update integration tests
 
 **Medium Term (Weeks 2-4):**
+
 1. Extract WebSocket manager
 2. Extract command handlers
 3. Extract crash recovery
 4. Update architecture documentation
 
 **Long Term (Future):**
+
 1. Consider error metrics dashboard
 2. Consider error rate alerting
 3. Consider automatic error recovery

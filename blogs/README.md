@@ -7,6 +7,7 @@
 ## Blog Posts
 
 ### 1. ISSUE-011: WebSocket Connection Stability Deep Dive
+
 **File:** `ISSUE-011-CONNECTION-STABILITY-DEEP-DIVE.md`
 **Date:** 2025-10-25
 **Topic:** Fixing 6 critical WebSocket connection issues
@@ -17,12 +18,14 @@
 Comprehensive investigation and resolution of WebSocket connection instability using persona-based analysis (Auditor + Code Logician). Documents the discovery of race conditions, incomplete state machines, and missing resilience patterns that caused crashes and poor performance.
 
 **Key Achievements:**
+
 - 87% faster error recovery (15s → 1-2s)
 - 95% reduced server load during restarts
 - 100% crash elimination
 - Implemented industry-standard exponential backoff
 
 **Sections:**
+
 1. The Problem & User Observations
 2. Investigation Method (4-persona approach)
 3. Discovery Phase (6 critical issues found)
@@ -33,6 +36,7 @@ Comprehensive investigation and resolution of WebSocket connection instability u
 8. Reproducible Test Cases
 
 **Key Lessons:**
+
 - Persona-based analysis finds more bugs than single-lens investigation
 - Test-first prevents logic errors (23/23 passed on first run)
 - State machines need complete coverage (all 4 WebSocket states)
@@ -48,6 +52,7 @@ Comprehensive investigation and resolution of WebSocket connection instability u
 ---
 
 ### 2. ISSUE-001: Data URI Iframe Metadata Leak (Security Vulnerability)
+
 **File:** `VULNERABILITY-BLOG-METADATA-LEAK.md`
 **Date:** 2025-10-24
 **Topic:** Security vulnerability allowing iframe metadata leakage
@@ -58,6 +63,7 @@ Comprehensive investigation and resolution of WebSocket connection instability u
 Investigation of a critical security vulnerability where data URI iframe metadata leaks to the main page, violating cross-origin isolation. Documents the vulnerability, three attempted fixes (all failed), and lessons learned from incomplete problem-solving.
 
 **Attempted Fixes (All Failed):**
+
 1. Protocol blocking (data:, about:, javascript:, blob:)
 2. allFrames: false enforcement
 3. FrameId filtering
@@ -65,6 +71,7 @@ Investigation of a critical security vulnerability where data URI iframe metadat
 **Status:** Under investigation (not yet resolved)
 
 **Sections:**
+
 1. The Vulnerability (cross-origin isolation violated)
 2. Security Impact (information disclosure)
 3. Attempted Fixes (3 defensive layers, all failed)
@@ -75,6 +82,7 @@ Investigation of a critical security vulnerability where data URI iframe metadat
 8. For Vulnerability Researchers
 
 **Key Lessons (What We Did Wrong):**
+
 - Defense in depth is necessary but not sufficient
 - Test security assumptions with adversarial tests
 - Document failures as thoroughly as successes
@@ -109,12 +117,14 @@ Each blog post follows this structure:
 ### For Authors:
 
 **Purpose:** Blog posts serve multiple audiences:
+
 - **Future maintainers:** Understand why decisions were made
 - **Other developers:** Learn from our approaches
 - **Testers:** Reproduce issues and verify fixes
 - **Researchers:** Study problem-solving methodologies
 
 **Key Principles:**
+
 1. **Show the journey:** Include dead ends and wrong turns
 2. **Share actual data:** Real code, real errors, real logs
 3. **Explain reasoning:** Why we tried each approach
@@ -122,6 +132,7 @@ Each blog post follows this structure:
 5. **Measure impact:** Quantify improvements
 
 **Required Sections:**
+
 - Problem statement with user observations
 - Investigation methodology
 - Actual code/errors/data discovered
@@ -132,6 +143,7 @@ Each blog post follows this structure:
 ### For Readers:
 
 **How to Use Blog Posts:**
+
 1. **Skim Executive Summary** - Decide if relevant
 2. **Read Problem + Impact** - Understand context
 3. **Skip to Solution** - If you just want the fix
@@ -145,6 +157,7 @@ Each blog post follows this structure:
 **Total Posts:** 2
 **Total Length:** ~24K+ words
 **Topics Covered:**
+
 - WebSocket connection reliability
 - Security vulnerabilities (iframe isolation)
 - Persona-based analysis methodology
@@ -152,10 +165,11 @@ Each blog post follows this structure:
 - State machine design
 
 **Issues Documented:**
+
 - ISSUE-011 (RESOLVED): Connection stability
 - ISSUE-001 (ACTIVE): Metadata leak
 
 ---
 
-*Directory Created: 2025-10-25*
-*Latest Post: ISSUE-011 Connection Stability*
+_Directory Created: 2025-10-25_
+_Latest Post: ISSUE-011 Connection Stability_

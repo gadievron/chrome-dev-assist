@@ -20,7 +20,7 @@ async function debugTest() {
     const result = await chromeDevAssist.openUrl(fixtureUrl, {
       captureConsole: true,
       duration: 3000,
-      active: false
+      active: false,
     });
 
     console.log('✅ Result received');
@@ -54,7 +54,6 @@ async function debugTest() {
     console.log('Step 2: Closing tab...');
     await chromeDevAssist.closeTab(result.tabId);
     console.log('✅ Tab closed');
-
   } catch (error) {
     console.error('❌ Error:', error.message);
     console.error(error.stack);

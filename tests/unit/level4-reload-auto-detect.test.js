@@ -106,8 +106,7 @@ describe('Level 4 Reload - Auto-Detect Wrapper', () => {
     // TODO: INCOMPLETE - Level 4 reload testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)
     // Skip until implementation or proper test setup available
-    it.skip('should accept valid 32-character extension ID', async () => {
-    });
+    it.skip('should accept valid 32-character extension ID', async () => {});
   });
 
   describe('Response Format', () => {
@@ -127,14 +126,12 @@ describe('Level 4 Reload - Auto-Detect Wrapper', () => {
     // TODO: INCOMPLETE - Level 4 reload testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)
     // Skip until implementation or proper test setup available
-    it.skip('should indicate which method was actually used', async () => {
-    });
+    it.skip('should indicate which method was actually used', async () => {});
 
     // TODO: INCOMPLETE - Level 4 reload testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)
     // Skip until implementation or proper test setup available
-    it.skip('should include timing information', async () => {
-    });
+    it.skip('should include timing information', async () => {});
   });
 
   describe('Error Handling', () => {
@@ -149,28 +146,24 @@ describe('Level 4 Reload - Auto-Detect Wrapper', () => {
       // Error should mention both methods attempted
     });
 
-    it('should handle extension not found gracefully', async () => {
-    });
+    it('should handle extension not found gracefully', async () => {});
 
     // TODO: INCOMPLETE - Level 4 reload testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)
     // Skip until implementation or proper test setup available
-    it.skip('should handle server not running gracefully', async () => {
-    });
+    it.skip('should handle server not running gracefully', async () => {});
   });
 
   describe('Performance', () => {
     // TODO: INCOMPLETE - Level 4 reload testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)
     // Skip until implementation or proper test setup available
-    it.skip('should complete in under 2 seconds for CDP method', async () => {
-    });
+    it.skip('should complete in under 2 seconds for CDP method', async () => {});
 
     // TODO: INCOMPLETE - Level 4 reload testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)
     // Skip until implementation or proper test setup available
-    it.skip('should complete in under 1 second for toggle method', async () => {
-    });
+    it.skip('should complete in under 1 second for toggle method', async () => {});
 
     // TODO: INCOMPLETE - Level 4 reload testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)

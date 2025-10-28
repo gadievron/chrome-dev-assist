@@ -1,4 +1,5 @@
 # Global Rule Enforcement - Product Requirements Document
+
 **Task Size:** LARGE
 **Scope:** All projects in Claude Code workspace
 **Goal:** Make rules auto-enforce globally, not rely on Claude's memory
@@ -6,6 +7,7 @@
 ## Problem Statement
 
 **Current State:**
+
 - Rules exist in CLAUDE.md and base-rules/
 - Documented as "MANDATORY", "ALWAYS", "NO EXCEPTIONS"
 - Actual compliance: 5-30% (proven through testing)
@@ -13,6 +15,7 @@
 - No enforcement mechanism
 
 **Impact:**
+
 - Validation gates skipped 80% of time
 - Persona reviews skipped 95% of time
 - Test-first violated 70% of time
@@ -20,6 +23,7 @@
 - No session continuity
 
 **Root Cause:**
+
 - Rules in `<system-reminder>` = lower priority
 - No automatic execution trigger
 - Complex, long checklists (1200+ lines)
@@ -28,6 +32,7 @@
 ## Goal
 
 Create an enforcement system that:
+
 1. **Auto-executes** at session start (not optional)
 2. **Simple and clear** (reduced cognitive load)
 3. **Visible to user** (transparent compliance)
@@ -36,14 +41,14 @@ Create an enforcement system that:
 
 ## Success Criteria
 
-| Metric | Current | Target |
-|--------|---------|--------|
-| Session startup compliance | 5% | 95% |
-| Response prefixing | 10% | 95% |
-| Test-first adherence | 30% | 80% |
-| Validation gate execution | 20% | 90% |
-| Persona review execution | 5% | 75% |
-| Overall compliance | 20% | 85% |
+| Metric                     | Current | Target |
+| -------------------------- | ------- | ------ |
+| Session startup compliance | 5%      | 95%    |
+| Response prefixing         | 10%     | 95%    |
+| Test-first adherence       | 30%     | 80%    |
+| Validation gate execution  | 20%     | 90%    |
+| Persona review execution   | 5%      | 75%    |
+| Overall compliance         | 20%     | 85%    |
 
 ## Solution Architecture
 
@@ -52,6 +57,7 @@ Create an enforcement system that:
 **Create:** `~/Documents/Claude Code/base-rules/MANDATORY_CORE.md`
 
 **Content:** Top 10 absolute must-have rules
+
 - Session startup protocol (3 lines)
 - Response prefixing (mandatory)
 - Test-first (hard gate)
@@ -63,6 +69,7 @@ Create an enforcement system that:
 ### Tier 2: Slash Command System
 
 **Create:** `~/.claude/commands/` directory with:
+
 - `/init` - Session startup command
 - `/validate` - Run validation gate
 - `/review` - Run persona reviews
@@ -83,6 +90,7 @@ Create an enforcement system that:
 ### Tier 4: Compliance Tracking
 
 **Create:** Visual compliance indicator
+
 ```
 [chrome-dev-assist] ✓ CORE | ✓ PREFIX | ⚠ TESTS | ✗ VALIDATION
 ```
@@ -92,6 +100,7 @@ Create an enforcement system that:
 ### Tier 5: Enforcement Tools
 
 **Create actual tools (not just prose):**
+
 1. `ValidationGate.md` - Checklist that must be completed
 2. `PersonaReview.md` - Template for all 6 reviews
 3. `TestFirst.md` - Workflow enforcement
@@ -147,11 +156,13 @@ Create an enforcement system that:
 ## Implementation Plan
 
 ### Phase 1: Create Simplified Core Rules
+
 1. Extract top 10 essential rules from existing base-rules
 2. Create MANDATORY_CORE.md (<100 lines)
 3. Make it scannable and memorable
 
 ### Phase 2: Create Slash Commands
+
 1. Create `.claude/commands/` directory structure
 2. Write `/init` command (session startup)
 3. Write `/validate` command (validation gate)
@@ -160,24 +171,28 @@ Create an enforcement system that:
 6. Write `/status` command (compliance tracking)
 
 ### Phase 3: Create Enforcement Tools
+
 1. ValidationGate.md (5-item checklist)
 2. PersonaReview.md (6-persona template)
 3. TestFirst.md (workflow guide)
 4. ScopeCheck.md (scope tracker)
 
 ### Phase 4: Modify CLAUDE.md
+
 1. Simplify session startup section
 2. Add slash command references
 3. Add compliance tracking format
 4. Make enforcement explicit and visible
 
 ### Phase 5: Create Global Setup Script
+
 1. `setup-global-rules.sh` to install system
 2. Copies files to correct locations
 3. Creates `.claude/` directory structure
 4. Tests installation
 
 ### Phase 6: Testing
+
 1. Test in chrome-dev-assist (current project)
 2. Test in new project
 3. Test across multiple sessions
@@ -240,29 +255,34 @@ Respond with compliance status
 ## Function Connectivity
 
 ### MANDATORY_CORE.md
+
 - Loaded: Every session start
 - Calls: Project detection, state recovery check
 - Outputs: Startup message, compliance tracker
 
 ### /init Command
+
 - Triggered: Session start (auto or manual)
 - Loads: MANDATORY_CORE.md
 - Executes: Project detection, state check
 - Outputs: Startup message
 
 ### /validate Command
+
 - Triggered: Before task completion
 - Loads: ValidationGate.md
 - Executes: 5-item checklist
 - Outputs: PASS/FAIL + details
 
 ### /review Command
+
 - Triggered: After validation passes
 - Loads: PersonaReview.md
 - Executes: All 6 persona reviews
 - Outputs: Review results + decision
 
 ### /status Command
+
 - Triggered: Any time
 - Checks: Current phase, compliance status
 - Outputs: Status indicator
@@ -270,17 +290,20 @@ Respond with compliance status
 ## Dependencies
 
 ### External:
+
 - Claude Code CLI (existing)
 - Bash (for setup scripts)
 - Git (for project detection)
 
 ### Internal:
+
 - MANDATORY_CORE.md → All commands
 - ValidationGate.md → /validate
 - PersonaReview.md → /review
 - CLAUDE.md → Session configuration
 
 ### File Structure:
+
 ```
 ~/Documents/Claude Code/
 ├── CLAUDE.md (modified)
@@ -319,16 +342,17 @@ Respond with compliance status
 
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Slash commands not supported | HIGH | Fall back to explicit tool references |
+| Risk                          | Impact | Mitigation                               |
+| ----------------------------- | ------ | ---------------------------------------- |
+| Slash commands not supported  | HIGH   | Fall back to explicit tool references    |
 | Still relies on Claude memory | MEDIUM | Make MANDATORY_CORE very short and clear |
-| User forgets to use commands | MEDIUM | Auto-trigger where possible |
-| Too complex to maintain | LOW | Keep core simple, tools modular |
+| User forgets to use commands  | MEDIUM | Auto-trigger where possible              |
+| Too complex to maintain       | LOW    | Keep core simple, tools modular          |
 
 ## Future Enhancements
 
 **Phase 2 (Future):**
+
 - IDE integration for compliance tracking
 - Automated test execution
 - Real checkpoint file creation
@@ -336,6 +360,7 @@ Respond with compliance status
 - AI-powered compliance monitoring
 
 **Not in MVP:**
+
 - Automatic checkpoint file creation (complex)
 - Network pause/resume (requires system hooks)
 - CI/CD integration
@@ -344,6 +369,7 @@ Respond with compliance status
 ## Acceptance Criteria
 
 Task is complete when:
+
 - [ ] MANDATORY_CORE.md created and tested (<100 lines)
 - [ ] All 5 slash commands working (/init, /validate, /review, /checkpoint, /status)
 - [ ] All 4 enforcement tools created (ValidationGate, PersonaReview, TestFirst, ScopeCheck)
@@ -368,6 +394,7 @@ Task is complete when:
 ## Success Metrics
 
 **Measure after implementation:**
+
 1. Session startup compliance (target: 95%)
 2. Response prefix consistency (target: 95%)
 3. Test-first adherence (target: 80%)
@@ -375,11 +402,13 @@ Task is complete when:
 5. Persona review execution (target: 75%)
 
 **Test in:**
+
 1. chrome-dev-assist (current)
 2. New test project
 3. Existing project with state
 
 **Compare:**
+
 - Before: 20% overall compliance
 - After: 85% overall compliance
 

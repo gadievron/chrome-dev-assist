@@ -26,6 +26,7 @@ This project uses **100% free** GitHub Actions workflows for:
 **Triggers**: Push to main, Pull Requests
 **Duration**: ~3-5 minutes
 **Status Badge**:
+
 ```markdown
 [![CI/CD](https://github.com/gadievron/chrome-dev-assist/actions/workflows/critical-checks.yml/badge.svg)](https://github.com/gadievron/chrome-dev-assist/actions/workflows/critical-checks.yml)
 ```
@@ -33,12 +34,14 @@ This project uses **100% free** GitHub Actions workflows for:
 **What it checks**:
 
 #### ShellCheck (Shell Script Security)
+
 - Syntax errors in bash/sh scripts
 - Common security issues (unquoted variables, command injection)
 - Best practice violations
 - Potential bugs
 
 **Example findings**:
+
 ```bash
 scripts/deploy.sh:18:12: warning: Double quote to prevent globbing [SC2086]
   echo $USER_INPUT
@@ -48,12 +51,14 @@ Recommendation: echo "$USER_INPUT"
 ```
 
 #### Gitleaks (Secret Scanning)
+
 - API keys, tokens, passwords
 - AWS credentials, private keys
 - Database connection strings
 - Generic high-entropy secrets
 
 **Example findings**:
+
 ```
 Finding: Potential API Key
 File: src/config.js:42
@@ -62,11 +67,13 @@ Entropy: 4.5 (high)
 ```
 
 #### CVE-2025-53773 (Command Injection Patterns)
+
 - Unsafe shell command construction
 - Code execution patterns
 - Patterns from GitHub Copilot RCE vulnerability
 
 **What it detects**:
+
 ```bash
 # UNSAFE (fails):
 echo "$user_input"      # Command injection risk
@@ -78,10 +85,12 @@ grep -F "$literal"      # Fixed string mode
 ```
 
 #### Token Budget Check
+
 - `CLAUDE.md` ≤ 250 lines
 - `tier1/*.md` files ≤ 150 lines each
 
 #### File Validation
+
 - YAML syntax (workflows)
 - JSON syntax (configs)
 - Markdown quality (documentation)
@@ -93,6 +102,7 @@ grep -F "$literal"      # Fixed string mode
 **Triggers**: Push to main, Pull Requests, Monday 9 AM UTC (weekly scan)
 **Duration**: ~5-10 minutes
 **Status Badge**:
+
 ```markdown
 [![CodeQL](https://github.com/gadievron/chrome-dev-assist/actions/workflows/codeql.yml/badge.svg)](https://github.com/gadievron/chrome-dev-assist/actions/workflows/codeql.yml)
 ```
@@ -100,6 +110,7 @@ grep -F "$literal"      # Fixed string mode
 **What it finds**:
 
 #### Security Vulnerabilities
+
 - SQL injection
 - Cross-site scripting (XSS)
 - Path traversal
@@ -107,17 +118,20 @@ grep -F "$literal"      # Fixed string mode
 - Code injection
 
 #### Code Quality Issues
+
 - Unused variables
 - Dead code
 - Type errors
 - Logic errors
 
 #### Configuration
+
 - **Languages**: JavaScript
 - **Query suites**: `security-extended`, `security-and-quality`
 - **Severity levels**: Error, Warning, Note
 
 **Example findings**:
+
 ```
 🔴 High Severity: Uncontrolled data used in path expression
 File: server/file-handler.js:45
@@ -126,6 +140,7 @@ Recommendation: Validate and sanitize file paths
 ```
 
 **View results**:
+
 - GitHub Security tab → Code scanning alerts
 - Detailed flow diagrams showing data flow
 - Suggested fixes and references
@@ -137,11 +152,13 @@ Recommendation: Validate and sanitize file paths
 **Triggers**: Push to main, Pull Requests
 **Duration**: ~3-5 minutes
 **Status Badge**:
+
 ```markdown
 [![Coverage](https://codecov.io/gh/gadievron/chrome-dev-assist/branch/main/graph/badge.svg)](https://codecov.io/gh/gadievron/chrome-dev-assist)
 ```
 
 **What it does**:
+
 1. Runs all tests with coverage enabled
 2. Generates LCOV coverage report
 3. Uploads to Codecov (free for open source)
@@ -149,6 +166,7 @@ Recommendation: Validate and sanitize file paths
 5. Uploads coverage artifact (30-day retention)
 
 **PR Comment Example**:
+
 ```markdown
 ## 📊 Test Coverage Report
 
@@ -162,12 +180,14 @@ View detailed coverage in artifacts section.
 ```
 
 **Codecov Features** (free):
+
 - Line-by-line coverage visualization
 - Coverage diff in PRs (shows coverage change)
 - Coverage trends over time
 - File browser with coverage overlay
 
 **Setup Codecov** (one-time):
+
 ```bash
 # 1. Sign up at https://codecov.io with GitHub account
 # 2. Add repository
@@ -188,17 +208,20 @@ View detailed coverage in artifacts section.
 **Configuration**:
 
 #### npm Dependencies
+
 - **Schedule**: Weekly (Monday 9 AM ET)
 - **Grouping**: Minor/patch updates grouped together
 - **Labels**: `dependencies`, `automated`
 - **Max open PRs**: 10
 
 #### GitHub Actions
+
 - **Schedule**: Weekly (Monday 9 AM ET)
 - **Labels**: `dependencies`, `github-actions`
 - **Max open PRs**: 5
 
 **Example PR**:
+
 ```
 Title: build(deps): bump jest from 29.5.0 to 29.7.0
 
@@ -212,6 +235,7 @@ alter it yourself. You can also trigger a rebase manually by commenting
 ```
 
 **Dependabot commands** (comment on PR):
+
 ```
 @dependabot rebase         # Rebase the PR
 @dependabot recreate       # Recreate the PR
@@ -231,22 +255,26 @@ alter it yourself. You can also trigger a rebase manually by commenting
 GitHub enables these automatically for public repos:
 
 #### 1. Dependency Graph
+
 - **Location**: Insights → Dependency graph
 - **Shows**: All dependencies and their versions
 - **Includes**: Direct and transitive dependencies
 
 #### 2. Dependabot Alerts
+
 - **Location**: Security → Dependabot alerts
 - **Triggers**: When vulnerability found in dependency
 - **Actions**: Auto-creates security update PR
 
 #### 3. Secret Scanning
+
 - **Location**: Security → Secret scanning
 - **Scans**: Every commit for exposed secrets
 - **Partners**: Notifies secret providers (AWS, GitHub, etc.)
 - **Coverage**: 200+ secret patterns
 
 #### 4. Code Scanning (CodeQL)
+
 - **Location**: Security → Code scanning
 - **Languages**: JavaScript, TypeScript
 - **Queries**: Security-extended + quality
@@ -271,6 +299,7 @@ All checks have passed
 ```
 
 **Detailed view**:
+
 ```
 ✅ Critical Checks (Free)
    ✅ ShellCheck: 0 issues
@@ -300,18 +329,21 @@ All checks have passed
 Each workflow can produce downloadable artifacts:
 
 ### Test Coverage Artifacts
+
 - **Name**: `coverage-report`
 - **Contents**: Full HTML coverage report
 - **Retention**: 30 days
 - **Size**: ~2-5 MB
 
 **Download**:
+
 1. Go to Actions tab
 2. Click on workflow run
 3. Scroll to "Artifacts" section
 4. Click download
 
 **View locally**:
+
 ```bash
 unzip coverage-report.zip
 open coverage/lcov-report/index.html
@@ -414,6 +446,7 @@ npm test -- --coverage --coverageThreshold='{"global":{"lines":70}}'
 ### GitHub Notifications
 
 **Configure** (Settings → Notifications → Watching):
+
 ```
 ✅ Issues
 ✅ Pull requests
@@ -425,6 +458,7 @@ npm test -- --coverage --coverageThreshold='{"global":{"lines":70}}'
 ### Email Alerts
 
 You'll receive emails for:
+
 - ⚠️ Failed workflow runs
 - 🔴 Security vulnerabilities (Dependabot)
 - 🔒 Secret scanning alerts
@@ -444,24 +478,24 @@ You'll receive emails for:
 
 ### Current Usage (100% Free)
 
-| Service | Free Tier | Our Usage | Cost |
-|---------|-----------|-----------|------|
-| GitHub Actions (public) | Unlimited | ~10 min/push | $0 |
-| CodeQL | Unlimited | ~7 min/run | $0 |
-| Dependabot | Unlimited | Weekly | $0 |
-| Codecov | Unlimited | Per push | $0 |
-| Secret Scanning | Unlimited | Per commit | $0 |
-| **Total** | | | **$0** |
+| Service                 | Free Tier | Our Usage    | Cost   |
+| ----------------------- | --------- | ------------ | ------ |
+| GitHub Actions (public) | Unlimited | ~10 min/push | $0     |
+| CodeQL                  | Unlimited | ~7 min/run   | $0     |
+| Dependabot              | Unlimited | Weekly       | $0     |
+| Codecov                 | Unlimited | Per push     | $0     |
+| Secret Scanning         | Unlimited | Per commit   | $0     |
+| **Total**               |           |              | **$0** |
 
 ### If Private Repo
 
-| Service | Free Tier | Estimated Usage | Cost |
-|---------|-----------|-----------------|------|
-| GitHub Actions | 2,000 min/month | ~300 min/month | $0 |
-| CodeQL | Free | Included | $0 |
-| Dependabot | Free | Included | $0 |
-| Codecov | Not free | ~100 pushes | $10/month |
-| **Total** | | | **$10/month** |
+| Service        | Free Tier       | Estimated Usage | Cost          |
+| -------------- | --------------- | --------------- | ------------- |
+| GitHub Actions | 2,000 min/month | ~300 min/month  | $0            |
+| CodeQL         | Free            | Included        | $0            |
+| Dependabot     | Free            | Included        | $0            |
+| Codecov        | Not free        | ~100 pushes     | $10/month     |
+| **Total**      |                 |                 | **$10/month** |
 
 **Recommendation**: Keep public for free tier benefits
 
@@ -472,6 +506,7 @@ You'll receive emails for:
 ### Workflow Fails: "Node modules not cached"
 
 **Fix**: Clear cache
+
 ```bash
 # In workflow file, add:
 - name: Clear cache
@@ -481,6 +516,7 @@ You'll receive emails for:
 ### CodeQL: "No code found"
 
 **Fix**: Ensure autobuild works or add manual build steps
+
 ```yaml
 - name: Build
   run: |
@@ -491,6 +527,7 @@ You'll receive emails for:
 ### Codecov: "Upload failed"
 
 **Fix**: Check token is set
+
 ```bash
 # GitHub Settings → Secrets → Actions
 # Verify CODECOV_TOKEN exists
@@ -503,6 +540,7 @@ You'll receive emails for:
 ### Secret Scanning: False Positive
 
 **Fix**: Mark as false positive in Security tab, or:
+
 ```bash
 # Add to .gitignore or .gitleaksignore
 # Example: test fixtures with fake keys
@@ -514,11 +552,13 @@ tests/fixtures/fake-secrets.json
 ## Best Practices
 
 ### 1. Keep Workflows Fast
+
 - ✅ Use caching (`actions/cache@v4`)
 - ✅ Run expensive jobs only on main
 - ✅ Use `paths` filters to skip irrelevant changes
 
 ### 2. Pin Action Versions
+
 ```yaml
 # Good (pinned to SHA)
 uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
@@ -531,6 +571,7 @@ uses: actions/checkout@main
 ```
 
 ### 3. Use Secrets Properly
+
 ```yaml
 # Good
 env:
@@ -541,6 +582,7 @@ run: echo "API_KEY=${{ secrets.API_KEY }}"
 ```
 
 ### 4. Monitor Workflow Usage
+
 ```bash
 # View workflow runs
 gh run list
@@ -554,16 +596,19 @@ gh api /repos/gadievron/chrome-dev-assist/actions/workflows --jq '.workflows[] |
 ## Maintenance
 
 ### Weekly Tasks
+
 - [ ] Review Dependabot PRs (auto-created Monday)
 - [ ] Check CodeQL findings (if any)
 - [ ] Review failed workflow runs
 
 ### Monthly Tasks
+
 - [ ] Review security alerts
 - [ ] Update workflow action versions
 - [ ] Review coverage trends
 
 ### Quarterly Tasks
+
 - [ ] Audit workflow efficiency
 - [ ] Update CodeQL queries
 - [ ] Review branch protection rules

@@ -21,16 +21,19 @@
 ## Test Environment
 
 **Server:**
+
 - Process: PID 31496
 - Port: 9876
 - Status: Running ✅
 
 **Chrome:**
+
 - Multiple instances running
 - User's instance: Has loaded extension
 - Test instance: PID 30758 (launched by script)
 
 **Extension:**
+
 - Location: `/Users/gadievron/Documents/Claude Code/chrome-dev-assist/extension`
 - Status: Needs reload to apply fixes
 
@@ -56,6 +59,7 @@
 #### Test 2.1: Extension Reload and Connection
 
 **Steps:**
+
 ```
 1. Open chrome://extensions/
 2. Find "Chrome Dev Assist"
@@ -68,6 +72,7 @@
 ```
 
 **Expected Output:**
+
 ```
 [ChromeDevAssist] ✅ Connected to server at 2025-10-25T...
 [ChromeDevAssist] 📊 Session uptime: 0s
@@ -75,12 +80,14 @@
 ```
 
 **Success Criteria:**
+
 - ✅ Banner appears
 - ✅ Connection established
 - ✅ No error messages
 - ✅ Extension ID logged
 
 **If Fails:**
+
 - Check if server is running: `ps aux | grep websocket-server`
 - Check server logs for connection
 - Check for syntax errors in extension console
@@ -90,6 +97,7 @@
 #### Test 2.2: Command Execution (Basic Connectivity)
 
 **Steps:**
+
 ```bash
 cd /Users/gadievron/Documents/Claude\ Code/chrome-dev-assist
 node -e "
@@ -110,17 +118,20 @@ const chromeDevAssist = require('./claude-code/index.js');
 ```
 
 **Expected Output:**
+
 ```
 ✅ Command executed successfully
 Tab ID: <number>
 ```
 
 **Success Criteria:**
+
 - ✅ No "No extensions connected" error
 - ✅ Tab opens and closes
 - ✅ No crashes in extension console
 
 **If Fails:**
+
 - Extension not connected → Check extension console
 - Timeout → Check if safeSend() is working
 - Check extension console for "[ChromeDevAssist] Cannot send: ..." warnings
@@ -132,6 +143,7 @@ Tab ID: <number>
 **Objective:** Verify reconnection uses exponential backoff (1s, 2s, 4s, 8s, 16s, 30s)
 
 **Steps:**
+
 ```bash
 # Terminal 1: Watch extension console
 # (Keep chrome://extensions/ service worker console open)
@@ -161,6 +173,7 @@ node server/websocket-server.js
 ```
 
 **Expected Timeline:**
+
 ```
 T=0s:   Server stops → "Disconnected from server"
 T=0s:   "Scheduling reconnection attempt #1 in 1s"
@@ -181,6 +194,7 @@ T=X+Ys: "✅ Connected to server"
 ```
 
 **Success Criteria:**
+
 - ✅ First reconnect: 1 second delay
 - ✅ Second reconnect: 2 second delay
 - ✅ Third reconnect: 4 second delay
@@ -190,6 +204,7 @@ T=X+Ys: "✅ Connected to server"
 - ✅ After success: Backoff resets (next disconnect starts at 1s)
 
 **If Fails:**
+
 - Still using fixed 1-second delay → Check if `scheduleReconnect()` is being called
 - No delay variation → Check `getReconnectDelay()` implementation
 - Check extension console for error messages
@@ -201,6 +216,7 @@ T=X+Ys: "✅ Connected to server"
 **Objective:** Verify `ws.onerror` triggers immediate reconnection (not 15s keep-alive)
 
 **Steps:**
+
 ```bash
 # This is harder to simulate - network disconnect scenario
 # Alternative: Check extension console during normal operation
@@ -214,11 +230,13 @@ T=X+Ys: "✅ Connected to server"
 ```
 
 **Success Criteria:**
+
 - ✅ Error triggers reconnection within 1-2 seconds
 - ✅ Does NOT wait 15 seconds for keep-alive
 - ✅ Exponential backoff starts from error
 
 **If Fails:**
+
 - Check if `ws.onerror` handler is executing
 - Check if `scheduleReconnect()` is called in error handler
 
@@ -229,6 +247,7 @@ T=X+Ys: "✅ Connected to server"
 **Objective:** Verify `isConnecting` flag prevents duplicate WebSocket instances
 
 **Steps:**
+
 ```bash
 # Watch extension console during rapid reconnection attempts
 # Simulate: Server restart during reconnection window
@@ -241,12 +260,14 @@ T=X+Ys: "✅ Connected to server"
 ```
 
 **Success Criteria:**
+
 - ✅ Only ONE connection attempt at a time
 - ✅ "Already connecting, skipping duplicate" messages appear
 - ✅ No duplicate WebSocket instances created
 - ✅ "Cleared existing reconnect alarm" messages appear
 
 **If Fails:**
+
 - Check if `isConnecting` flag is being set/cleared properly
 - Check if alarm clearing is working
 
@@ -257,6 +278,7 @@ T=X+Ys: "✅ Connected to server"
 **Objective:** Verify commands fail gracefully when disconnected
 
 **Steps:**
+
 ```bash
 # Terminal 1: Stop server
 kill 31496
@@ -281,12 +303,14 @@ const chromeDevAssist = require('./claude-code/index.js');
 ```
 
 **Success Criteria:**
+
 - ✅ Command fails with clear error message
 - ✅ Extension console shows "Cannot send: ..." warning
 - ✅ Extension does NOT crash
 - ✅ Extension continues reconnection attempts
 
 **If Fails:**
+
 - Check if `safeSend()` is being used for all message sends
 - Check if state validation is working correctly
 
@@ -297,6 +321,7 @@ const chromeDevAssist = require('./claude-code/index.js');
 **Objective:** Run existing integration tests to verify no regressions
 
 **Steps:**
+
 ```bash
 # Ensure server is running
 ps aux | grep websocket-server
@@ -306,6 +331,7 @@ ps aux | grep websocket-server
 ```
 
 **Expected Output:**
+
 ```
 =================================
 Chrome Dev Assist - Manual Tests
@@ -355,6 +381,7 @@ All tests completed!
 ```
 
 **Success Criteria:**
+
 - ✅ Test 1 passes (connectivity)
 - ✅ Test 2 passes (console logs)
 - ⚠️ Test 3 may fail (ISSUE-001 not fixed yet)
@@ -362,6 +389,7 @@ All tests completed!
 - ✅ Test 5 passes (screenshots)
 
 **If Fails:**
+
 - Extension not connected → Check extension reload
 - Timeout errors → Check connection stability
 - "Cannot send: ..." warnings → Check safeSend() logs
@@ -375,6 +403,7 @@ All tests completed!
 #### Test 4.1: Rapid Commands
 
 **Steps:**
+
 ```bash
 # Send 10 commands rapidly
 for i in {1..10}; do
@@ -391,6 +420,7 @@ wait
 ```
 
 **Success Criteria:**
+
 - ✅ All 10 commands succeed
 - ✅ No race conditions in extension console
 - ✅ No duplicate connection messages
@@ -400,6 +430,7 @@ wait
 #### Test 4.2: Server Restart During Commands
 
 **Steps:**
+
 ```bash
 # Terminal 1: Send long-running command
 node -e "
@@ -419,6 +450,7 @@ sleep 10 && kill 31496 && node server/websocket-server.js
 ```
 
 **Success Criteria:**
+
 - ⚠️ Command may fail (expected - server restarted)
 - ✅ Extension reconnects automatically
 - ✅ Next command succeeds after reconnection
@@ -428,36 +460,43 @@ sleep 10 && kill 31496 && node server/websocket-server.js
 ## Test Results Template
 
 ### Test 2.1: Extension Reload
+
 - **Status:** [ ] PASS / [ ] FAIL
 - **Notes:**
 
 ### Test 2.2: Command Execution
+
 - **Status:** [ ] PASS / [ ] FAIL
 - **Notes:**
 
 ### Test 2.3: Exponential Backoff
+
 - **Status:** [ ] PASS / [ ] FAIL
-- **First delay:** ___ seconds
-- **Second delay:** ___ seconds
-- **Third delay:** ___ seconds
+- **First delay:** \_\_\_ seconds
+- **Second delay:** \_\_\_ seconds
+- **Third delay:** \_\_\_ seconds
 - **Notes:**
 
 ### Test 2.4: Error Recovery
+
 - **Status:** [ ] PASS / [ ] FAIL
-- **Recovery time:** ___ seconds
+- **Recovery time:** \_\_\_ seconds
 - **Notes:**
 
 ### Test 2.5: Duplicate Prevention
+
 - **Status:** [ ] PASS / [ ] FAIL
 - **Duplicate messages seen:** [ ] YES / [ ] NO
 - **Notes:**
 
 ### Test 2.6: State Validation
+
 - **Status:** [ ] PASS / [ ] FAIL
 - **safeSend() warnings seen:** [ ] YES / [ ] NO
 - **Notes:**
 
 ### Test 3: Automated Suite
+
 - **Test 1:** [ ] PASS / [ ] FAIL
 - **Test 2:** [ ] PASS / [ ] FAIL
 - **Test 3:** [ ] PASS / [ ] FAIL
@@ -479,17 +518,20 @@ sleep 10 && kill 31496 && node server/websocket-server.js
 ## Success Criteria Summary
 
 **Minimum Criteria (Must Pass):**
+
 - ✅ Extension connects successfully after reload
 - ✅ Commands execute without crashes
 - ✅ Exponential backoff working (delays increase)
 - ✅ No duplicate connection attempts
 
 **Enhanced Criteria (Should Pass):**
+
 - ✅ Error recovery within 1-2 seconds
 - ✅ safeSend() state validation working
 - ✅ Automated test suite passes (Tests 1, 2, 5)
 
 **Optional Criteria (Nice to Have):**
+
 - ✅ Stress tests pass
 - ✅ Server restart handled gracefully
 
@@ -521,6 +563,6 @@ const chromeDevAssist = require('./claude-code/index.js');
 
 ---
 
-*Test Plan Created: 2025-10-25 Late Evening*
-*Test Status: Ready for Execution*
-*Requires User Action: Extension reload in Chrome*
+_Test Plan Created: 2025-10-25 Late Evening_
+_Test Status: Ready for Execution_
+_Requires User Action: Extension reload in Chrome_

@@ -14,6 +14,7 @@
 **Total HTML Fixtures:** 12 (not 30 as previously claimed)
 
 **By Directory:**
+
 - `/tests/integration` - 26 tests
 - `/tests/unit` - 23 tests
 - `/tests/security` - 3 tests
@@ -30,16 +31,16 @@
 
 ### Main API Functions
 
-| Function | Tests Found | Test Files |
-|----------|-------------|------------|
-| `getAllExtensions()` | ✅ 5 tests | complete-system, edge-cases-complete, level4-reload, phase-1.1-medium, phase-1.1 |
-| `getExtensionInfo(id)` | ✅ 5 tests | complete-system, edge-cases-complete, level4-reload, phase-1.1-medium, phase-1.1 |
-| `reload(id)` | ⚠️ Unknown | Need to analyze |
-| `reloadAndCapture(id, opts)` | ⚠️ Unknown | Need to analyze |
-| `captureLogs(duration)` | ⚠️ Unknown | Need to analyze |
-| `openUrl(url, opts)` | ⚠️ Unknown | Need to analyze |
-| `reloadTab(tabId, opts)` | ⚠️ Unknown | Need to analyze |
-| `closeTab(tabId)` | ⚠️ Unknown | Need to analyze |
+| Function                     | Tests Found | Test Files                                                                       |
+| ---------------------------- | ----------- | -------------------------------------------------------------------------------- |
+| `getAllExtensions()`         | ✅ 5 tests  | complete-system, edge-cases-complete, level4-reload, phase-1.1-medium, phase-1.1 |
+| `getExtensionInfo(id)`       | ✅ 5 tests  | complete-system, edge-cases-complete, level4-reload, phase-1.1-medium, phase-1.1 |
+| `reload(id)`                 | ⚠️ Unknown  | Need to analyze                                                                  |
+| `reloadAndCapture(id, opts)` | ⚠️ Unknown  | Need to analyze                                                                  |
+| `captureLogs(duration)`      | ⚠️ Unknown  | Need to analyze                                                                  |
+| `openUrl(url, opts)`         | ⚠️ Unknown  | Need to analyze                                                                  |
+| `reloadTab(tabId, opts)`     | ⚠️ Unknown  | Need to analyze                                                                  |
+| `closeTab(tabId)`            | ⚠️ Unknown  | Need to analyze                                                                  |
 
 **Initial Coverage:** 2/8 functions verified (25%)
 
@@ -49,20 +50,21 @@
 
 ### Module 1: server/validation.js (8 exports)
 
-| Function | Tests Found | Test Files |
-|----------|-------------|------------|
-| `validateExtensionId()` | ✅ 2 tests | extension-discovery-validation, api-client |
-| `validateMetadata()` | ✅ 2 tests | extension-discovery-validation, api-client |
-| `sanitizeManifest()` | ✅ 2 tests | extension-discovery-validation, api-client |
-| `validateCapabilities()` | ⚠️ Likely in extension-discovery-validation | Need verification |
-| `validateName()` | ⚠️ Likely in extension-discovery-validation | Need verification |
-| `validateVersion()` | ⚠️ Likely in extension-discovery-validation | Need verification |
-| `METADATA_SIZE_LIMIT` | ⚠️ Unknown | Need to check |
-| `ALLOWED_CAPABILITIES` | ⚠️ Unknown | Need to check |
+| Function                 | Tests Found                                 | Test Files                                 |
+| ------------------------ | ------------------------------------------- | ------------------------------------------ |
+| `validateExtensionId()`  | ✅ 2 tests                                  | extension-discovery-validation, api-client |
+| `validateMetadata()`     | ✅ 2 tests                                  | extension-discovery-validation, api-client |
+| `sanitizeManifest()`     | ✅ 2 tests                                  | extension-discovery-validation, api-client |
+| `validateCapabilities()` | ⚠️ Likely in extension-discovery-validation | Need verification                          |
+| `validateName()`         | ⚠️ Likely in extension-discovery-validation | Need verification                          |
+| `validateVersion()`      | ⚠️ Likely in extension-discovery-validation | Need verification                          |
+| `METADATA_SIZE_LIMIT`    | ⚠️ Unknown                                  | Need to check                              |
+| `ALLOWED_CAPABILITIES`   | ⚠️ Unknown                                  | Need to check                              |
 
 **Initial Coverage:** 3/8 exports verified (38%)
 
 **Test Files:**
+
 1. `tests/unit/extension-discovery-validation.test.js` - ✅ Primary validation tests (63 tests)
 2. `tests/integration/api-client.test.js` - ✅ Uses validation functions
 
@@ -70,37 +72,39 @@
 
 ### Module 2: extension/lib/error-logger.js (4 methods)
 
-| Method | Tests Found | Test Files |
-|--------|-------------|------------|
-| `ErrorLogger.logExpectedError()` | ✅ 1 test | error-logger |
-| `ErrorLogger.logUnexpectedError()` | ✅ 1 test | error-logger |
-| `ErrorLogger.logInfo()` | ⚠️ Likely in error-logger | Need verification |
-| `ErrorLogger.logCritical()` | ⚠️ Likely in error-logger | Need verification |
+| Method                             | Tests Found               | Test Files        |
+| ---------------------------------- | ------------------------- | ----------------- |
+| `ErrorLogger.logExpectedError()`   | ✅ 1 test                 | error-logger      |
+| `ErrorLogger.logUnexpectedError()` | ✅ 1 test                 | error-logger      |
+| `ErrorLogger.logInfo()`            | ⚠️ Likely in error-logger | Need verification |
+| `ErrorLogger.logCritical()`        | ⚠️ Likely in error-logger | Need verification |
 
 **Initial Coverage:** 2/4 methods verified (50%)
 
 **Test Files:**
+
 1. `tests/unit/error-logger.test.js` - ✅ Primary ErrorLogger tests
 
 ---
 
 ### Module 3: extension/modules/ConsoleCapture.js (9 methods, POC)
 
-| Method | Tests Found | Test Files |
-|--------|-------------|------------|
-| `start()` | ✅ 1 test | ConsoleCapture.poc |
-| `stop()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
-| `addLog()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
-| `getLogs()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
-| `cleanup()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
-| `isActive()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
-| `getStats()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
-| `getAllCaptureIds()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
-| `cleanupStale()` | ⚠️ Likely in ConsoleCapture.poc | Need verification |
+| Method               | Tests Found                     | Test Files         |
+| -------------------- | ------------------------------- | ------------------ |
+| `start()`            | ✅ 1 test                       | ConsoleCapture.poc |
+| `stop()`             | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
+| `addLog()`           | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
+| `getLogs()`          | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
+| `cleanup()`          | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
+| `isActive()`         | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
+| `getStats()`         | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
+| `getAllCaptureIds()` | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
+| `cleanupStale()`     | ⚠️ Likely in ConsoleCapture.poc | Need verification  |
 
 **Initial Coverage:** 1/9 methods verified (11%)
 
 **Test Files:**
+
 1. `tests/unit/ConsoleCapture.poc.test.js` - ✅ POC tests
 2. `tests/unit/script-registration.test.js` - ⚠️ References ConsoleCapture
 
@@ -110,20 +114,21 @@
 
 ### Module 4: src/health/health-manager.js (8 methods)
 
-| Method | Tests Found | Test Files |
-|--------|-------------|------------|
-| `setExtensionSocket()` | ✅ 8 tests | Multiple test files |
-| `setApiSocket()` | ⚠️ Unknown | Need to check |
-| `isExtensionConnected()` | ✅ 8 tests | Multiple test files |
-| `getHealthStatus()` | ✅ 8 tests | Multiple test files |
-| `ensureHealthy()` | ⚠️ Unknown | Need to check |
-| `getReadyStateName()` | ⚠️ Unknown | Need to check |
-| `_detectAndEmitChanges()` | ⚠️ Unknown | Need to check |
-| `_arraysEqual()` | ⚠️ Unknown | Need to check |
+| Method                    | Tests Found | Test Files          |
+| ------------------------- | ----------- | ------------------- |
+| `setExtensionSocket()`    | ✅ 8 tests  | Multiple test files |
+| `setApiSocket()`          | ⚠️ Unknown  | Need to check       |
+| `isExtensionConnected()`  | ✅ 8 tests  | Multiple test files |
+| `getHealthStatus()`       | ✅ 8 tests  | Multiple test files |
+| `ensureHealthy()`         | ⚠️ Unknown  | Need to check       |
+| `getReadyStateName()`     | ⚠️ Unknown  | Need to check       |
+| `_detectAndEmitChanges()` | ⚠️ Unknown  | Need to check       |
+| `_arraysEqual()`          | ⚠️ Unknown  | Need to check       |
 
 **Initial Coverage:** 3/8 methods verified (38%)
 
 **Test Files:**
+
 1. `tests/unit/health-manager.test.js` - ✅ Primary unit tests
 2. `tests/unit/health-manager-api-socket.test.js` - ✅ API socket tests
 3. `tests/unit/health-manager-observers.test.js` - ✅ Event observer tests
@@ -272,6 +277,7 @@
 ### Finding 1: Outdated Test Counts
 
 **Problem:** TESTS-INDEX.md claims:
+
 - 40 test files (actual: 59)
 - 30 HTML fixtures (actual: 12)
 
@@ -282,6 +288,7 @@
 ### Finding 2: Tests for Non-Existent Functions
 
 **Problem:** Many tests reference PLANNED functions that don't exist in v1.0.0:
+
 - `enableExtension()`, `disableExtension()`, `toggleExtension()`
 - `level4Reload()` (separate module, not in main API)
 - `screenshot` functions
@@ -290,6 +297,7 @@
 - `service-worker-api` functions
 
 **Examples:**
+
 - `tests/unit/level4-reload-cdp.test.js` - SKIPPED (infrastructure required)
 - `tests/unit/level4-reload-auto-detect.test.js` - SKIPPED
 - `tests/unit/screenshot.test.js` - PLANNED
@@ -304,6 +312,7 @@
 ### Finding 3: Excellent Utility Module Coverage
 
 **HealthManager:** ✅ 8 dedicated test files (excellent coverage)
+
 - Unit tests: 3 files
 - Integration tests: 2 files
 - Performance tests: 1 file
@@ -327,6 +336,7 @@ Needs Analysis:     6/8 functions (75%)
 ```
 
 **Need to analyze tests for:**
+
 - reload()
 - reloadAndCapture()
 - captureLogs()
@@ -346,15 +356,17 @@ HealthManager:     3/8 verified (38%) - Excellent test coverage (8 files)
 ### Overall Test Quality
 
 **Strengths:**
+
 - ✅ 59 test files (19 more than documented)
 - ✅ Excellent HealthManager coverage (8 test files)
 - ✅ Good validation coverage (63 tests in one file)
-- ✅ Comprehensive edge case testing (multiple edge-*.html fixtures)
+- ✅ Comprehensive edge case testing (multiple edge-\*.html fixtures)
 - ✅ Security testing (3 dedicated files)
 - ✅ Performance testing (1 file)
 - ✅ Meta testing (2 files for test quality)
 
 **Weaknesses:**
+
 - ⚠️ Many tests for planned v1.1.0/v1.2.0 features
 - ⚠️ Unclear coverage of 6/8 main API functions
 - ⚠️ TESTS-INDEX.md outdated (claims 40 files, actual 59)
@@ -375,7 +387,7 @@ HealthManager:     3/8 verified (38%) - Excellent test coverage (8 files)
    - extension-discovery-validation.test.js (all validation functions)
    - error-logger.test.js (all ErrorLogger methods)
    - ConsoleCapture.poc.test.js (all ConsoleCapture methods)
-   - health-manager*.test.js (all HealthManager methods)
+   - health-manager\*.test.js (all HealthManager methods)
 
 3. **Update TESTS-INDEX.md** with:
    - Correct count: 59 test files
@@ -393,6 +405,7 @@ HealthManager:     3/8 verified (38%) - Excellent test coverage (8 files)
 ### Phase 1: Read Key Test Files (Priority)
 
 **Must Read:**
+
 1. `tests/integration/complete-system.test.js` - Likely covers all 8 API functions
 2. `tests/unit/extension-discovery-validation.test.js` - Validation coverage
 3. `tests/unit/error-logger.test.js` - ErrorLogger coverage
@@ -401,6 +414,7 @@ HealthManager:     3/8 verified (38%) - Excellent test coverage (8 files)
 ### Phase 2: Create Coverage Matrix
 
 Create table mapping:
+
 - 8 API functions → test files
 - 29 utility functions → test files
 
@@ -413,4 +427,3 @@ Completely rewrite with v1.0.0 reality.
 **Analysis Status:** IN PROGRESS - Need to read key test files for complete coverage mapping
 
 **Next Action:** Read complete-system.test.js to determine API function coverage
-

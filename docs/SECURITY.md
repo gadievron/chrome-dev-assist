@@ -9,6 +9,7 @@ This document outlines the security architecture for Chrome Dev Assist, distingu
 ## Current Implementation: Test Infrastructure Security
 
 ### Scope
+
 - **Purpose**: Secure local test fixture serving during development/testing
 - **Threat Model**: Prevent unauthorized local applications from accessing test server
 - **Not in Scope**: User authentication, external API access, production deployment
@@ -18,6 +19,7 @@ This document outlines the security architecture for Chrome Dev Assist, distingu
 Our test server implements **four layers of security**:
 
 #### Layer 1: Network Binding (Network-Level Isolation)
+
 ```javascript
 const HOST = '127.0.0.1'; // localhost only
 httpServer.listen(PORT, HOST);
@@ -28,12 +30,14 @@ httpServer.listen(PORT, HOST);
 **Standard**: Industry standard for local dev servers (Jest, Playwright, Cypress)
 
 #### Layer 2: Host Header Validation (DNS Rebinding Protection)
+
 ```javascript
 const host = req.headers.host || '';
-const isLocalhost = host.startsWith('localhost:') ||
-                    host.startsWith('127.0.0.1:') ||
-                    host === 'localhost' ||
-                    host === '127.0.0.1';
+const isLocalhost =
+  host.startsWith('localhost:') ||
+  host.startsWith('127.0.0.1:') ||
+  host === 'localhost' ||
+  host === '127.0.0.1';
 
 if (!isLocalhost) {
   res.writeHead(403);
@@ -47,6 +51,7 @@ if (!isLocalhost) {
 **Reference**: OWASP DNS Rebinding Prevention
 
 #### Layer 3: Token Authentication (Application-Level)
+
 ```javascript
 // Server: Generate random token at startup
 const AUTH_TOKEN = crypto.randomBytes(32).toString('hex'); // 256 bits entropy
@@ -67,12 +72,14 @@ if (clientToken !== AUTH_TOKEN) {
 **Protection**: Prevents other localhost applications from accessing test fixtures
 **Threat Mitigated**: Cross-localhost attacks (malicious local apps)
 **Token Properties**:
+
 - Cryptographically random (256 bits entropy)
 - Ephemeral (regenerated on server restart)
 - Not embedded in extension code
 - Automatically cleaned up on server shutdown
 
 #### Layer 4: Directory Traversal Protection (File-Level)
+
 ```javascript
 const filepath = path.join(FIXTURES_PATH, filename);
 
@@ -94,6 +101,7 @@ if (!filepath.startsWith(FIXTURES_PATH)) {
 **Decision**: Use HTTP for local test server
 
 **Rationale**:
+
 1. **Traffic Never Leaves Machine**: Server bound to 127.0.0.1
 2. **Industry Standard**: Jest, Playwright, Cypress, WebdriverIO all use HTTP for localhost
 3. **TLS Complexity**: Self-signed certs require:
@@ -112,6 +120,7 @@ if (!filepath.startsWith(FIXTURES_PATH)) {
 **Decision**: Pass token as URL query parameter (`?token=xxx`)
 
 **Rationale**:
+
 1. **Not Production**: Test infrastructure only
 2. **No Network Exposure**: Localhost-only traffic
 3. **Simplicity**: Easy for tests to construct URLs
@@ -149,6 +158,7 @@ if (!filepath.startsWith(FIXTURES_PATH)) {
 ```
 
 **Key Properties**:
+
 - Token exists only while server is running
 - Each server restart generates new token
 - No persistent secrets in filesystem after shutdown
@@ -158,14 +168,14 @@ if (!filepath.startsWith(FIXTURES_PATH)) {
 
 ### Threat Model: What We Protect Against
 
-| Threat | Mitigation | Layer |
-|--------|-----------|-------|
-| **Remote network access** | Server bound to 127.0.0.1 | Layer 1 |
-| **DNS rebinding attacks** | Host header validation | Layer 2 |
-| **Cross-localhost attacks** | Token authentication | Layer 3 |
-| **Directory traversal** | Path validation | Layer 4 |
-| **Token extraction from git** | .gitignore + ephemeral tokens | Policy |
-| **Token persistence** | Deleted on shutdown | Lifecycle |
+| Threat                        | Mitigation                    | Layer     |
+| ----------------------------- | ----------------------------- | --------- |
+| **Remote network access**     | Server bound to 127.0.0.1     | Layer 1   |
+| **DNS rebinding attacks**     | Host header validation        | Layer 2   |
+| **Cross-localhost attacks**   | Token authentication          | Layer 3   |
+| **Directory traversal**       | Path validation               | Layer 4   |
+| **Token extraction from git** | .gitignore + ephemeral tokens | Policy    |
+| **Token persistence**         | Deleted on shutdown           | Lifecycle |
 
 ---
 
@@ -173,13 +183,13 @@ if (!filepath.startsWith(FIXTURES_PATH)) {
 
 These are **not threats** in our test infrastructure context:
 
-| Non-Threat | Why Not a Concern |
-|------------|-------------------|
-| **Token interception in transit** | Localhost-only traffic never leaves machine |
-| **Man-in-the-Middle (MitM)** | No network exposure; localhost loopback |
-| **Token replay attacks** | Token changes on every restart; test-only |
+| Non-Threat                           | Why Not a Concern                                |
+| ------------------------------------ | ------------------------------------------------ |
+| **Token interception in transit**    | Localhost-only traffic never leaves machine      |
+| **Man-in-the-Middle (MitM)**         | No network exposure; localhost loopback          |
+| **Token replay attacks**             | Token changes on every restart; test-only        |
 | **Malware reading .auth-token file** | If malware has file access, game is already over |
-| **User credential theft** | No user credentials; test fixtures only |
+| **User credential theft**            | No user credentials; test fixtures only          |
 
 ---
 
@@ -188,6 +198,7 @@ These are **not threats** in our test infrastructure context:
 ### When We Need Real Auth
 
 If Chrome Dev Assist adds features requiring user authentication:
+
 - Cloud sync of extension settings
 - Shared team workspaces
 - Access to external APIs (GitHub, Jira, etc.)
@@ -196,6 +207,7 @@ If Chrome Dev Assist adds features requiring user authentication:
 ### Recommended Architecture: OAuth2 + PKCE
 
 **Why OAuth2 + PKCE?**
+
 - Industry standard for browser extensions
 - No client secrets embedded in extension
 - Works with external identity providers (Google, GitHub, etc.)
@@ -208,56 +220,62 @@ If Chrome Dev Assist adds features requiring user authentication:
 ```javascript
 // Step 1: Generate PKCE code verifier and challenge
 const codeVerifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
-const codeChallenge = base64url(await crypto.subtle.digest('SHA-256',
-  new TextEncoder().encode(codeVerifier)));
+const codeChallenge = base64url(
+  await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier))
+);
 
 // Step 2: Launch OAuth flow
-chrome.identity.launchWebAuthFlow({
-  url: `https://oauth.example.com/authorize?` +
-       `client_id=${CLIENT_ID}&` +
-       `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-       `response_type=code&` +
-       `code_challenge=${codeChallenge}&` +
-       `code_challenge_method=S256&` +
-       `scope=read:user&` +
-       `state=${state}`,
-  interactive: true
-}, async (redirectUrl) => {
-  if (chrome.runtime.lastError) {
-    console.error('Auth failed:', chrome.runtime.lastError);
-    return;
+chrome.identity.launchWebAuthFlow(
+  {
+    url:
+      `https://oauth.example.com/authorize?` +
+      `client_id=${CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+      `response_type=code&` +
+      `code_challenge=${codeChallenge}&` +
+      `code_challenge_method=S256&` +
+      `scope=read:user&` +
+      `state=${state}`,
+    interactive: true,
+  },
+  async redirectUrl => {
+    if (chrome.runtime.lastError) {
+      console.error('Auth failed:', chrome.runtime.lastError);
+      return;
+    }
+
+    // Step 3: Extract authorization code
+    const url = new URL(redirectUrl);
+    const code = url.searchParams.get('code');
+
+    // Step 4: Exchange code for token (server-side)
+    const response = await fetch('https://api.example.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        grant_type: 'authorization_code',
+        code,
+        code_verifier: codeVerifier,
+        redirect_uri: REDIRECT_URI,
+      }),
+    });
+
+    const { access_token, refresh_token } = await response.json();
+
+    // Step 5: Store tokens securely
+    await chrome.storage.session.set({
+      accessToken: access_token,
+      // NEVER store refresh_token in extension
+      // Store on server; give extension opaque handle
+    });
   }
-
-  // Step 3: Extract authorization code
-  const url = new URL(redirectUrl);
-  const code = url.searchParams.get('code');
-
-  // Step 4: Exchange code for token (server-side)
-  const response = await fetch('https://api.example.com/oauth/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      grant_type: 'authorization_code',
-      code,
-      code_verifier: codeVerifier,
-      redirect_uri: REDIRECT_URI
-    })
-  });
-
-  const { access_token, refresh_token } = await response.json();
-
-  // Step 5: Store tokens securely
-  await chrome.storage.session.set({
-    accessToken: access_token,
-    // NEVER store refresh_token in extension
-    // Store on server; give extension opaque handle
-  });
-});
+);
 ```
 
 #### 2. Token Storage Strategy
 
 **Do:**
+
 - Use `chrome.storage.session` for access tokens (non-persistent, tab-scoped)
 - Store refresh tokens server-side only
 - Use short-lived access tokens (15-60 minutes)
@@ -265,6 +283,7 @@ chrome.identity.launchWebAuthFlow({
 - Exchange handles for fresh tokens on extension restart
 
 **Don't:**
+
 - Store refresh tokens in extension storage
 - Use `chrome.storage.sync` for tokens (syncs across devices)
 - Store tokens in localStorage (accessible to content scripts)
@@ -274,14 +293,15 @@ chrome.identity.launchWebAuthFlow({
 
 **chrome.identity API Compatibility**:
 
-| API Method | Chrome | Edge | Brave | Firefox |
-|------------|--------|------|-------|---------|
-| `getAuthToken()` | ✅ Google only | ⚠️ Unreliable | ❌ Often broken | ❌ Not supported |
-| `launchWebAuthFlow()` | ✅ Generic OAuth | ✅ Works | ✅ Works | ✅ Works |
+| API Method            | Chrome           | Edge          | Brave           | Firefox          |
+| --------------------- | ---------------- | ------------- | --------------- | ---------------- |
+| `getAuthToken()`      | ✅ Google only   | ⚠️ Unreliable | ❌ Often broken | ❌ Not supported |
+| `launchWebAuthFlow()` | ✅ Generic OAuth | ✅ Works      | ✅ Works        | ✅ Works         |
 
 **Recommendation**: Use `launchWebAuthFlow()` for maximum compatibility
 
 **Edge/Brave Caveats**:
+
 - Redirect URI registration varies by provider
 - Test thoroughly on each browser
 - Provide fallback manual auth flow
@@ -308,11 +328,13 @@ chrome.identity.launchWebAuthFlow({
 #### 5. Native Messaging for OS Keychain (Optional)
 
 **When Needed**:
+
 - Access to OS keychain (macOS Keychain, Windows DPAPI, Linux libsecret)
 - Hardware security tokens (YubiKey, TPM)
 - Corporate SSO with mutual TLS
 
 **Architecture**:
+
 ```
 Extension → Native Host (C++/Rust) → OS Keychain
             ↑
@@ -322,6 +344,7 @@ Extension → Native Host (C++/Rust) → OS Keychain
 ```
 
 **Security Requirements**:
+
 - HMAC all messages between extension and host
 - Strict input validation
 - Per-platform least privilege
@@ -347,12 +370,14 @@ These apply to **both** test infrastructure and production:
 ## References
 
 ### Current Implementation (Test Security)
+
 - OWASP: Localhost Security Best Practices
 - OWASP: DNS Rebinding Prevention
 - Node.js: crypto.randomBytes() documentation
 - Path Traversal Prevention (OWASP)
 
 ### Future Implementation (OAuth2)
+
 - [RFC 7636: PKCE for OAuth 2.0](https://oauth.net/2/pkce/)
 - [Chrome Identity API](https://developer.chrome.com/docs/extensions/reference/identity/)
 - [Chrome Storage API Security](https://developer.chrome.com/docs/extensions/reference/storage/)
@@ -365,6 +390,7 @@ These apply to **both** test infrastructure and production:
 ## Changelog
 
 ### 2025-10-24: Initial Security Model
+
 - Documented test infrastructure security (4-layer defense-in-depth)
 - Explained HTTP vs HTTPS decision for localhost
 - Token lifecycle and threat model
@@ -377,6 +403,7 @@ These apply to **both** test infrastructure and production:
 ## Contact
 
 For security concerns or questions:
+
 - Open an issue on GitHub
 - Email: security@example.com (when available)
 

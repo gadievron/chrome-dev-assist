@@ -23,16 +23,18 @@ ws.on('open', () => {
   console.log('📋 Checking if extension is registered...\n');
 
   // Send listExtensions command
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: 'list-ext-' + Date.now(),
-    command: {
-      type: 'listExtensions'
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: 'list-ext-' + Date.now(),
+      command: {
+        type: 'listExtensions',
+      },
+    })
+  );
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.type === 'response' && message.data.extensions) {
@@ -80,7 +82,6 @@ ws.on('message', (data) => {
 
       ws.close();
       process.exit(0);
-
     } else {
       console.log('❌ Extension NOT registered');
       console.log('   This means background.js crashed or failed to load');
@@ -96,7 +97,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ Connection error:', err.message);
   process.exit(1);
 });

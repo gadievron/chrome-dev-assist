@@ -25,10 +25,10 @@ const { validateExtensionId } = require('../server/validation');
  */
 async function getCDPWebSocketURL(port = 9222) {
   return new Promise((resolve, reject) => {
-    const req = http.get(`http://127.0.0.1:${port}/json/version`, (res) => {
+    const req = http.get(`http://127.0.0.1:${port}/json/version`, res => {
       let data = '';
 
-      res.on('data', (chunk) => {
+      res.on('data', chunk => {
         data += chunk;
       });
 
@@ -42,9 +42,11 @@ async function getCDPWebSocketURL(port = 9222) {
       });
     });
 
-    req.on('error', (err) => {
+    req.on('error', err => {
       if (err.code === 'ECONNREFUSED') {
-        reject(new Error(`CDP not available (Chrome not started with --remote-debugging-port=${port})`));
+        reject(
+          new Error(`CDP not available (Chrome not started with --remote-debugging-port=${port})`)
+        );
       } else {
         reject(new Error(`CDP connection failed: ${err.message}`));
       }
@@ -67,7 +69,7 @@ async function evaluateExpression(ws, expression) {
   return new Promise((resolve, reject) => {
     const id = Math.floor(Math.random() * 1000000);
 
-    const handler = (data) => {
+    const handler = data => {
       try {
         const msg = JSON.parse(data);
         if (msg.id === id) {
@@ -86,15 +88,17 @@ async function evaluateExpression(ws, expression) {
 
     ws.on('message', handler);
 
-    ws.send(JSON.stringify({
-      id,
-      method: 'Runtime.evaluate',
-      params: {
-        expression,
-        awaitPromise: true,
-        returnByValue: true
-      }
-    }));
+    ws.send(
+      JSON.stringify({
+        id,
+        method: 'Runtime.evaluate',
+        params: {
+          expression,
+          awaitPromise: true,
+          returnByValue: true,
+        },
+      })
+    );
 
     // Timeout after 10 seconds
     setTimeout(() => {
@@ -141,7 +145,7 @@ async function level4ReloadCDP(extensionId, options = {}) {
       const socket = new WebSocket(wsUrl);
 
       socket.on('open', () => resolve(socket));
-      socket.on('error', (err) => reject(new Error(`CDP WebSocket error: ${err.message}`)));
+      socket.on('error', err => reject(new Error(`CDP WebSocket error: ${err.message}`)));
 
       setTimeout(() => {
         if (socket.readyState !== WebSocket.OPEN) {
@@ -152,19 +156,13 @@ async function level4ReloadCDP(extensionId, options = {}) {
     });
 
     // Step 3: Disable extension
-    await evaluateExpression(
-      ws,
-      `chrome.management.setEnabled('${extensionId}', false)`
-    );
+    await evaluateExpression(ws, `chrome.management.setEnabled('${extensionId}', false)`);
 
     // Step 4: Wait delay
     await new Promise(resolve => setTimeout(resolve, delay));
 
     // Step 5: Enable extension
-    await evaluateExpression(
-      ws,
-      `chrome.management.setEnabled('${extensionId}', true)`
-    );
+    await evaluateExpression(ws, `chrome.management.setEnabled('${extensionId}', true)`);
 
     const completedTime = Date.now();
 
@@ -180,8 +178,8 @@ async function level4ReloadCDP(extensionId, options = {}) {
       timing: {
         started: startTime,
         completed: completedTime,
-        duration: completedTime - startTime
-      }
+        duration: completedTime - startTime,
+      },
     };
   } catch (err) {
     // Clean up WebSocket on error

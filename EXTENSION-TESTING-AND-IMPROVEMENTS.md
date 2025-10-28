@@ -22,6 +22,7 @@
 ```
 
 **Expected Console Output:**
+
 ```
 [ChromeDevAssist] Service worker started
 [ChromeDevAssist] Connecting to WebSocket server...
@@ -30,6 +31,7 @@
 ```
 
 **If you see errors:**
+
 - Check extension/background.js for syntax errors
 - Verify server is running (ps aux | grep websocket-server)
 - Check TO-FIX.md for known issues
@@ -60,6 +62,7 @@ kill <PID>
 ```
 
 **Expected Console Output:**
+
 ```
 [ChromeDevAssist] Disconnected from server, will reconnect with backoff...
 [ChromeDevAssist] Scheduling reconnection attempt #1 in 1s
@@ -87,18 +90,21 @@ kill <PID>
 ```
 
 **Success Criteria:**
+
 - ✅ Delays increase: 1s → 2s → 4s → 8s → 16s → 30s
 - ✅ Delays cap at 30 seconds (not infinite)
 - ✅ No duplicate connection attempts
 - ✅ No crashes or errors
 
 **Failure Indicators:**
+
 - ❌ All delays are 1 second (exponential backoff not working)
 - ❌ Delays are random (getReconnectDelay() broken)
 - ❌ Multiple simultaneous reconnect attempts (race condition)
 - ❌ Extension crashes (critical failure)
 
 **If Test Fails:**
+
 1. Check extension console for errors
 2. Verify `scheduleReconnect()` is being called
 3. Check `reconnectAttempts` is incrementing
@@ -106,6 +112,7 @@ kill <PID>
 5. Report in TO-FIX.md with console logs
 
 **After Observing Backoff:**
+
 ```bash
 # 5. Restart server (while backoff is still running)
 cd /Users/gadievron/Documents/Claude\ Code/chrome-dev-assist
@@ -113,6 +120,7 @@ node server/websocket-server.js
 ```
 
 **Expected After Server Restart:**
+
 ```
 [ChromeDevAssist] Connected to server
 [ChromeDevAssist] Registered with server
@@ -120,6 +128,7 @@ node server/websocket-server.js
 ```
 
 **Success Criteria:**
+
 - ✅ Reconnects on next attempt after server starts
 - ✅ reconnectAttempts resets to 0 on successful connection
 - ✅ No errors during reconnection
@@ -147,6 +156,7 @@ const chromeDevAssist = require('./claude-code/index.js');
 ```
 
 **Expected Output:**
+
 ```
 Opening tab...
 ✅ Tab ID: 123456
@@ -155,11 +165,13 @@ Closing tab...
 ```
 
 **Success Criteria:**
+
 - ✅ Tab opens without errors
 - ✅ Tab closes without errors
 - ✅ No "Cannot send: WebSocket is..." errors in extension console
 
 **If Test Fails:**
+
 - Check extension console for `safeSend()` errors
 - Verify WebSocket state is OPEN before commands
 - Check TO-FIX.md for ISSUE-011 sub-issues
@@ -177,6 +189,7 @@ Based on ISSUE-011 and ISSUE-001 analysis, here are improvements to make the ext
 **Status:** ✅ COMPLETED (ISSUE-011)
 
 **What Was Fixed:**
+
 - Added NULL state check (`if (!ws)`)
 - Added CONNECTING state check (`ws.readyState === 0`)
 - Added 5-second timeout for stuck CONNECTING state
@@ -192,6 +205,7 @@ Run Step 2 (Exponential Backoff Test) above
 **Status:** ✅ COMPLETED (ISSUE-011)
 
 **What Was Fixed:**
+
 - Replaced fixed 1-second delay with exponential backoff
 - Formula: `min(2^attempt, 30)` seconds
 - Capped at 30 seconds
@@ -201,6 +215,7 @@ Run Step 2 (Exponential Backoff Test) above
 Run Step 2 (Exponential Backoff Test) above
 
 **Performance Impact:**
+
 - Error recovery: 15s → 1-2s (87% faster)
 - Server load: 100+ attempts → 6 attempts (95% reduction)
 
@@ -211,12 +226,14 @@ Run Step 2 (Exponential Backoff Test) above
 **Status:** ✅ COMPLETED (ISSUE-011)
 
 **What Was Fixed:**
+
 - Created `safeSend()` wrapper for all `ws.send()` calls
 - Validates WebSocket state before sending
 - Returns boolean (true = sent, false = not sent)
 - Logs clear error messages
 
 **Verification:**
+
 ```bash
 # Test by stopping server DURING a command
 # Extension console should show:
@@ -231,6 +248,7 @@ Run Step 2 (Exponential Backoff Test) above
 **Status:** ✅ COMPLETED (ISSUE-011)
 
 **What Was Fixed:**
+
 - Added `isConnecting` flag to prevent duplicate connections
 - Clear existing reconnect alarms before scheduling new ones
 - Check flag in all reconnection triggers
@@ -239,6 +257,7 @@ Run Step 2 (Exponential Backoff Test) above
 Run Step 2 (Exponential Backoff Test) and watch for duplicate attempts
 
 **Success Criteria:**
+
 - Only ONE "Alarm triggered: reconnecting" per attempt
 - No simultaneous connection attempts
 
@@ -249,11 +268,13 @@ Run Step 2 (Exponential Backoff Test) and watch for duplicate attempts
 **Status:** ✅ COMPLETED (ISSUE-011)
 
 **What Was Fixed:**
+
 - `ws.onerror` now triggers immediate reconnection
 - Don't wait for keep-alive alarm (15 seconds)
 - Recovery time: 15s → 1-2s
 
 **Verification:**
+
 ```bash
 # Test by killing server abruptly (simulates network error)
 kill -9 <server-pid>
@@ -271,13 +292,14 @@ kill -9 <server-pid>
 **Status:** ⚠️ **DEFERRED** (documented in ISSUE-011 TODO 2)
 
 **What's Missing:**
+
 ```javascript
 // Current: Fire-and-forget registration
 ws.onopen = () => {
   safeSend({
     type: 'register',
     client: 'extension',
-    extensionId: chrome.runtime.id
+    extensionId: chrome.runtime.id,
   });
   // ❌ No wait for server ACK
   // Extension immediately processes commands
@@ -285,6 +307,7 @@ ws.onopen = () => {
 ```
 
 **Proposed Fix:**
+
 ```javascript
 let isRegistered = false; // Already added
 let registrationPending = false;
@@ -294,11 +317,11 @@ ws.onopen = () => {
   safeSend({
     type: 'register',
     client: 'extension',
-    extensionId: chrome.runtime.id
+    extensionId: chrome.runtime.id,
   });
 };
 
-ws.onmessage = (event) => {
+ws.onmessage = event => {
   const message = JSON.parse(event.data);
 
   if (message.type === 'registration-ack') {
@@ -334,6 +357,7 @@ Prevents race condition where command arrives before registration completes.
 **Status:** ⚠️ **DEFERRED** (documented in ISSUE-011 TODO 1)
 
 **What's Missing:**
+
 ```javascript
 // Current: safeSend() rejects messages during CONNECTING
 if (ws.readyState === WebSocket.CONNECTING) {
@@ -343,6 +367,7 @@ if (ws.readyState === WebSocket.CONNECTING) {
 ```
 
 **Proposed Fix:**
+
 ```javascript
 const messageQueue = [];
 
@@ -391,14 +416,17 @@ Prevents message loss if command arrives during reconnection.
 **Status:** ⚠️ **NEEDS AUDIT**
 
 **What We Added:**
+
 - 5-second timeout for CONNECTING state ✅
 
 **What Needs Audit:**
+
 - Do commands have timeouts?
 - Do API calls have timeouts?
 - Does tab manipulation have timeouts?
 
 **Audit Needed:**
+
 ```bash
 # Search for async operations without timeout
 grep -n "await chrome\." extension/background.js | head -20
@@ -415,11 +443,13 @@ Audit all async operations and add timeouts where missing.
 
 **What's Broken:**
 Data URI iframe metadata leaks to main page despite:
+
 1. Protocol blocking ❌
 2. allFrames: false ❌
 3. FrameId filtering ❌
 
 **Next Steps (from CODING-TESTING-LESSONS.md):**
+
 1. Add debug logging to understand WHY it leaks
 2. Test theories systematically (not just document)
 3. Create minimal reproduction (simple.html with 1 iframe)
@@ -444,6 +474,7 @@ Based on lessons learned, here are architectural improvements for the extension:
 Extension keeps trying to reconnect indefinitely (capped at 30s delay).
 
 **Proposed:**
+
 ```javascript
 let consecutiveFailures = 0;
 const MAX_CONSECUTIVE_FAILURES = 20; // ~10 minutes at 30s cap
@@ -484,6 +515,7 @@ Prevents infinite reconnection attempts if server is permanently down.
 Extension only knows about connection after trying to connect.
 
 **Proposed:**
+
 ```javascript
 async function checkServerHealth() {
   try {
@@ -528,6 +560,7 @@ Avoids WebSocket connection overhead if server is down.
 No visibility into connection stability metrics.
 
 **Proposed:**
+
 ```javascript
 const metrics = {
   totalConnections: 0,
@@ -535,7 +568,7 @@ const metrics = {
   totalFailures: 0,
   averageConnectionDuration: 0,
   lastConnectionTime: null,
-  lastDisconnectionTime: null
+  lastDisconnectionTime: null,
 };
 
 ws.onopen = () => {
@@ -566,6 +599,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ```
 
 **Why This Matters:**
+
 - Track connection stability over time
 - Identify patterns (time of day, frequency)
 - Validate improvements
@@ -579,13 +613,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ### Manual Tests (User Must Run)
 
 #### Test 1: Exponential Backoff ✅
+
 **Status:** PENDING
 **Procedure:** See "Step 2: Test Exponential Backoff" above
 **Priority:** CRITICAL
 
 #### Test 2: State Validation (safeSend) ✅
+
 **Status:** PENDING
 **Procedure:**
+
 ```bash
 1. Open extension console
 2. Stop server (kill <PID>)
@@ -594,12 +631,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
    [ChromeDevAssist] Cannot send: WebSocket is CLOSED
 5. NO crash, NO exception
 ```
+
 **Expected:** Clear error message, no crash
 **Priority:** HIGH
 
 #### Test 3: Error Recovery Speed ✅
+
 **Status:** PENDING
 **Procedure:**
+
 ```bash
 1. Server running, extension connected
 2. Kill server abruptly: kill -9 <PID>
@@ -607,17 +647,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 4. Restart server: node server/websocket-server.js
 5. Stop timer when extension reconnects
 ```
+
 **Expected:** Reconnection in 1-2 seconds (not 15 seconds)
 **Priority:** HIGH
 
 #### Test 4: Race Condition Prevention ✅
+
 **Status:** PENDING
 **Procedure:**
+
 ```bash
 1. Open extension console
 2. Stop server
 3. Watch for duplicate connection attempts
 ```
+
 **Expected:** ONE reconnect attempt per delay period
 **Priority:** MEDIUM
 
@@ -626,9 +670,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ### Automated Tests (Already Written)
 
 #### Unit Tests ✅
+
 **Status:** 23/23 PASSED
 **File:** `tests/unit/connection-logic-unit.test.js`
 **Coverage:**
+
 - Exponential backoff formula (8 tests)
 - State validation logic (7 tests)
 - State machine flags (4 tests)
@@ -636,6 +682,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 - Formula correctness (2 tests)
 
 **Run:**
+
 ```bash
 npm test tests/unit/connection-logic-unit.test.js
 ```
@@ -643,9 +690,11 @@ npm test tests/unit/connection-logic-unit.test.js
 ---
 
 #### Integration Tests ⏳
+
 **Status:** 42 BLOCKED (requires Chrome extension infrastructure)
 **File:** `tests/unit/websocket-connection-stability.test.js`
 **Coverage:**
+
 - All 6 ISSUE-011 sub-issues
 - Integration scenarios
 - Regression prevention
@@ -657,6 +706,7 @@ npm test tests/unit/connection-logic-unit.test.js
 ## Success Criteria
 
 ### Phase 1: Immediate Validation (User Testing)
+
 - [ ] Extension reload successful (no errors)
 - [ ] Exponential backoff working (delays increase: 1s→2s→4s→8s→16s→30s)
 - [ ] safeSend() prevents crashes (clear error messages)
@@ -665,12 +715,14 @@ npm test tests/unit/connection-logic-unit.test.js
 - [ ] No memory leaks
 
 ### Phase 2: Production Validation (24-hour cooling period)
+
 - [ ] No crashes reported
 - [ ] Connection stability improved
 - [ ] No regression in functionality
 - [ ] Server load reduced during restarts
 
 ### Phase 3: Future Improvements (Optional)
+
 - [ ] Registration confirmation flow (TODO 2)
 - [ ] Message queuing (TODO 1)
 - [ ] Circuit breaker pattern
@@ -700,16 +752,19 @@ git checkout HEAD~1 extension/background.js
 ## Next Steps
 
 **Immediate (User Action Required):**
+
 1. 🔥 Reload extension (Step 1)
 2. 🔥 Test exponential backoff (Step 2) - CRITICAL
 3. Test basic connectivity (Step 3)
 
 **After Testing Passes:**
+
 1. Monitor for 24 hours (cooling period)
 2. Move ISSUE-011 from TO-FIX.md to FIXED-LOG.md
 3. Consider implementing TODO 2 (registration ACK)
 
 **If Testing Fails:**
+
 1. Capture console logs
 2. Document failure in TO-FIX.md
 3. Rollback changes
@@ -717,5 +772,5 @@ git checkout HEAD~1 extension/background.js
 
 ---
 
-*Created: 2025-10-25*
-*Status: Awaiting user testing (extension reload + exponential backoff test)*
+_Created: 2025-10-25_
+_Status: Awaiting user testing (extension reload + exponential backoff test)_

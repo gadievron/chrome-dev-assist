@@ -8,11 +8,11 @@
  * in background.js, not injected from here.
  */
 
-(function() {
+(function () {
   'use strict';
 
   // Listen for console log events from MAIN world script
-  window.addEventListener('chromeDevAssist:consoleLog', function(event) {
+  window.addEventListener('chromeDevAssist:consoleLog', function (event) {
     const logData = event.detail;
 
     try {
@@ -21,11 +21,10 @@
         level: logData.level,
         message: logData.message,
         timestamp: logData.timestamp,
-        source: logData.source
+        source: logData.source,
       });
     } catch (err) {
       // Silently fail if extension context is invalidated
     }
   });
-
 })();

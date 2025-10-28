@@ -6,7 +6,6 @@
 const chromeDevAssist = require('../../claude-code/index.js');
 
 describe('Chrome Dev Assist API', () => {
-
   describe('reloadAndCapture()', () => {
     test('should return console logs after reload', async () => {
       // Mock: In real test, would use actual extension
@@ -26,7 +25,7 @@ describe('Chrome Dev Assist API', () => {
       const extensionId = 'b'.repeat(32);
 
       const result = await chromeDevAssist.reloadAndCapture(extensionId, {
-        duration: 3000
+        duration: 3000,
       });
 
       expect(result).toBeDefined();
@@ -34,9 +33,7 @@ describe('Chrome Dev Assist API', () => {
     }, 10000);
 
     test('should throw error for invalid extension ID', async () => {
-      await expect(
-        chromeDevAssist.reloadAndCapture('invalid-id')
-      ).rejects.toThrow();
+      await expect(chromeDevAssist.reloadAndCapture('invalid-id')).rejects.toThrow();
     });
   });
 

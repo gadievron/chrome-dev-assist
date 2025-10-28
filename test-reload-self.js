@@ -26,24 +26,26 @@ ws.on('open', () => {
   reloadCommandId = 'reload-self-' + Date.now();
 
   console.log('🔄 Sending reload command with allowSelfReload: true...');
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: reloadCommandId,
-    targetExtensionId: EXTENSION_ID,
-    command: {
-      type: 'reload',
-      params: {
-        extensionId: EXTENSION_ID,
-        allowSelfReload: true,  // Allow reloading itself
-        captureConsole: false
-      }
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: reloadCommandId,
+      targetExtensionId: EXTENSION_ID,
+      command: {
+        type: 'reload',
+        params: {
+          extensionId: EXTENSION_ID,
+          allowSelfReload: true, // Allow reloading itself
+          captureConsole: false,
+        },
+      },
+    })
+  );
 
   console.log(`📤 Command sent (ID: ${reloadCommandId})\n`);
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   if (message.id === reloadCommandId) {
@@ -65,7 +67,9 @@ ws.on('message', (data) => {
       console.log('─'.repeat(70));
       console.log('if (typeof ErrorLogger !== "undefined") {');
       console.log('  console.log("✅ ErrorLogger loaded");');
-      console.log('  ErrorLogger.logExpectedError("test", "Expected error", new Error("Expected"));');
+      console.log(
+        '  ErrorLogger.logExpectedError("test", "Expected error", new Error("Expected"));'
+      );
       console.log('  ErrorLogger.logUnexpectedError("test", "Bug found", new Error("Bug"));');
       console.log('  console.log("✅ Check: YELLOW warning + RED error (no stack traces)");');
       console.log('} else {');
@@ -74,7 +78,6 @@ ws.on('message', (data) => {
       console.log('─'.repeat(70));
 
       setTimeout(() => ws.close(), 1000);
-
     } else if (message.type === 'error') {
       console.error('❌ Reload failed!');
       console.error(JSON.stringify(message.error, null, 2));
@@ -83,7 +86,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ Connection error:', err.message);
   process.exit(1);
 });

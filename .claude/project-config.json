@@ -8,12 +8,7 @@
     "extension/background.js",
     "claude-code/index.js"
   ],
-  "mainDirectories": [
-    "extension/",
-    "claude-code/",
-    "server/",
-    "tests/"
-  ],
+  "mainDirectories": ["extension/", "claude-code/", "server/", "tests/"],
   "entryPoints": {
     "extension": "extension/background.js",
     "api": "claude-code/index.js",

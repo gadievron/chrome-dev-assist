@@ -22,28 +22,28 @@ This file contains the **CORE SERVER FUNCTIONALITY** that makes the entire syste
 
 **Functions Found:**
 
-| # | Function | Line | Purpose | Type |
-|---|----------|------|---------|------|
-| 1 | `ensureSingleInstance()` | 48 | Prevent multiple server instances | Critical |
-| 2 | `log()` | 133 | Debug logging | Utility |
-| 3 | `logError()` | 139 | Error logging | Utility |
-| 4 | `handleHttpRequest()` | 152 | HTTP health check endpoint | Core |
-| 5 | `handleRegister()` | 427 | Extension registration handler | Core |
-| 6 | `handleCommand()` | 450 | Command routing | Core |
-| 7 | `handleResponse()` | 505 | Response routing | Core |
-| 8 | `cleanup()` | 540 | Server shutdown cleanup | Core |
+| #   | Function                 | Line | Purpose                           | Type     |
+| --- | ------------------------ | ---- | --------------------------------- | -------- |
+| 1   | `ensureSingleInstance()` | 48   | Prevent multiple server instances | Critical |
+| 2   | `log()`                  | 133  | Debug logging                     | Utility  |
+| 3   | `logError()`             | 139  | Error logging                     | Utility  |
+| 4   | `handleHttpRequest()`    | 152  | HTTP health check endpoint        | Core     |
+| 5   | `handleRegister()`       | 427  | Extension registration handler    | Core     |
+| 6   | `handleCommand()`        | 450  | Command routing                   | Core     |
+| 7   | `handleResponse()`       | 505  | Response routing                  | Core     |
+| 8   | `cleanup()`              | 540  | Server shutdown cleanup           | Core     |
 
 **Constants:**
 
-| Constant | Line | Value | Purpose |
-|----------|------|-------|---------|
-| PORT | 33 | 9876 | WebSocket port |
-| HOST | 34 | '127.0.0.1' | Localhost binding |
-| DEBUG | 35 | process.env.DEBUG | Debug mode flag |
-| FIXTURES_PATH | 38 | '../tests/fixtures' | Test fixtures location |
-| PID_FILE | 42 | '../.server-pid' | PID file for single instance |
-| AUTH_TOKEN | 115 | crypto.randomBytes(32) | Authentication token |
-| TOKEN_FILE | 116 | '../.auth-token' | Token file location |
+| Constant      | Line | Value                  | Purpose                      |
+| ------------- | ---- | ---------------------- | ---------------------------- |
+| PORT          | 33   | 9876                   | WebSocket port               |
+| HOST          | 34   | '127.0.0.1'            | Localhost binding            |
+| DEBUG         | 35   | process.env.DEBUG      | Debug mode flag              |
+| FIXTURES_PATH | 38   | '../tests/fixtures'    | Test fixtures location       |
+| PID_FILE      | 42   | '../.server-pid'       | PID file for single instance |
+| AUTH_TOKEN    | 115  | crypto.randomBytes(32) | Authentication token         |
+| TOKEN_FILE    | 116  | '../.auth-token'       | Token file location          |
 
 **Total Functions Missed:** 8 functions + 7 constants = 15 items
 
@@ -52,11 +52,13 @@ This file contains the **CORE SERVER FUNCTIONALITY** that makes the entire syste
 ## ⚠️ WHY THIS IS SERIOUS
 
 **Impact on Audit:**
+
 - ✅ Public API audit: Still 100% accurate (didn't miss user-facing functions)
 - ❌ Complete codebase audit: Incomplete (missed server core)
 - ⚠️ Architecture documentation: Missing server function details
 
 **What This Means:**
+
 1. The **API functions** I verified (8 total) are still correct ✅
 2. The **validation functions** I verified (6 total) are still correct ✅
 3. The **extension handlers** I verified (7 total) are still correct ✅
@@ -67,10 +69,13 @@ This file contains the **CORE SERVER FUNCTIONALITY** that makes the entire syste
 ## 📊 REVISED STATISTICS
 
 ### Original Audit Claim
+
 **Total Functions Audited:** 55
 
 ### Actual Complete Count
+
 **Total Functions in Codebase:**
+
 - Public API: 8 ✅
 - Extension Handlers: 7 ✅
 - Validation: 6 ✅
@@ -108,11 +113,12 @@ This file contains the **CORE SERVER FUNCTIONALITY** that makes the entire syste
 ### Files That Are Debug/Test Scripts
 
 These 51 files are test scripts and debug utilities (not core functionality):
-- test-*.js (26 files)
-- scripts/manual-tests/*.js (8 files)
-- debug-*.js (3 files)
-- diagnose-*.js (2 files)
-- prototype/*.js (2 files)
+
+- test-\*.js (26 files)
+- scripts/manual-tests/\*.js (8 files)
+- debug-\*.js (3 files)
+- diagnose-\*.js (2 files)
+- prototype/\*.js (2 files)
 - Others (10 files)
 
 **Verdict:** These are not core functionality - OK to skip ✅
@@ -141,6 +147,7 @@ These 51 files are test scripts and debug utilities (not core functionality):
 **Purpose:** Prevent multiple server instances running on same port
 
 **How it works:**
+
 ```javascript
 function ensureSingleInstance() {
   // Check if PID file exists
@@ -160,6 +167,7 @@ function ensureSingleInstance() {
 **Purpose:** HTTP health check endpoint
 
 **What it does:**
+
 - Serves `/health` endpoint
 - Serves test fixtures from `/fixtures/*`
 - Returns 404 for other paths
@@ -167,6 +175,7 @@ function ensureSingleInstance() {
 - Implements token authentication
 
 **Security Features:**
+
 - Host header validation (localhost only)
 - Token authentication
 - Path validation
@@ -180,6 +189,7 @@ function ensureSingleInstance() {
 **Purpose:** Handle extension registration
 
 **What it does:**
+
 ```javascript
 function handleRegister(socket, msg) {
   // Extract extension metadata
@@ -198,6 +208,7 @@ function handleRegister(socket, msg) {
 **Purpose:** Route commands from API to extension
 
 **What it does:**
+
 ```javascript
 function handleCommand(socket, msg) {
   // Receive command from API socket
@@ -216,6 +227,7 @@ function handleCommand(socket, msg) {
 **Purpose:** Route responses from extension to API
 
 **What it does:**
+
 ```javascript
 function handleResponse(socket, msg) {
   // Receive response from extension
@@ -234,6 +246,7 @@ function handleResponse(socket, msg) {
 **Purpose:** Clean shutdown
 
 **What it does:**
+
 ```javascript
 function cleanup() {
   // Close all WebSocket connections
@@ -250,16 +263,19 @@ function cleanup() {
 ## 📈 IMPACT ASSESSMENT
 
 ### User-Facing Impact: NONE ✅
+
 - All 8 public API functions verified correctly
 - All documentation of user-facing features accurate
 - Bug found and fixed is still valid
 
 ### Architecture Documentation: INCOMPLETE ⚠️
+
 - Missing server core functions
 - Missing authentication mechanism details
 - Missing single-instance enforcement
 
 ### Completeness Claim: WRONG ❌
+
 - Claimed "100% of documented functionality verified"
 - Should have said "100% of **user-facing** functionality verified"
 - Server implementation layer was not audited
@@ -269,9 +285,11 @@ function cleanup() {
 ## 🔧 CORRECTED AUDIT SCOPE
 
 ### What Was Audited
+
 **Scope:** User-facing functionality and extension layer
 
 **Coverage:**
+
 - ✅ Public API (100%)
 - ✅ Extension handlers (100%)
 - ✅ Input validation (100%)
@@ -282,9 +300,11 @@ function cleanup() {
 ---
 
 ### What Was NOT Audited
+
 **Scope:** Server implementation layer
 
 **Missing:**
+
 - ❌ WebSocket server core functions (8 functions)
 - ❌ Server constants and configuration (7 items)
 - ❌ Authentication mechanism
@@ -298,17 +318,20 @@ function cleanup() {
 ## ✅ WHAT REMAINS VALID
 
 ### Documentation Improvements
+
 - ✅ docs/API.md improvements (100% user-facing)
 - ✅ Security restrictions documentation (accurate)
 - ✅ All 12 HIGH PRIORITY gaps addressed
 - ✅ Documentation coverage 23% → 80%
 
 ### Bug Fix
+
 - ✅ Validation regex bug found and fixed
 - ✅ Tests passing (67/67)
 - ✅ Fix verified
 
 ### Code Verification
+
 - ✅ All user-facing functions verified
 - ✅ All line numbers accurate
 - ✅ All exports verified
@@ -349,6 +372,7 @@ function cleanup() {
 ### How to Prevent
 
 1. ✅ **Always enumerate all files first**
+
    ```bash
    find . -name "*.js" | wc -l
    ```
@@ -370,17 +394,20 @@ function cleanup() {
 ## 📊 HONEST ASSESSMENT
 
 ### What I Got Right ✅
+
 - User-facing API audit: 100% accurate
 - Documentation improvements: Valid and helpful
 - Bug found and fixed: Real bug, properly fixed
 - Tests: All passing
 
 ### What I Got Wrong ❌
+
 - Claimed complete codebase audit
 - Missed server implementation layer
 - Overstated completeness (100% vs 78.6%)
 
 ### Overall Quality
+
 **User-Facing Audit:** EXCELLENT ✅
 **Complete Codebase Audit:** INCOMPLETE ⚠️
 
@@ -407,12 +434,14 @@ If complete codebase audit is required:
 **Answer:** YES - I missed **server/websocket-server.js** (8 core functions + 7 constants)
 
 **Impact:**
+
 - User-facing functionality audit: Still 100% accurate ✅
 - Complete codebase audit: Only 78.6% coverage ⚠️
 - Documentation improvements: Still valid ✅
 - Bug fix: Still correct ✅
 
 **Revised Claim:**
+
 - Original: "Verified 100% of documented functionality"
 - Corrected: "Verified 100% of user-facing functionality, missed server layer"
 

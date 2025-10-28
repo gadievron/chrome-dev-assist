@@ -14,10 +14,7 @@ describe('Chrome Crash Prevention', () => {
   let backgroundJs;
 
   beforeAll(() => {
-    backgroundJs = fs.readFileSync(
-      path.join(__dirname, '../../extension/background.js'),
-      'utf8'
-    );
+    backgroundJs = fs.readFileSync(path.join(__dirname, '../../extension/background.js'), 'utf8');
   });
 
   describe('Expected Errors Use console.warn', () => {
@@ -117,17 +114,14 @@ describe('Chrome Crash Prevention', () => {
         { name: 'ws.onerror', searchLength: 1000 },
         { name: 'ws.onclose', searchLength: 1500 },
         { name: 'const connectTimeout = setTimeout', searchLength: 1000 },
-        { name: 'registrationTimeout = setTimeout', searchLength: 1000 }
+        { name: 'registrationTimeout = setTimeout', searchLength: 1000 },
       ];
 
       errorHandlers.forEach(handler => {
         const startIndex = backgroundJs.indexOf(handler.name);
         expect(startIndex).toBeGreaterThan(0); // Handler exists
 
-        const handlerCode = backgroundJs.substring(
-          startIndex,
-          startIndex + handler.searchLength
-        );
+        const handlerCode = backgroundJs.substring(startIndex, startIndex + handler.searchLength);
 
         // Should have recovery logic (either direct scheduleReconnect() or ws.close() which triggers ws.onclose)
         expect(handlerCode).toMatch(/scheduleReconnect|reconnectAttempts|ws\.close\(\)/);
@@ -159,9 +153,7 @@ describe('Chrome Crash Prevention', () => {
       warnMessages.forEach(msg => {
         // Should mention reconnection or retry
         const hasActionableInfo =
-          msg.includes('reconnect') ||
-          msg.includes('retry') ||
-          msg.includes('will');
+          msg.includes('reconnect') || msg.includes('retry') || msg.includes('will');
 
         if (!hasActionableInfo) {
           console.warn('Warning message may lack actionable info:', msg.substring(0, 100));
@@ -177,7 +169,11 @@ describe('Chrome Crash Prevention', () => {
       // Permanent errors: programming bugs, invalid state (use console.error)
 
       // Count console.warn for transient issues (connection, timeout, registration)
-      const warnCount = (backgroundJs.match(/console\.warn.*connection|console\.warn.*timeout|console\.warn.*Registration/gi) || []).length;
+      const warnCount = (
+        backgroundJs.match(
+          /console\.warn.*connection|console\.warn.*timeout|console\.warn.*Registration/gi
+        ) || []
+      ).length;
       expect(warnCount).toBeGreaterThanOrEqual(3);
 
       // Count console.error for programming issues

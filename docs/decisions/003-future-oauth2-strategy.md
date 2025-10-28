@@ -13,6 +13,7 @@
 Currently, Chrome Dev Assist is a **local development tool** with no user authentication. If we add features requiring user identity or external API access, we'll need production-grade authentication.
 
 **Future features that would require authentication**:
+
 - Cloud sync of extension settings
 - Shared team workspaces
 - Access to external APIs (GitHub, Jira, Slack, etc.)
@@ -45,6 +46,7 @@ Refresh tokens stored server-side only (never in extension)
 ## Rationale
 
 ### Why OAuth2?
+
 - **Industry Standard**: Used by Google, GitHub, Microsoft, etc.
 - **Proven Security**: Decades of battle-testing
 - **No Client Secrets**: Extension never handles user passwords
@@ -52,6 +54,7 @@ Refresh tokens stored server-side only (never in extension)
 - **Standard Libraries**: Available for all languages/platforms
 
 ### Why PKCE?
+
 - **Prevents Code Interception**: Protects against authorization code theft
 - **Designed for Public Clients**: Extensions are "public clients" (code can be inspected)
 - **Required by Modern Providers**: Google, GitHub now require PKCE
@@ -71,43 +74,47 @@ const codeChallenge = base64url(
 );
 
 // 2. Launch OAuth flow
-chrome.identity.launchWebAuthFlow({
-  url: `https://oauth.provider.com/authorize?` +
-       `client_id=${CLIENT_ID}&` +
-       `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
-       `response_type=code&` +
-       `code_challenge=${codeChallenge}&` +
-       `code_challenge_method=S256&` +
-       `scope=read:user&` +
-       `state=${randomState}`,
-  interactive: true
-}, async (redirectUrl) => {
-  // 3. Extract authorization code
-  const url = new URL(redirectUrl);
-  const code = url.searchParams.get('code');
-  const state = url.searchParams.get('state');
+chrome.identity.launchWebAuthFlow(
+  {
+    url:
+      `https://oauth.provider.com/authorize?` +
+      `client_id=${CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(REDIRECT_URI)}&` +
+      `response_type=code&` +
+      `code_challenge=${codeChallenge}&` +
+      `code_challenge_method=S256&` +
+      `scope=read:user&` +
+      `state=${randomState}`,
+    interactive: true,
+  },
+  async redirectUrl => {
+    // 3. Extract authorization code
+    const url = new URL(redirectUrl);
+    const code = url.searchParams.get('code');
+    const state = url.searchParams.get('state');
 
-  // Verify state to prevent CSRF
-  if (state !== expectedState) {
-    throw new Error('State mismatch');
+    // Verify state to prevent CSRF
+    if (state !== expectedState) {
+      throw new Error('State mismatch');
+    }
+
+    // 4. Exchange code for token (server-side)
+    const response = await fetch('https://api.yourserver.com/oauth/exchange', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, code_verifier: codeVerifier }),
+    });
+
+    const { access_token, expires_in, session_handle } = await response.json();
+
+    // 5. Store tokens securely
+    await chrome.storage.session.set({
+      accessToken: access_token,
+      expiresAt: Date.now() + expires_in * 1000,
+      sessionHandle: session_handle, // Opaque handle for refresh
+    });
   }
-
-  // 4. Exchange code for token (server-side)
-  const response = await fetch('https://api.yourserver.com/oauth/exchange', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code, code_verifier: codeVerifier })
-  });
-
-  const { access_token, expires_in, session_handle } = await response.json();
-
-  // 5. Store tokens securely
-  await chrome.storage.session.set({
-    accessToken: access_token,
-    expiresAt: Date.now() + (expires_in * 1000),
-    sessionHandle: session_handle  // Opaque handle for refresh
-  });
-});
+);
 ```
 
 ### Phase 2: Token Management
@@ -115,8 +122,11 @@ chrome.identity.launchWebAuthFlow({
 ```javascript
 // Token refresh strategy
 async function getValidAccessToken() {
-  const { accessToken, expiresAt, sessionHandle } =
-    await chrome.storage.session.get(['accessToken', 'expiresAt', 'sessionHandle']);
+  const { accessToken, expiresAt, sessionHandle } = await chrome.storage.session.get([
+    'accessToken',
+    'expiresAt',
+    'sessionHandle',
+  ]);
 
   // Token still valid
   if (accessToken && Date.now() < expiresAt - 60000) {
@@ -127,7 +137,7 @@ async function getValidAccessToken() {
   const response = await fetch('https://api.yourserver.com/oauth/refresh', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ session_handle: sessionHandle })
+    body: JSON.stringify({ session_handle: sessionHandle }),
   });
 
   const { access_token, expires_in } = await response.json();
@@ -135,7 +145,7 @@ async function getValidAccessToken() {
   // Store new token
   await chrome.storage.session.set({
     accessToken: access_token,
-    expiresAt: Date.now() + (expires_in * 1000)
+    expiresAt: Date.now() + expires_in * 1000,
   });
 
   return access_token;
@@ -199,12 +209,12 @@ async function authenticate(provider) {
 // Short-lived access token (ephemeral)
 await chrome.storage.session.set({
   accessToken: 'eyJhbG...',
-  expiresAt: Date.now() + 3600000  // 1 hour
+  expiresAt: Date.now() + 3600000, // 1 hour
 });
 
 // Opaque session handle (persistent)
 await chrome.storage.local.set({
-  sessionHandle: 'opaque_handle_abc123'  // Exchange for new token on startup
+  sessionHandle: 'opaque_handle_abc123', // Exchange for new token on startup
 });
 
 // Refresh token (NEVER in extension)
@@ -213,13 +223,13 @@ await chrome.storage.local.set({
 
 ### Storage Comparison
 
-| Storage Type | Access Token | Refresh Token | Session Handle |
-|--------------|--------------|---------------|----------------|
-| **storage.session** | ✅ Yes | ❌ No | ⚠️ Lost on restart |
-| **storage.local** | ⚠️ Not ideal | ❌ Never | ✅ Yes |
-| **storage.sync** | ❌ Never | ❌ Never | ❌ Leaks across devices |
-| **localStorage** | ❌ Never | ❌ Never | ❌ Content script access |
-| **Server-side** | ⚠️ For refresh | ✅ Always | ✅ As backup |
+| Storage Type        | Access Token   | Refresh Token | Session Handle           |
+| ------------------- | -------------- | ------------- | ------------------------ |
+| **storage.session** | ✅ Yes         | ❌ No         | ⚠️ Lost on restart       |
+| **storage.local**   | ⚠️ Not ideal   | ❌ Never      | ✅ Yes                   |
+| **storage.sync**    | ❌ Never       | ❌ Never      | ❌ Leaks across devices  |
+| **localStorage**    | ❌ Never       | ❌ Never      | ❌ Content script access |
+| **Server-side**     | ⚠️ For refresh | ✅ Always     | ✅ As backup             |
 
 ---
 
@@ -227,28 +237,31 @@ await chrome.storage.local.set({
 
 ### API Support Matrix
 
-| Browser | getAuthToken() | launchWebAuthFlow() | Notes |
-|---------|----------------|---------------------|-------|
-| **Chrome** | ✅ Google only | ✅ Generic OAuth | Full support |
-| **Edge** | ⚠️ Unreliable | ✅ Works | Use launchWebAuthFlow |
-| **Brave** | ❌ Often broken | ✅ Works | Use launchWebAuthFlow |
-| **Firefox** | ❌ Not supported | ✅ Works (browser.identity) | Different API name |
+| Browser     | getAuthToken()   | launchWebAuthFlow()         | Notes                 |
+| ----------- | ---------------- | --------------------------- | --------------------- |
+| **Chrome**  | ✅ Google only   | ✅ Generic OAuth            | Full support          |
+| **Edge**    | ⚠️ Unreliable    | ✅ Works                    | Use launchWebAuthFlow |
+| **Brave**   | ❌ Often broken  | ✅ Works                    | Use launchWebAuthFlow |
+| **Firefox** | ❌ Not supported | ✅ Works (browser.identity) | Different API name    |
 
 **Recommendation**: Always use `launchWebAuthFlow()` for maximum compatibility.
 
 ### Browser-Specific Issues
 
 **Edge**:
+
 - Redirect URI registration varies by provider
 - May reject `chrome-extension://` URIs
 - Test with `https://yourdomain.com/callback` instead
 
 **Brave**:
+
 - Shields may block OAuth popups
 - Provide fallback instructions
 - Test in both Shields up/down modes
 
 **Firefox**:
+
 - Use `browser.identity` instead of `chrome.identity`
 - Polyfill with webextension-polyfill
 
@@ -260,7 +273,8 @@ await chrome.storage.local.set({
 
 ```javascript
 // Use launchWebAuthFlow (works everywhere)
-const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+const authUrl =
+  `https://accounts.google.com/o/oauth2/v2/auth?` +
   `client_id=${CLIENT_ID}&` +
   `redirect_uri=${REDIRECT_URI}&` +
   `response_type=code&` +
@@ -273,6 +287,7 @@ const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
 ```
 
 **Google-Specific**:
+
 - Requires verified domain for redirect URI
 - Can use `getAuthToken()` but not portable
 - PKCE now required for new apps
@@ -280,7 +295,8 @@ const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
 ### GitHub OAuth
 
 ```javascript
-const authUrl = `https://github.com/login/oauth/authorize?` +
+const authUrl =
+  `https://github.com/login/oauth/authorize?` +
   `client_id=${CLIENT_ID}&` +
   `redirect_uri=${REDIRECT_URI}&` +
   `scope=read:user&` +
@@ -288,6 +304,7 @@ const authUrl = `https://github.com/login/oauth/authorize?` +
 ```
 
 **GitHub-Specific**:
+
 - Supports PKCE (recommended but not required yet)
 - Allows `chrome-extension://` redirect URIs
 - Easy to test locally
@@ -295,7 +312,8 @@ const authUrl = `https://github.com/login/oauth/authorize?` +
 ### Microsoft (Azure AD)
 
 ```javascript
-const authUrl = `https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/authorize?` +
+const authUrl =
+  `https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/authorize?` +
   `client_id=${CLIENT_ID}&` +
   `redirect_uri=${REDIRECT_URI}&` +
   `response_type=code&` +
@@ -305,6 +323,7 @@ const authUrl = `https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/authori
 ```
 
 **Microsoft-Specific**:
+
 - PKCE required for public clients
 - Supports enterprise SSO
 - MSAL.js library available
@@ -314,6 +333,7 @@ const authUrl = `https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/authori
 ## Alternative: Native Messaging for Enterprise
 
 If requirements include:
+
 - Corporate SSO with mutual TLS
 - Hardware security tokens (YubiKey)
 - OS keychain access (macOS Keychain, Windows DPAPI)
@@ -328,10 +348,10 @@ const port = chrome.runtime.connectNative('com.yourapp.auth');
 port.postMessage({
   command: 'getToken',
   nonce: randomNonce,
-  hmac: calculateHMAC(message)
+  hmac: calculateHMAC(message),
 });
 
-port.onMessage.addListener((response) => {
+port.onMessage.addListener(response => {
   // Verify HMAC
   if (!verifyHMAC(response)) {
     throw new Error('Invalid response signature');
@@ -343,6 +363,7 @@ port.onMessage.addListener((response) => {
 ```
 
 **Native Host Security**:
+
 - HMAC all messages
 - Strict JSON schema validation
 - Rate limiting
@@ -362,7 +383,7 @@ describe('OAuth Flow', () => {
     const mockProvider = new MockOAuthProvider();
     mockProvider.expectAuthorizationRequest({
       code_challenge_method: 'S256',
-      response_type: 'code'
+      response_type: 'code',
     });
 
     const token = await authenticate(mockProvider);
@@ -383,6 +404,7 @@ describe('OAuth Flow', () => {
 ### Cross-Browser Tests
 
 Run on:
+
 - Chrome Stable
 - Chrome Beta
 - Edge Stable
@@ -390,6 +412,7 @@ Run on:
 - Firefox (if targeting)
 
 **Test Cases**:
+
 - OAuth popup opens
 - Redirect URI captured correctly
 - Token exchange succeeds
@@ -402,6 +425,7 @@ Run on:
 ## When to Implement
 
 **Trigger Events**:
+
 1. Need to store user-specific data
 2. Need to access external APIs on behalf of user
 3. Need to sync data across devices
@@ -409,6 +433,7 @@ Run on:
 5. Need user analytics with PII
 
 **Before Implementation**:
+
 - [ ] Define which features require auth
 - [ ] Choose OAuth provider(s) (Google, GitHub, etc.)
 - [ ] Register OAuth application
@@ -424,6 +449,7 @@ Run on:
 ## Cost-Benefit Analysis
 
 **Benefits of OAuth2 + PKCE**:
+
 - Industry-standard security
 - No password handling
 - Third-party integration
@@ -431,6 +457,7 @@ Run on:
 - Cross-platform compatibility
 
 **Costs**:
+
 - Implementation complexity
 - Server-side token management
 - Cross-browser testing
@@ -438,6 +465,7 @@ Run on:
 - User friction (popup flow)
 
 **When Simple Token is Enough**:
+
 - Local-only features
 - No external API access
 - No user-specific data

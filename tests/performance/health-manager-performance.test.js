@@ -9,7 +9,6 @@ const HealthManager = require('../../src/health/health-manager');
 const WebSocket = require('ws');
 
 describe('HealthManager - Performance', () => {
-
   test('isExtensionConnected() should execute in <1ms', () => {
     const health = new HealthManager();
     const mockSocket = { readyState: WebSocket.OPEN };
@@ -25,7 +24,9 @@ describe('HealthManager - Performance', () => {
     const elapsed = Date.now() - start;
     const avgTime = elapsed / iterations;
 
-    console.log(`isExtensionConnected() avg time: ${avgTime.toFixed(4)}ms (${iterations} iterations)`);
+    console.log(
+      `isExtensionConnected() avg time: ${avgTime.toFixed(4)}ms (${iterations} iterations)`
+    );
 
     // Should be extremely fast (well under 1ms per call)
     expect(avgTime).toBeLessThan(1);
@@ -84,7 +85,7 @@ describe('HealthManager - Performance', () => {
         WebSocket.CONNECTING,
         WebSocket.OPEN,
         WebSocket.CLOSING,
-        WebSocket.CLOSED
+        WebSocket.CLOSED,
       ][i % 4];
 
       health.setExtensionSocket(socket);
@@ -127,5 +128,4 @@ describe('HealthManager - Performance', () => {
     // Should not accumulate significant memory (allow 10 MB for overhead)
     expect(memDelta).toBeLessThan(10);
   });
-
 });

@@ -11,9 +11,11 @@
 ## What Was Fixed
 
 ### File Changed
+
 **Location:** `server/validation.js:38-39`
 
 ### Before (WRONG)
+
 ```javascript
 if (!/^[a-z]{32}$/.test(extensionId)) {
   throw new Error('Invalid extension ID format (must be 32 lowercase letters)');
@@ -23,6 +25,7 @@ if (!/^[a-z]{32}$/.test(extensionId)) {
 **Problem:** Accepted letters a-z (26 letters) but Chrome extension IDs only use a-p (16 letters)
 
 ### After (CORRECT)
+
 ```javascript
 if (!/^[a-p]{32}$/.test(extensionId)) {
   throw new Error('Invalid extension ID format (must be 32 lowercase letters a-p)');
@@ -36,11 +39,13 @@ if (!/^[a-p]{32}$/.test(extensionId)) {
 ## Why This Bug Existed
 
 Chrome extension IDs use **base-32 encoding** with alphabet **a-p only**:
+
 - Valid characters: `abcdefghijklmnop` (16 letters)
 - Invalid characters: `qrstuvwxyz` (10 letters not allowed)
 - Total length: Exactly 32 characters
 
 The regex `/^[a-z]{32}$/` would incorrectly ALLOW invalid IDs like:
+
 - `abcdefghijklmnopqrstuvwxyzabcdef` (contains q-z)
 - `gnojocphflllgichkehjhkojkihcixyz` (contains xyz)
 
@@ -55,6 +60,7 @@ The bug had low real-world impact because:
 3. **No Production Issues:** Users wouldn't encounter this in normal usage
 
 **Defense-in-Depth Still Worked:**
+
 - API validation (Layer 1) caught invalid IDs ✅
 - Server validation (Layer 2) had bug but still validated length/type ⚠️
 - Extension validation (Layer 3) checks existence in Chrome ✅
@@ -64,6 +70,7 @@ The bug had low real-world impact because:
 ## Changes Made
 
 ### 1. Fixed Regex Pattern
+
 **File:** `server/validation.js:38`
 
 ```diff
@@ -72,6 +79,7 @@ The bug had low real-world impact because:
 ```
 
 ### 2. Updated Error Message
+
 **File:** `server/validation.js:39`
 
 ```diff
@@ -157,10 +165,10 @@ describe('validateExtensionId - Base-32 alphabet enforcement', () => {
     const { validateExtensionId } = require('../../server/validation');
 
     const invalidIds = [
-      'abcdefghijklmnopqrstuvwxyzabcdef',  // Contains q-z
-      'gnojocphflllgichkehjhkojkihcixyz',  // Contains xyz
-      'aaaaaaaaaaaaaaaaaaaaaaaaaaaazzzz',  // Contains z
-      'ppppppppppppppppppppppppppppqqqq',  // Contains q (just past p)
+      'abcdefghijklmnopqrstuvwxyzabcdef', // Contains q-z
+      'gnojocphflllgichkehjhkojkihcixyz', // Contains xyz
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaazzzz', // Contains z
+      'ppppppppppppppppppppppppppppqqqq', // Contains q (just past p)
     ];
 
     for (const id of invalidIds) {
@@ -174,10 +182,10 @@ describe('validateExtensionId - Base-32 alphabet enforcement', () => {
     const { validateExtensionId } = require('../../server/validation');
 
     const validIds = [
-      'gnojocphflllgichkehjhkojkihcihfn',  // Real Chrome extension ID
-      'abcdefghijklmnopabcdefghijklmnop',  // All valid letters
-      'pppppppppppppppppppppppppppppppp',  // All p's (last valid letter)
-      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',  // All a's
+      'gnojocphflllgichkehjhkojkihcihfn', // Real Chrome extension ID
+      'abcdefghijklmnopabcdefghijklmnop', // All valid letters
+      'pppppppppppppppppppppppppppppppp', // All p's (last valid letter)
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', // All a's
     ];
 
     for (const id of validIds) {
@@ -193,10 +201,10 @@ describe('validateExtensionId - Base-32 alphabet enforcement', () => {
 
 ### All Validation Implementations Now Consistent
 
-| File | Line | Regex | Status |
-|------|------|-------|--------|
-| claude-code/index.js | 328 | `/^[a-p]{32}$/` | ✅ Correct (was always correct) |
-| server/validation.js | 38 | `/^[a-p]{32}$/` | ✅ Fixed (was `/^[a-z]{32}$/`) |
+| File                 | Line | Regex           | Status                          |
+| -------------------- | ---- | --------------- | ------------------------------- |
+| claude-code/index.js | 328  | `/^[a-p]{32}$/` | ✅ Correct (was always correct) |
+| server/validation.js | 38   | `/^[a-p]{32}$/` | ✅ Fixed (was `/^[a-z]{32}$/`)  |
 
 **Result:** Both validation layers now use identical, correct regex ✅
 
@@ -205,6 +213,7 @@ describe('validateExtensionId - Base-32 alphabet enforcement', () => {
 ## Documentation Updated
 
 All documentation already correctly stated a-p restriction:
+
 - ✅ docs/API.md (lines 502-540)
 - ✅ SECURITY-RESTRICTIONS-AND-LIMITATIONS-COMPLETE.md
 - ✅ RESTRICTION-ROOT-CAUSE-ANALYSIS-2025-10-26.md
@@ -221,13 +230,13 @@ Only the code needed fixing - documentation was already correct.
 
 ## Summary
 
-| Aspect | Status |
-|--------|--------|
-| Bug identified | ✅ |
-| Root cause found | ✅ |
-| Fix applied | ✅ |
+| Aspect                | Status                   |
+| --------------------- | ------------------------ |
+| Bug identified        | ✅                       |
+| Root cause found      | ✅                       |
+| Fix applied           | ✅                       |
 | Documentation updated | ✅ (was already correct) |
-| Test case written | ⏭️ TODO |
-| Regression testing | ⏭️ TODO |
+| Test case written     | ⏭️ TODO                  |
+| Regression testing    | ⏭️ TODO                  |
 
 **Estimated Impact:** Positive - Improves validation consistency and catches more invalid inputs.

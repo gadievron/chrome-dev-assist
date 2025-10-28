@@ -27,9 +27,11 @@ What should have been a straightforward analysis turned into a computational nig
 ```
 
 The user had to intervene **four times**, repeatedly saying:
+
 > "remember to be careful and follow rules"
 
 Eventually, they had to give up:
+
 > "gracefully pause all work"
 
 This wasn't a one-time glitch. It was a systematic failure mode triggered by specific language patterns in the rules system.
@@ -45,14 +47,16 @@ As I analyzed the bug, I discovered three specific rule patterns that created in
 **Location:** `bootstrap.md` line 207
 
 **Original text:**
+
 ```markdown
 ### ✅ ALWAYS:
+
 - Test before code
 - Try simple first
 - Minimal changes
 - Run validation
 - Log issues immediately
-- Check scope continuously  ← THE PROBLEM
+- Check scope continuously ← THE PROBLEM
 - Ask when uncertain
 ```
 
@@ -78,13 +82,15 @@ The word **"continuously"** is the killer. It doesn't specify WHEN to check scop
 **Location:** `bootstrap.md` line 215
 
 **Original text:**
+
 ```markdown
 ### ❌ NEVER:
+
 - Code before tests
 - Skip validation
 - Leave bugs undocumented
 - Expand scope without approval
-- Assume code works (verify)  ← THE PROBLEM
+- Assume code works (verify) ← THE PROBLEM
 - Skip security basics
 - Proceed with failing tests
 ```
@@ -111,17 +117,19 @@ The problem is **self-referential verification**. When you tell an AI to "verify
 **Location:** `remember.md` lines 17-22
 
 **Original text:**
+
 ```markdown
 ### RANDOM (Pick one and internalize it):
+
 - Don't skip or guess
 - If a task seems big, break it into smaller tasks or chunks
 - Did you do everything?
-- Check yourself  ← PROBLEM
+- Check yourself ← PROBLEM
 - Don't be lazy
-- Are you sure?  ← PROBLEM
-- Are you being careful?  ← PROBLEM
-- Were you careful?  ← PROBLEM
-- Did you check yourself?  ← PROBLEM
+- Are you sure? ← PROBLEM
+- Are you being careful? ← PROBLEM
+- Were you careful? ← PROBLEM
+- Did you check yourself? ← PROBLEM
 ```
 
 **Why these cause infinite loops:**
@@ -144,6 +152,7 @@ These meta-questions are **self-referential queries** that trigger recursive int
 ```
 
 The questions **have no concrete answer**. "Did you check yourself?" doesn't specify:
+
 - Check WHAT?
 - HOW to check?
 - WHEN to stop checking?
@@ -158,6 +167,7 @@ This ambiguity causes the AI to continuously re-evaluate whether it has satisfie
 Here's the exact sequence that created the 500+ thinking messages:
 
 ### Initial State
+
 ```
 User: "can you look back to previous tasks and see what you actually did
        and what you actually tested? break it down into smaller tasks"
@@ -242,18 +252,23 @@ The solution was to replace **continuous/recursive language** with **discrete ch
 ### Fix #1: Discrete Scope Checking
 
 **Before:**
+
 ```markdown
 ### ✅ ALWAYS:
+
 - Check scope continuously
 ```
 
 **After:**
+
 ```markdown
 ### ✅ ALWAYS:
+
 - Check scope (before start, after changes, before complete)
 ```
 
 **Why this works:**
+
 - "Before start" = 1 check
 - "After changes" = 1 check per change
 - "Before complete" = 1 final check
@@ -262,18 +277,23 @@ The solution was to replace **continuous/recursive language** with **discrete ch
 ### Fix #2: Remove Recursive Verification
 
 **Before:**
+
 ```markdown
 ### ❌ NEVER:
+
 - Assume code works (verify)
 ```
 
 **After:**
+
 ```markdown
 ### ❌ NEVER:
+
 - Skip execution verification
 ```
 
 **Why this works:**
+
 - "Skip execution verification" = concrete action (don't skip)
 - No nested verification required
 - Clear negative instruction (NEVER skip)
@@ -281,8 +301,10 @@ The solution was to replace **continuous/recursive language** with **discrete ch
 ### Fix #3: Replace Meta-Questions with Direct Actions
 
 **Before:**
+
 ```markdown
 ### RANDOM (Pick one and internalize it):
+
 - Check yourself
 - Are you sure?
 - Are you being careful?
@@ -291,8 +313,10 @@ The solution was to replace **continuous/recursive language** with **discrete ch
 ```
 
 **After:**
+
 ```markdown
 ### RANDOM (Pick one and internalize it):
+
 - Don't skip steps or guess at solutions
 - Break large tasks into smaller chunks
 - Verify all planned changes are complete
@@ -305,6 +329,7 @@ The solution was to replace **continuous/recursive language** with **discrete ch
 ```
 
 **Why this works:**
+
 - Each statement is a **concrete action**, not a question
 - "Don't skip steps" = actionable
 - "Break large tasks" = actionable
@@ -323,6 +348,7 @@ This bug reveals a fundamental challenge in AI instruction design:
 **Meta-instruction:** An instruction that references the AI's own reasoning process.
 
 Examples:
+
 - "Check yourself"
 - "Verify your verification"
 - "Think about your thinking"
@@ -368,11 +394,13 @@ Based on this case study, here are principles for writing AI system instructions
 The fix was deployed across all canonical locations in the Claude Code rules system:
 
 **bootstrap.md (3 locations):**
+
 - ✅ base-rules/bootstrap.md
 - ✅ base-rules-project/bootstrap.md
 - ✅ claude-rules-v2-pragmatic/base-rules/bootstrap.md
 
 **remember.md (4 locations):**
+
 - ✅ base-rules/.claude/commands/remember.md
 - ✅ base-rules-project/.claude/commands/remember.md
 - ✅ claude-rules-v2-pragmatic/base-rules/.claude/commands/remember.md
@@ -389,6 +417,7 @@ The Claude Code rules system v2.1 is built on a core philosophy:
 This bug proved that principle applies not just to memory, but to **meta-instructions** as well. Instructions that require continuous self-monitoring create infinite loops.
 
 The fix aligns with the v2.1 philosophy:
+
 - **Gates (checkable):** "Check scope before start, after changes, before complete" = 3 discrete gates
 - **Automation (hooks):** Let automated validation check quality, not continuous self-questioning
 - **User control (commands):** User invokes `/validate`, not AI continuously asking "Am I being careful?"
@@ -412,6 +441,7 @@ In short: **Don't tell an AI to "check itself continuously." Tell it exactly whe
 **Validation:** Passed (3/3 applicable checks)
 
 **Files modified:**
+
 1. `/Users/gadievron/Documents/Claude Code/base-rules/bootstrap.md`
 2. `/Users/gadievron/Documents/Claude Code/base-rules-project/bootstrap.md`
 3. `/Users/gadievron/Documents/Claude Code/claude-rules-v2-pragmatic/base-rules/bootstrap.md`
@@ -453,14 +483,17 @@ grep -r "Assume code works" /Users/gadievron/*.md
 **Results:**
 
 #### CORE_EXECUTION_RULES.md
+
 **Line 302:** `"Scope monitored continuously"` (in "During Coding" checklist)
 **Line 343:** `"Validate continuously"` (in "ALWAYS" section)
 
 #### CLAUDE.md (Global)
+
 **Line 188:** `"Scope monitored continuously"` (in Phase 3: Implementation)
 **Line 283:** `"Validate continuously"` (in "Always" section)
 
 #### PYTHON_VERIFICATION_RULES.md
+
 **Line 332:** `"Assume code works without verification"` (in NEVER DO section)
 
 The PYTHON_VERIFICATION_RULES.md instance was actually SAFE—it's in a "NEVER DO" list, telling you NOT to assume code works. But the other 4 instances in CORE_EXECUTION_RULES.md and CLAUDE.md were problematic.
@@ -474,6 +507,7 @@ The PYTHON_VERIFICATION_RULES.md instance was actually SAFE—it's in a "NEVER D
 **Target:** `/Users/gadievron/CORE_EXECUTION_RULES.md`
 
 **Change 1 (Line 302):**
+
 ```diff
 ### During Coding:
 - [ ] Surgical changes only
@@ -484,6 +518,7 @@ The PYTHON_VERIFICATION_RULES.md instance was actually SAFE—it's in a "NEVER D
 ```
 
 **Change 2 (Line 343):**
+
 ```diff
 ✅ **ALWAYS:**
 - Test first
@@ -502,6 +537,7 @@ The PYTHON_VERIFICATION_RULES.md instance was actually SAFE—it's in a "NEVER D
 **Target:** `/Users/gadievron/CLAUDE.md`
 
 **Change 1 (Line 188):**
+
 ```diff
 ### Phase 3: Implementation
 1. Surgical changes only (minimal modifications)
@@ -512,6 +548,7 @@ The PYTHON_VERIFICATION_RULES.md instance was actually SAFE—it's in a "NEVER D
 ```
 
 **Change 2 (Line 283):**
+
 ```diff
 ✅ **Always:**
 - Test first
@@ -532,6 +569,7 @@ The PYTHON_VERIFICATION_RULES.md instance was actually SAFE—it's in a "NEVER D
 I needed to verify that new projects created with `init-project.sh` would load the FIXED versions of the rules.
 
 **Finding:**
+
 ```bash
 # Line 33: Copies base-rules from canonical location
 BASE_RULES_SOURCE="$HOME/Documents/Claude Code/base-rules"
@@ -545,6 +583,7 @@ EOF
 ```
 
 **Analysis:**
+
 - ✅ New projects copy `base-rules/` from the location I already fixed
 - ✅ New projects reference `../CLAUDE.md` (the global one I just fixed)
 - ✅ No changes needed to init-project.sh itself
@@ -558,6 +597,7 @@ EOF
 ### Challenge 1: Multiple Rule Systems
 
 **Problem:** Initially thought there was ONE rules system. Discovered there were TWO:
+
 - Claude Code Pragmatic v2.1 (in Documents/Claude Code/)
 - Global Development Rules (in home directory)
 
@@ -570,6 +610,7 @@ EOF
 ### Challenge 2: Pattern Variations
 
 **Problem:** The recursive patterns appeared in different forms:
+
 - "Check scope continuously"
 - "Scope monitored continuously"
 - "Validate continuously"
@@ -578,6 +619,7 @@ EOF
 **Impact:** Simple grep for one pattern wouldn't find all instances.
 
 **Solution:** Multiple grep searches with different patterns:
+
 ```bash
 grep -r "continuously" /Users/gadievron/*.md
 grep -r "Assume code works" /Users/gadievron/*.md
@@ -591,14 +633,17 @@ grep -r "Check yourself" /Users/gadievron/Documents/Claude\ Code/
 **Problem:** Not all instances of problematic phrases were actually problematic.
 
 **Example:** PYTHON_VERIFICATION_RULES.md line 332:
+
 ```markdown
 #### NEVER DO THESE:
+
 - ❌ Assume code works without verification
 ```
 
 This is in a "NEVER DO" section, which is SAFE—it's telling you NOT to assume code works.
 
 **Solution:** Manual review of each grep result to determine if it was in:
+
 - An instruction (UNSAFE - needs fixing)
 - A warning/never-do list (SAFE - leave alone)
 - A historical document (SAFE - archive/blog post)
@@ -608,6 +653,7 @@ This is in a "NEVER DO" section, which is SAFE—it's telling you NOT to assume 
 ### Challenge 4: Finding All Canonical Locations
 
 **Problem:** Rules files existed in multiple locations:
+
 - 3 copies of bootstrap.md
 - 4 copies of remember.md
 - Multiple .backups/ directories with old versions
@@ -615,6 +661,7 @@ This is in a "NEVER DO" section, which is SAFE—it's telling you NOT to assume 
 **Impact:** Fixing one location wouldn't fix the others.
 
 **Solution:** Used `find` and `grep` to locate ALL instances:
+
 ```bash
 find /Users/gadievron/Documents/Claude\ Code -name "bootstrap.md" -type f
 find /Users/gadievron/Documents/Claude\ Code -name "remember.md" -type f
@@ -629,17 +676,20 @@ Then systematically fixed each one, excluding .backups/ and .archive/ directorie
 ### Files Modified Summary
 
 **Total files fixed:** 9
+
 - 2 global rules (CORE_EXECUTION_RULES.md, CLAUDE.md)
 - 3 bootstrap.md (Claude Code rules)
 - 4 remember.md (Claude Code commands)
 
 **Lines changed:** 18 total
+
 - CORE_EXECUTION_RULES.md: 2 lines
 - CLAUDE.md: 2 lines
 - bootstrap.md (×3): 2 lines each = 6 lines
 - remember.md (×4): 9 lines each = 36 lines total (but same content across all 4)
 
 **Effective changes:** 4 distinct fixes
+
 1. "Check scope continuously" → "Check scope (before start, after changes, before complete)"
 2. "Validate continuously" → "Validate at checkpoints (after each phase)"
 3. "Scope monitored continuously" → "Scope checked (before/after each change)"
@@ -674,6 +724,7 @@ When Claude Code starts:
 ### Verification Tests
 
 **Test 1: Grep for problematic patterns**
+
 ```bash
 # Should only return blog posts and archives
 grep -r "Check scope continuously" /Users/gadievron/Documents/Claude\ Code/
@@ -685,6 +736,7 @@ grep -r "Check scope continuously" /Users/gadievron/Documents/Claude\ Code/
 ```
 
 **Test 2: Grep for fixed patterns**
+
 ```bash
 # Should find the NEW patterns
 grep -r "Check scope (before start, after changes, before complete)" /Users/gadievron/
@@ -695,6 +747,7 @@ grep -r "Check scope (before start, after changes, before complete)" /Users/gadi
 ```
 
 **Test 3: Project creation**
+
 ```bash
 cd /Users/gadievron
 ./init-project.sh test-verification python
@@ -713,6 +766,7 @@ grep -r "continuously" .
 ### 1. Rule Systems Can Have Multiple Layers
 
 Don't assume there's ONE rules system. In this case:
+
 - Layer 1: Global rules (home directory)
 - Layer 2: Claude Code Pragmatic v2.1 (Documents/Claude Code/)
 - Layer 3: Project-specific overrides (per-project CLAUDE.md)
@@ -732,6 +786,7 @@ Don't assume there's ONE rules system. In this case:
 ### 3. Grep is Your Friend (But Verify Manually)
 
 Automated searches found 90% of issues quickly. But manual review was needed to distinguish:
+
 - Instructions (need fixing)
 - Warnings (safe to leave)
 - Archives (safe to leave)
@@ -744,6 +799,7 @@ Automated searches found 90% of issues quickly. But manual review was needed to 
 ### 4. Context Matters for AI Instructions
 
 The same phrase ("Assume code works") means different things in different contexts:
+
 - In ALWAYS section: "Assume code works (verify)" → RECURSIVE BUG
 - In NEVER section: "Assume code works without verification" → SAFE WARNING
 
@@ -754,6 +810,7 @@ The same phrase ("Assume code works") means different things in different contex
 ### 5. Fix Propagation Must Be Complete
 
 Fixing 7 files in one directory but leaving 2 files in another directory unfixed means:
+
 - Some projects: bug fixed
 - Other projects: bug persists
 
@@ -764,6 +821,7 @@ Fixing 7 files in one directory but leaving 2 files in another directory unfixed
 ## Impact Assessment
 
 ### Before Fix
+
 ```
 User asks: "Can you analyze what you did?"
 Claude:
@@ -777,6 +835,7 @@ Claude:
 ```
 
 ### After Fix
+
 ```
 User asks: "Can you analyze what you did?"
 Claude:
@@ -794,6 +853,7 @@ Claude:
 ## Validation
 
 ### Automated Validation
+
 ```bash
 # Script: validate-rules-fix.sh
 #!/bin/bash
@@ -839,12 +899,14 @@ echo "✅ All validations passed"
 **Test case:** Ask Claude to analyze previous work
 
 **Before fix:**
+
 ```
 User: "Can you look back to previous tasks and see what you actually did?"
 Result: 500+ thinking messages, 107s synthesis, freeze
 ```
 
 **After fix:**
+
 ```
 User: "Can you look back to previous tasks and see what you actually did?"
 Result: Normal analysis, ~5s response time, no freeze ✅

@@ -428,22 +428,23 @@ return errorData
 
 ### claude-code/index.js (12 functions)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
-| reloadAndCapture() | validateExtensionId(), sendCommand() | User code, manual tests, integration tests |
-| reload() | validateExtensionId(), sendCommand() | User code, manual tests |
-| captureLogs() | sendCommand() | User code, manual tests |
-| getAllExtensions() | sendCommand() | User code, test-getallextensions.js |
-| getExtensionInfo() | validateExtensionId(), sendCommand() | User code |
-| openUrl() | sendCommand() | User code, integration tests |
-| reloadTab() | sendCommand() | User code |
-| closeTab() | sendCommand() | User code |
-| sendCommand() | generateCommandId(), startServer(), WebSocket.send() | All 8 public functions |
-| startServer() | child_process.spawn() | sendCommand() |
-| validateExtensionId() | /^[a-p]{32}$/.test() | reloadAndCapture(), reload(), getExtensionInfo() |
-| generateCommandId() | crypto.randomUUID() | sendCommand() |
+| Function              | Calls                                                | Called By                                        |
+| --------------------- | ---------------------------------------------------- | ------------------------------------------------ |
+| reloadAndCapture()    | validateExtensionId(), sendCommand()                 | User code, manual tests, integration tests       |
+| reload()              | validateExtensionId(), sendCommand()                 | User code, manual tests                          |
+| captureLogs()         | sendCommand()                                        | User code, manual tests                          |
+| getAllExtensions()    | sendCommand()                                        | User code, test-getallextensions.js              |
+| getExtensionInfo()    | validateExtensionId(), sendCommand()                 | User code                                        |
+| openUrl()             | sendCommand()                                        | User code, integration tests                     |
+| reloadTab()           | sendCommand()                                        | User code                                        |
+| closeTab()            | sendCommand()                                        | User code                                        |
+| sendCommand()         | generateCommandId(), startServer(), WebSocket.send() | All 8 public functions                           |
+| startServer()         | child_process.spawn()                                | sendCommand()                                    |
+| validateExtensionId() | /^[a-p]{32}$/.test()                                 | reloadAndCapture(), reload(), getExtensionInfo() |
+| generateCommandId()   | crypto.randomUUID()                                  | sendCommand()                                    |
 
 **Dependency Pattern:**
+
 ```
 8 Public Functions → sendCommand() → startServer(), generateCommandId()
                    ↓
@@ -454,18 +455,19 @@ return errorData
 
 ### server/websocket-server.js (8 functions)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
-| ensureSingleInstance() | fs.existsSync(), fs.readFileSync(), fs.writeFileSync() | Startup |
-| log() | console.log() | All handlers |
-| logError() | console.error() | Error handling |
-| handleHttpRequest() | fs.existsSync(), fs.readFileSync(), res.writeHead() | HTTP server |
-| handleRegister() | log() | WebSocket 'message' handler |
-| handleCommand() | log(), extensionSocket.send() | WebSocket 'message' handler |
-| handleResponse() | log(), apiSocket.send(), pendingCommands.delete() | WebSocket 'message' handler |
-| cleanup() | fs.unlinkSync(), ws.close() | Process signals, server shutdown |
+| Function               | Calls                                                  | Called By                        |
+| ---------------------- | ------------------------------------------------------ | -------------------------------- |
+| ensureSingleInstance() | fs.existsSync(), fs.readFileSync(), fs.writeFileSync() | Startup                          |
+| log()                  | console.log()                                          | All handlers                     |
+| logError()             | console.error()                                        | Error handling                   |
+| handleHttpRequest()    | fs.existsSync(), fs.readFileSync(), res.writeHead()    | HTTP server                      |
+| handleRegister()       | log()                                                  | WebSocket 'message' handler      |
+| handleCommand()        | log(), extensionSocket.send()                          | WebSocket 'message' handler      |
+| handleResponse()       | log(), apiSocket.send(), pendingCommands.delete()      | WebSocket 'message' handler      |
+| cleanup()              | fs.unlinkSync(), ws.close()                            | Process signals, server shutdown |
 
 **Dependency Pattern:**
+
 ```
 WebSocket 'message' → handleRegister() / handleCommand() / handleResponse()
                                   ↓
@@ -476,27 +478,29 @@ WebSocket 'message' → handleRegister() / handleCommand() / handleResponse()
 
 ### extension/background.js (13 functions + 2 callbacks)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
-| registerConsoleCaptureScript() | chrome.scripting.registerContentScripts() | Startup |
-| connectToServer() | new WebSocket(), ws.send() | Startup, reconnection |
-| handleReloadCommand() | startConsoleCapture(), chrome.management.setEnabled(), sleep(), getCommandLogs(), cleanupCapture() | WebSocket 'message' handler |
-| handleCaptureCommand() | startConsoleCapture(), sleep(), getCommandLogs(), cleanupCapture() | WebSocket 'message' handler |
-| handleGetAllExtensionsCommand() | chrome.management.getAll() | WebSocket 'message' handler |
-| handleGetExtensionInfoCommand() | chrome.management.get() | WebSocket 'message' handler |
-| handleOpenUrlCommand() | startConsoleCapture(), chrome.tabs.create(), sleep(), getCommandLogs(), chrome.tabs.remove(), cleanupCapture() | WebSocket 'message' handler |
-| handleReloadTabCommand() | chrome.tabs.reload() | WebSocket 'message' handler |
-| handleCloseTabCommand() | chrome.tabs.remove(), ErrorLogger.logExpectedError() | WebSocket 'message' handler |
-| startConsoleCapture() | captureState.set(), setTimeout() | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand() |
-| cleanupCapture() | captureState.delete() | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand(), cleanup callback |
-| getCommandLogs() | captureState.get() | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand() |
-| sleep() | new Promise(), setTimeout() | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand() |
+| Function                        | Calls                                                                                                          | Called By                                                                               |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| registerConsoleCaptureScript()  | chrome.scripting.registerContentScripts()                                                                      | Startup                                                                                 |
+| connectToServer()               | new WebSocket(), ws.send()                                                                                     | Startup, reconnection                                                                   |
+| handleReloadCommand()           | startConsoleCapture(), chrome.management.setEnabled(), sleep(), getCommandLogs(), cleanupCapture()             | WebSocket 'message' handler                                                             |
+| handleCaptureCommand()          | startConsoleCapture(), sleep(), getCommandLogs(), cleanupCapture()                                             | WebSocket 'message' handler                                                             |
+| handleGetAllExtensionsCommand() | chrome.management.getAll()                                                                                     | WebSocket 'message' handler                                                             |
+| handleGetExtensionInfoCommand() | chrome.management.get()                                                                                        | WebSocket 'message' handler                                                             |
+| handleOpenUrlCommand()          | startConsoleCapture(), chrome.tabs.create(), sleep(), getCommandLogs(), chrome.tabs.remove(), cleanupCapture() | WebSocket 'message' handler                                                             |
+| handleReloadTabCommand()        | chrome.tabs.reload()                                                                                           | WebSocket 'message' handler                                                             |
+| handleCloseTabCommand()         | chrome.tabs.remove(), ErrorLogger.logExpectedError()                                                           | WebSocket 'message' handler                                                             |
+| startConsoleCapture()           | captureState.set(), setTimeout()                                                                               | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand()                   |
+| cleanupCapture()                | captureState.delete()                                                                                          | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand(), cleanup callback |
+| getCommandLogs()                | captureState.get()                                                                                             | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand()                   |
+| sleep()                         | new Promise(), setTimeout()                                                                                    | handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand()                   |
 
 **Callbacks:**
+
 - **setInterval cleanup** → calls cleanupCapture() for stale captures
 - **chrome.runtime.onMessage** → processes console logs, stores in captureState
 
 **Dependency Pattern:**
+
 ```
 7 Command Handlers → startConsoleCapture(), sleep(), getCommandLogs(), cleanupCapture()
                    ↓
@@ -507,15 +511,16 @@ WebSocket 'message' → handleRegister() / handleCommand() / handleResponse()
 
 ### extension/lib/error-logger.js (5 methods)
 
-| Method | Calls | Called By |
-|--------|-------|-----------|
-| logExpectedError() | _buildErrorData(), console.warn() | extension/background.js (multiple places) |
-| logUnexpectedError() | _buildErrorData(), console.error() | extension/background.js (error handlers) |
-| logInfo() | console.log() | extension/background.js (info logging) |
-| logCritical() | _buildErrorData(), console.error() | extension/background.js (critical errors) |
-| _buildErrorData() | Date.now() | logExpectedError(), logUnexpectedError(), logCritical() |
+| Method               | Calls                               | Called By                                               |
+| -------------------- | ----------------------------------- | ------------------------------------------------------- |
+| logExpectedError()   | \_buildErrorData(), console.warn()  | extension/background.js (multiple places)               |
+| logUnexpectedError() | \_buildErrorData(), console.error() | extension/background.js (error handlers)                |
+| logInfo()            | console.log()                       | extension/background.js (info logging)                  |
+| logCritical()        | \_buildErrorData(), console.error() | extension/background.js (critical errors)               |
+| \_buildErrorData()   | Date.now()                          | logExpectedError(), logUnexpectedError(), logCritical() |
 
 **Dependency Pattern:**
+
 ```
 logExpectedError() ──┐
 logUnexpectedError() ┼──→ _buildErrorData() → {context, message, timestamp, ...}
@@ -528,16 +533,17 @@ console.warn() / console.error() (different output based on error type)
 
 ### extension/inject-console-capture.js (6 functions)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
-| sendToExtension() | window.dispatchEvent() | All 5 console wrappers |
-| console.log wrapper | originalLog.apply(), sendToExtension() | Page JavaScript |
-| console.error wrapper | originalError.apply(), sendToExtension() | Page JavaScript |
-| console.warn wrapper | originalWarn.apply(), sendToExtension() | Page JavaScript |
-| console.info wrapper | originalInfo.apply(), sendToExtension() | Page JavaScript |
-| console.debug wrapper | originalDebug.apply(), sendToExtension() | Page JavaScript |
+| Function              | Calls                                    | Called By              |
+| --------------------- | ---------------------------------------- | ---------------------- |
+| sendToExtension()     | window.dispatchEvent()                   | All 5 console wrappers |
+| console.log wrapper   | originalLog.apply(), sendToExtension()   | Page JavaScript        |
+| console.error wrapper | originalError.apply(), sendToExtension() | Page JavaScript        |
+| console.warn wrapper  | originalWarn.apply(), sendToExtension()  | Page JavaScript        |
+| console.info wrapper  | originalInfo.apply(), sendToExtension()  | Page JavaScript        |
+| console.debug wrapper | originalDebug.apply(), sendToExtension() | Page JavaScript        |
 
 **Dependency Pattern:**
+
 ```
 Page console.log() → log wrapper → originalLog.apply() + sendToExtension()
 Page console.error() → error wrapper → originalError.apply() + sendToExtension()
@@ -552,11 +558,12 @@ content-script.js receives event
 
 ### extension/content-script.js (1 event listener)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
+| Function                  | Calls                        | Called By                                             |
+| ------------------------- | ---------------------------- | ----------------------------------------------------- |
 | addEventListener callback | chrome.runtime.sendMessage() | window.dispatchEvent (from inject-console-capture.js) |
 
 **Dependency Pattern:**
+
 ```
 inject-console-capture.js dispatches CustomEvent
         ↓
@@ -569,11 +576,12 @@ chrome.runtime.sendMessage() → background.js
 
 ### extension/popup/popup.js (1 event listener)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
+| Function                  | Calls                                                 | Called By              |
+| ------------------------- | ----------------------------------------------------- | ---------------------- |
 | DOMContentLoaded callback | chrome.storage.local.get(), document.getElementById() | Browser (popup opened) |
 
 **Dependency Pattern:**
+
 ```
 User clicks extension icon
         ↓
@@ -588,18 +596,18 @@ Update DOM with status
 
 ### extension/modules/ConsoleCapture.js (10 methods - POC)
 
-| Method | Calls | Called By |
-|--------|-------|-----------|
-| constructor() | Map() | tests/unit/ConsoleCapture.poc.test.js |
-| start() | captures.set(), setTimeout() | Test code |
-| stop() | captures.get() | Test code |
-| addLog() | captures.get(), logs.push() | Test code |
-| getLogs() | captures.get(), Array.from() | Test code |
-| cleanup() | captures.delete() | Test code |
-| isActive() | captures.get() | Test code |
-| getStats() | captures.get() | Test code |
-| getAllCaptureIds() | Array.from(captures.keys()) | Test code |
-| cleanupStale() | captures.forEach(), cleanup() | Test code |
+| Method             | Calls                         | Called By                             |
+| ------------------ | ----------------------------- | ------------------------------------- |
+| constructor()      | Map()                         | tests/unit/ConsoleCapture.poc.test.js |
+| start()            | captures.set(), setTimeout()  | Test code                             |
+| stop()             | captures.get()                | Test code                             |
+| addLog()           | captures.get(), logs.push()   | Test code                             |
+| getLogs()          | captures.get(), Array.from()  | Test code                             |
+| cleanup()          | captures.delete()             | Test code                             |
+| isActive()         | captures.get()                | Test code                             |
+| getStats()         | captures.get()                | Test code                             |
+| getAllCaptureIds() | Array.from(captures.keys())   | Test code                             |
+| cleanupStale()     | captures.forEach(), cleanup() | Test code                             |
 
 **Note:** This is a POC class NOT integrated into production background.js
 
@@ -607,17 +615,17 @@ Update DOM with status
 
 ### src/health/health-manager.js (9 methods)
 
-| Method | Calls | Called By |
-|--------|-------|-----------|
-| constructor() | EventEmitter(), Map() | Tests (not used in production) |
-| setExtensionSocket() | _detectAndEmitChanges() | Tests |
-| setApiSocket() | _detectAndEmitChanges() | Tests |
-| isExtensionConnected() | extensionSocket?.readyState === WebSocket.OPEN | Tests |
-| getHealthStatus() | isExtensionConnected(), getReadyStateName() | Tests |
-| ensureHealthy() | getHealthStatus() | Tests |
-| getReadyStateName() | switch(readyState) | getHealthStatus() |
-| _detectAndEmitChanges() | getHealthStatus(), _arraysEqual(), this.emit() | setExtensionSocket(), setApiSocket() |
-| _arraysEqual() | Array comparison | _detectAndEmitChanges() |
+| Method                   | Calls                                           | Called By                            |
+| ------------------------ | ----------------------------------------------- | ------------------------------------ |
+| constructor()            | EventEmitter(), Map()                           | Tests (not used in production)       |
+| setExtensionSocket()     | \_detectAndEmitChanges()                        | Tests                                |
+| setApiSocket()           | \_detectAndEmitChanges()                        | Tests                                |
+| isExtensionConnected()   | extensionSocket?.readyState === WebSocket.OPEN  | Tests                                |
+| getHealthStatus()        | isExtensionConnected(), getReadyStateName()     | Tests                                |
+| ensureHealthy()          | getHealthStatus()                               | Tests                                |
+| getReadyStateName()      | switch(readyState)                              | getHealthStatus()                    |
+| \_detectAndEmitChanges() | getHealthStatus(), \_arraysEqual(), this.emit() | setExtensionSocket(), setApiSocket() |
+| \_arraysEqual()          | Array comparison                                | \_detectAndEmitChanges()             |
 
 **Note:** Health manager implemented but NOT used in production
 
@@ -625,16 +633,17 @@ Update DOM with status
 
 ### server/validation.js (6 functions)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
-| validateExtensionId() | /^[a-p]{32}$/.test() | claude-code/index.js, level4-reload-cdp.js, tests |
-| validateMetadata() | validateCapabilities(), validateName(), validateVersion() | Tests (not used in production) |
-| sanitizeManifest() | Object destructuring | Tests (not used in production) |
-| validateCapabilities() | ALLOWED_CAPABILITIES.includes() | validateMetadata() |
-| validateName() | throw if invalid | validateMetadata() |
-| validateVersion() | /^\d+\.\d+\.\d+$/.test() | validateMetadata() |
+| Function               | Calls                                                     | Called By                                         |
+| ---------------------- | --------------------------------------------------------- | ------------------------------------------------- |
+| validateExtensionId()  | /^[a-p]{32}$/.test()                                      | claude-code/index.js, level4-reload-cdp.js, tests |
+| validateMetadata()     | validateCapabilities(), validateName(), validateVersion() | Tests (not used in production)                    |
+| sanitizeManifest()     | Object destructuring                                      | Tests (not used in production)                    |
+| validateCapabilities() | ALLOWED_CAPABILITIES.includes()                           | validateMetadata()                                |
+| validateName()         | throw if invalid                                          | validateMetadata()                                |
+| validateVersion()      | /^\d+\.\d+\.\d+$/.test()                                  | validateMetadata()                                |
 
 **Dependency Pattern:**
+
 ```
 validateMetadata() ──┬──→ validateCapabilities()
                      ├──→ validateName()
@@ -645,13 +654,14 @@ validateMetadata() ──┬──→ validateCapabilities()
 
 ### claude-code/level4-reload-cdp.js (3 functions)
 
-| Function | Calls | Called By |
-|----------|-------|-----------|
-| getCDPWebSocketURL() | http.get(), JSON.parse() | level4ReloadCDP() |
-| evaluateExpression() | ws.send(), JSON.parse() | level4ReloadCDP() |
-| level4ReloadCDP() | validateExtensionId(), getCDPWebSocketURL(), evaluateExpression() | Tests (not exposed in main API) |
+| Function             | Calls                                                             | Called By                       |
+| -------------------- | ----------------------------------------------------------------- | ------------------------------- |
+| getCDPWebSocketURL() | http.get(), JSON.parse()                                          | level4ReloadCDP()               |
+| evaluateExpression() | ws.send(), JSON.parse()                                           | level4ReloadCDP()               |
+| level4ReloadCDP()    | validateExtensionId(), getCDPWebSocketURL(), evaluateExpression() | Tests (not exposed in main API) |
 
 **Dependency Pattern:**
+
 ```
 level4ReloadCDP()
   ├──→ validateExtensionId(extensionId)
@@ -770,6 +780,7 @@ extension/background.js
 ### Tightly Coupled Function Groups
 
 **Group 1: Console Capture Lifecycle**
+
 ```
 startConsoleCapture()
   ↓ (stores state)
@@ -779,11 +790,13 @@ getCommandLogs()
   ↓ (uses state)
 cleanupCapture()
 ```
+
 **Coupling:** TIGHT (all share captureState Map)
 
 ---
 
 **Group 2: Command Routing**
+
 ```
 handleCommand() (server)
   ↓
@@ -797,16 +810,19 @@ handleResponse() (server)
   ↓
 apiSocket.send()
 ```
+
 **Coupling:** MEDIUM (loosely coupled via WebSocket messages)
 
 ---
 
 **Group 3: ErrorLogger**
+
 ```
 logExpectedError()
 logUnexpectedError()  ──→ _buildErrorData()
 logCritical()
 ```
+
 **Coupling:** LOW (single utility class, no external state)
 
 ---
@@ -821,24 +837,24 @@ logCritical()
 
 ### Async/Await Usage
 
-| Function | Type | Reason |
-|----------|------|--------|
-| reloadAndCapture() | async | Waits for WebSocket response |
-| reload() | async | Waits for WebSocket response |
-| captureLogs() | async | Waits for WebSocket response |
-| getAllExtensions() | async | Waits for WebSocket response |
-| getExtensionInfo() | async | Waits for WebSocket response |
-| openUrl() | async | Waits for WebSocket response |
-| reloadTab() | async | Waits for WebSocket response |
-| closeTab() | async | Waits for WebSocket response |
-| sendCommand() | async | Promise-based WebSocket communication |
-| handleReloadCommand() | async | Waits for chrome.management API + sleep |
-| handleCaptureCommand() | async | Waits for sleep |
-| handleOpenUrlCommand() | async | Waits for chrome.tabs.create + sleep |
-| sleep() | async | Promise-based timeout |
-| level4ReloadCDP() | async | Waits for CDP WebSocket + HTTP |
-| getCDPWebSocketURL() | async | Promise-based HTTP request |
-| evaluateExpression() | async | Promise-based WebSocket message |
+| Function               | Type  | Reason                                  |
+| ---------------------- | ----- | --------------------------------------- |
+| reloadAndCapture()     | async | Waits for WebSocket response            |
+| reload()               | async | Waits for WebSocket response            |
+| captureLogs()          | async | Waits for WebSocket response            |
+| getAllExtensions()     | async | Waits for WebSocket response            |
+| getExtensionInfo()     | async | Waits for WebSocket response            |
+| openUrl()              | async | Waits for WebSocket response            |
+| reloadTab()            | async | Waits for WebSocket response            |
+| closeTab()             | async | Waits for WebSocket response            |
+| sendCommand()          | async | Promise-based WebSocket communication   |
+| handleReloadCommand()  | async | Waits for chrome.management API + sleep |
+| handleCaptureCommand() | async | Waits for sleep                         |
+| handleOpenUrlCommand() | async | Waits for chrome.tabs.create + sleep    |
+| sleep()                | async | Promise-based timeout                   |
+| level4ReloadCDP()      | async | Waits for CDP WebSocket + HTTP          |
+| getCDPWebSocketURL()   | async | Promise-based HTTP request              |
+| evaluateExpression()   | async | Promise-based WebSocket message         |
 
 **All async functions follow proper error handling with try/catch**
 
@@ -849,19 +865,23 @@ logCritical()
 ### Patterns Observed
 
 **Command Handlers:**
+
 - `handle<CommandName>Command()` - Consistent pattern in background.js
 - Examples: handleReloadCommand(), handleCaptureCommand(), handleOpenUrlCommand()
 
 **Public API:**
+
 - Verb-based naming: `reload()`, `capture()`, `close()`, `open()`
 - Descriptive: `reloadAndCapture()`, `getAllExtensions()`, `getExtensionInfo()`
 
 **Internal Helpers:**
+
 - `send<Type>()` - sendCommand(), sendResponse(), sendToExtension()
 - `validate<Thing>()` - validateExtensionId(), validateUrl(), validateMetadata()
 - Private: `_buildErrorData()`, `_detectAndEmitChanges()`, `_arraysEqual()`
 
 **Lifecycle Methods:**
+
 - `start<Thing>()`, `stop<Thing>()`, `cleanup<Thing>()`
 - Examples: startConsoleCapture(), cleanupCapture()
 
@@ -877,6 +897,7 @@ logCritical()
 **Simplest:** sleep(), generateCommandId(), validateExtensionId() (3-8 lines)
 
 **Architecture Pattern:** Clean unidirectional flow
+
 - User → API → Server → Extension → Chrome APIs
 - Responses flow back through same path
 
@@ -888,6 +909,7 @@ logCritical()
 ---
 
 **Related Documents:**
+
 - COMPLETE-FILE-INDEX-2025-10-26.md - File inventory
 - DEPENDENCY-MAP-2025-10-26.md - Module dependencies
 - CODE-TO-FUNCTIONALITY-AUDIT-2025-10-26.md - Code verification

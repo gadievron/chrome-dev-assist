@@ -18,8 +18,8 @@ global.chrome = {
   tabs: {
     create: jest.fn(),
     remove: jest.fn(),
-    get: jest.fn()
-  }
+    get: jest.fn(),
+  },
 };
 
 // Mock withTimeout implementation (will be imported from background.js in real code)
@@ -43,7 +43,6 @@ async function withTimeout(promise, timeoutMs, operation) {
 }
 
 describe('Tab Operations Timeout Protection', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
@@ -58,7 +57,6 @@ describe('Tab Operations Timeout Protection', () => {
   // ========================================================================
 
   describe('chrome.tabs.create() with timeout', () => {
-
     test('should timeout if tab creation takes longer than 5s', async () => {
       jest.useFakeTimers();
 
@@ -105,11 +103,7 @@ describe('Tab Operations Timeout Protection', () => {
 
       chrome.tabs.create.mockResolvedValue({ id: 456 });
 
-      await withTimeout(
-        chrome.tabs.create({ url: 'test' }),
-        5000,
-        'tab creation'
-      );
+      await withTimeout(chrome.tabs.create({ url: 'test' }), 5000, 'tab creation');
 
       // Verify timer was cleared (no pending timers)
       expect(jest.getTimerCount()).toBe(0);
@@ -121,18 +115,13 @@ describe('Tab Operations Timeout Protection', () => {
   // ========================================================================
 
   describe('chrome.tabs.remove() with timeout', () => {
-
     test('should timeout if tab removal takes longer than 3s', async () => {
       jest.useFakeTimers();
 
       // Mock slow tab removal (crashed tab scenario)
       chrome.tabs.remove.mockImplementation(() => new Promise(() => {}));
 
-      const promise = withTimeout(
-        chrome.tabs.remove(999),
-        3000,
-        'tab removal'
-      );
+      const promise = withTimeout(chrome.tabs.remove(999), 3000, 'tab removal');
 
       jest.advanceTimersByTime(3000);
 
@@ -144,11 +133,7 @@ describe('Tab Operations Timeout Protection', () => {
 
       chrome.tabs.remove.mockResolvedValue(undefined); // tabs.remove returns void
 
-      const promise = withTimeout(
-        chrome.tabs.remove(123),
-        3000,
-        'tab removal'
-      );
+      const promise = withTimeout(chrome.tabs.remove(123), 3000, 'tab removal');
 
       jest.advanceTimersByTime(100);
 
@@ -160,9 +145,9 @@ describe('Tab Operations Timeout Protection', () => {
 
       chrome.tabs.remove.mockRejectedValue(new Error('Tab not found'));
 
-      await expect(
-        withTimeout(chrome.tabs.remove(999), 3000, 'tab removal')
-      ).rejects.toThrow('Tab not found');
+      await expect(withTimeout(chrome.tabs.remove(999), 3000, 'tab removal')).rejects.toThrow(
+        'Tab not found'
+      );
 
       // Timer should be cleaned up even on error
       expect(jest.getTimerCount()).toBe(0);
@@ -174,17 +159,12 @@ describe('Tab Operations Timeout Protection', () => {
   // ========================================================================
 
   describe('chrome.tabs.get() with timeout', () => {
-
     test('should timeout if tab query takes longer than 2s', async () => {
       jest.useFakeTimers();
 
       chrome.tabs.get.mockImplementation(() => new Promise(() => {}));
 
-      const promise = withTimeout(
-        chrome.tabs.get(123),
-        2000,
-        'tab query'
-      );
+      const promise = withTimeout(chrome.tabs.get(123), 2000, 'tab query');
 
       jest.advanceTimersByTime(2000);
 
@@ -196,11 +176,7 @@ describe('Tab Operations Timeout Protection', () => {
 
       chrome.tabs.get.mockResolvedValue({ id: 123, url: 'https://test.com' });
 
-      const promise = withTimeout(
-        chrome.tabs.get(123),
-        2000,
-        'tab query'
-      );
+      const promise = withTimeout(chrome.tabs.get(123), 2000, 'tab query');
 
       jest.advanceTimersByTime(100);
 
@@ -214,7 +190,6 @@ describe('Tab Operations Timeout Protection', () => {
   // ========================================================================
 
   describe('Real-world tab operation scenarios', () => {
-
     test('should handle tab creation for data URI (instant load)', async () => {
       jest.useFakeTimers();
 
@@ -236,22 +211,14 @@ describe('Tab Operations Timeout Protection', () => {
       // Simulate typical flow:
       // 1. Create tab
       chrome.tabs.create.mockResolvedValue({ id: 100 });
-      const tab = await withTimeout(
-        chrome.tabs.create({ url: 'test' }),
-        5000,
-        'tab creation'
-      );
+      const tab = await withTimeout(chrome.tabs.create({ url: 'test' }), 5000, 'tab creation');
 
       // 2. Wait for test duration
       jest.advanceTimersByTime(3000);
 
       // 3. Close tab
       chrome.tabs.remove.mockResolvedValue(undefined);
-      await withTimeout(
-        chrome.tabs.remove(tab.id),
-        3000,
-        'tab cleanup'
-      );
+      await withTimeout(chrome.tabs.remove(tab.id), 3000, 'tab cleanup');
 
       expect(chrome.tabs.remove).toHaveBeenCalledWith(100);
       expect(jest.getTimerCount()).toBe(0);
@@ -262,9 +229,9 @@ describe('Tab Operations Timeout Protection', () => {
 
       chrome.tabs.remove.mockRejectedValue(new Error('No tab with id: 999'));
 
-      await expect(
-        withTimeout(chrome.tabs.remove(999), 3000, 'tab cleanup')
-      ).rejects.toThrow('No tab with id: 999');
+      await expect(withTimeout(chrome.tabs.remove(999), 3000, 'tab cleanup')).rejects.toThrow(
+        'No tab with id: 999'
+      );
 
       // Timer should still be cleaned up
       expect(jest.getTimerCount()).toBe(0);
@@ -299,7 +266,6 @@ describe('Tab Operations Timeout Protection', () => {
   // ========================================================================
 
   describe('Edge cases and error handling', () => {
-
     test('should handle multiple simultaneous tab operations', async () => {
       jest.useFakeTimers();
 
@@ -311,7 +277,7 @@ describe('Tab Operations Timeout Protection', () => {
       const promises = [
         withTimeout(chrome.tabs.create({ url: 'test1' }), 5000, 'tab1'),
         withTimeout(chrome.tabs.create({ url: 'test2' }), 5000, 'tab2'),
-        withTimeout(chrome.tabs.create({ url: 'test3' }), 5000, 'tab3')
+        withTimeout(chrome.tabs.create({ url: 'test3' }), 5000, 'tab3'),
       ];
 
       jest.advanceTimersByTime(100);
@@ -329,14 +295,15 @@ describe('Tab Operations Timeout Protection', () => {
 
       // Tab operation that throws error slowly
       chrome.tabs.create.mockImplementation(
-        () => new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Slow error')), 1000);
-        })
+        () =>
+          new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Slow error')), 1000);
+          })
       );
 
       const promise = withTimeout(
         chrome.tabs.create({ url: 'test' }),
-        500,  // Timeout before error occurs
+        500, // Timeout before error occurs
         'slow error scenario'
       );
 
@@ -351,11 +318,7 @@ describe('Tab Operations Timeout Protection', () => {
 
       chrome.tabs.create.mockResolvedValue({ id: 999 });
 
-      await withTimeout(
-        chrome.tabs.create({ url: 'test' }),
-        5000,
-        'cleanup test'
-      );
+      await withTimeout(chrome.tabs.create({ url: 'test' }), 5000, 'cleanup test');
 
       // Advance past timeout to ensure cleanup happened
       jest.advanceTimersByTime(10000);

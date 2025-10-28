@@ -9,11 +9,13 @@
 ## Document Organization
 
 ### 1. **CODING-TESTING-LESSONS.md** - For Improving CLAUDE.md Rules
+
 **Purpose:** Extract universal coding and testing lessons to improve development practices
 **Audience:** Developers, testers, future investigators
 **Use For:** Updating CLAUDE.md with new mandatory gates and rules
 
 **14 Lessons:**
+
 1. Multi-persona analysis for complex bugs
 2. Test-first discipline (write tests before implementation)
 3. Complete state machine coverage
@@ -32,16 +34,19 @@
 ---
 
 ### 2. **EXTENSION-TESTING-AND-IMPROVEMENTS.md** - For Testing Our Extension
+
 **Purpose:** Action plan to test ISSUE-011 fixes and improve chrome-dev-assist extension
 **Audience:** Users, testers, extension developers
 **Use For:** Testing extension, planning improvements, validation
 
 **🔥 CRITICAL Testing Required:**
+
 1. Reload extension
 2. Test exponential backoff (delays: 1s→2s→4s→8s→16s→30s)
 3. Test basic connectivity
 
 **9 Improvements Identified:**
+
 1. ✅ Complete state machine coverage (done)
 2. ✅ Exponential backoff (done)
 3. ✅ State validation wrapper (safeSend) (done)
@@ -53,6 +58,7 @@
 9. ❌ Metadata leak fix (unresolved, ISSUE-001)
 
 **3 Architecture Improvements:**
+
 1. Circuit breaker pattern
 2. Health check endpoint
 3. Metrics and monitoring
@@ -60,27 +66,29 @@
 ---
 
 ### 3. **PROBLEM-SOLVING-ANALYSIS.md** - Comparing Successful vs Incomplete Investigations
+
 **Purpose:** Meta-analysis of our problem-solving process
 **Audience:** Anyone interested in problem-solving methodologies
 **Use For:** Understanding what makes investigations successful
 
 **Key Comparison:**
 
-| Aspect | ISSUE-011 (Success) | ISSUE-001 (Incomplete) |
-|--------|---------------------|------------------------|
-| Investigation | 4 personas, systematic | 3 defensive layers |
-| Root Cause | Found 6 underlying issues | Found symptoms only |
-| Testing | 65 tests written first | Only verification |
-| Observability | Comprehensive logging | No debug logging |
-| Theories | Tested with code | Documented only |
-| Alternatives | N/A | Fixated on one API |
-| Persistence | Exhausted options | Gave up after 3 attempts |
+| Aspect        | ISSUE-011 (Success)       | ISSUE-001 (Incomplete)   |
+| ------------- | ------------------------- | ------------------------ |
+| Investigation | 4 personas, systematic    | 3 defensive layers       |
+| Root Cause    | Found 6 underlying issues | Found symptoms only      |
+| Testing       | 65 tests written first    | Only verification        |
+| Observability | Comprehensive logging     | No debug logging         |
+| Theories      | Tested with code          | Documented only          |
+| Alternatives  | N/A                       | Fixated on one API       |
+| Persistence   | Exhausted options         | Gave up after 3 attempts |
 
 ---
 
 ## Quick Wins: Top 5 Lessons
 
 ### 1. **Add Observability When Fixes Fail**
+
 ```javascript
 // When defensive fix fails ONCE → Add debug logging BEFORE second attempt
 console.log('[DEBUG] Context:', { url, state, hasData });
@@ -91,6 +99,7 @@ console.log('[DEBUG] Context:', { url, state, hasData });
 ---
 
 ### 2. **Test Theories with Code, Not Documentation**
+
 ```javascript
 // Don't just document theories - TEST them
 if (results.length > 1) {
@@ -103,6 +112,7 @@ if (results.length > 1) {
 ---
 
 ### 3. **Switch Approaches After 3 Failures**
+
 ```
 If approach X fails 3 times:
 → Try fundamentally different approach (different API, algorithm, architecture)
@@ -113,13 +123,20 @@ If approach X fails 3 times:
 ---
 
 ### 4. **Complete State Machine Coverage**
+
 ```javascript
 // Handle ALL states, not just "obvious" ones
-if (!ws) { /* NULL */ }
-else if (ws.readyState === WebSocket.CONNECTING) { /* 0 */ }
-else if (ws.readyState === WebSocket.OPEN) { /* 1 */ }
-else if (ws.readyState === WebSocket.CLOSING) { /* 2 */ }
-else if (ws.readyState === WebSocket.CLOSED) { /* 3 */ }
+if (!ws) {
+  /* NULL */
+} else if (ws.readyState === WebSocket.CONNECTING) {
+  /* 0 */
+} else if (ws.readyState === WebSocket.OPEN) {
+  /* 1 */
+} else if (ws.readyState === WebSocket.CLOSING) {
+  /* 2 */
+} else if (ws.readyState === WebSocket.CLOSED) {
+  /* 3 */
+}
 ```
 
 **Why:** Partial coverage = undefined behavior
@@ -127,6 +144,7 @@ else if (ws.readyState === WebSocket.CLOSED) { /* 3 */ }
 ---
 
 ### 5. **Multi-Persona Analysis**
+
 ```
 Complex bugs require 3-4 personas:
 - Auditor: Find ALL code paths
@@ -142,11 +160,13 @@ Complex bugs require 3-4 personas:
 ## Blog Posts (Deep Dives)
 
 ### **blogs/ISSUE-011-CONNECTION-STABILITY-DEEP-DIVE.md**
+
 **Status:** ✅ RESOLVED
 **Length:** ~25K words
 **Lessons:** 9 (updated with problem-solving analysis)
 
 **Key Sections:**
+
 - Complete investigation journey (4 personas)
 - 6 critical issues found
 - Test-first approach (23/23 passed immediately)
@@ -158,11 +178,13 @@ Complex bugs require 3-4 personas:
 ---
 
 ### **blogs/VULNERABILITY-BLOG-METADATA-LEAK.md**
+
 **Status:** ❌ UNRESOLVED
 **Length:** ~20K words
 **Lessons:** 9 (updated with critical mistakes analysis)
 
 **Key Sections:**
+
 - Security vulnerability details
 - 3 attempted fixes (all failed)
 - What we did wrong (gave up too early)
@@ -192,18 +214,21 @@ blogs/README.md                                     → Blog index
 ## Immediate Action Items
 
 ### For Users (Testing):
+
 1. 🔥 **CRITICAL:** Reload extension
 2. 🔥 **CRITICAL:** Test exponential backoff (see EXTENSION-TESTING-AND-IMPROVEMENTS.md)
 3. Test basic connectivity
 4. Report results
 
 ### For Developers (CLAUDE.md):
+
 1. Review CODING-TESTING-LESSONS.md
 2. Extract 14 rules for CLAUDE.md
 3. Add to MANDATORY gates
 4. Create enforcement checklist
 
 ### For Future Investigations:
+
 1. Use PROBLEM-SOLVING-ANALYSIS.md as template
 2. Follow complete process (don't skip observability)
 3. Test theories with code
@@ -215,12 +240,14 @@ blogs/README.md                                     → Blog index
 ## Success Metrics
 
 ### ISSUE-011 (Resolved):
+
 - Error recovery: 15s → 1-2s **(87% faster)**
 - Server load: 100+ attempts → 6 attempts **(95% reduction)**
 - Crash rate: Frequent → Zero **(100% elimination)**
 - Test pass rate: 23/23 **(100% on first run)**
 
 ### ISSUE-001 (Unresolved):
+
 - 3 defensive layers implemented (all failed)
 - 6 verification checks completed
 - **Lessons learned documented for future investigation**
@@ -234,6 +261,7 @@ blogs/README.md                                     → Blog index
 **The difference wasn't capability - it was process completeness.**
 
 ISSUE-011 followed complete investigation process:
+
 - Multiple personas
 - Observability (logging)
 - Testing theories (code)
@@ -241,6 +269,7 @@ ISSUE-011 followed complete investigation process:
 - Test-first
 
 ISSUE-001 skipped critical steps:
+
 - No debug logging when fixes failed
 - Theories documented, not tested
 - Fixated on one API
@@ -251,5 +280,5 @@ ISSUE-001 skipped critical steps:
 
 ---
 
-*Created: 2025-10-25*
-*Quick reference for lessons from ISSUE-011 and ISSUE-001*
+_Created: 2025-10-25_
+_Quick reference for lessons from ISSUE-011 and ISSUE-001_

@@ -23,7 +23,7 @@ async function manualTest() {
 
   try {
     const result = await chromeDevAssist.openUrl(fixtureUrl, {
-      active: true  // Open in foreground for manual inspection
+      active: true, // Open in foreground for manual inspection
     });
 
     console.log('✅ Tab opened:', result.tabId);
@@ -33,7 +33,6 @@ async function manualTest() {
 
     // Keep process alive for manual inspection
     await new Promise(() => {});
-
   } catch (error) {
     console.error('❌ Error:', error.message);
   }

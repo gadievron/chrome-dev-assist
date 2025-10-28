@@ -27,7 +27,7 @@ async function runTest() {
   console.log('  (Open a webpage in Chrome to generate console logs)');
   try {
     const result = await chromeDevAssist.reloadAndCapture('gnojocphflllgichkehjhkojkihcihfn', {
-      duration: 5000
+      duration: 5000,
     });
     console.log('✓ Reload and capture completed!');
     console.log(`  Captured ${result.consoleLogs.length} console logs`);

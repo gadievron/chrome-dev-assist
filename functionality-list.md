@@ -13,18 +13,21 @@
 ## 📊 STATISTICS
 
 ### Public API
+
 - **Total Functions:** 8 (verified in code)
 - **Total Validations:** 28 security checks
 - **Hidden Features:** 55+ undocumented behaviors
 - **Lines of Code:** 465 lines (handlers + helpers)
 
 ### Security & Performance
+
 - **Security Validations:** 23 distinct checks
 - **Performance Optimizations:** 7 mechanisms
 - **Memory Leak Prevention:** 6 systems
 - **Cleanup Mechanisms:** 5 automatic systems
 
 ### Hidden Complexity
+
 - **Undocumented Return Fields:** 7
 - **Edge Case Handlers:** 8
 - **Error Recovery Paths:** 15+
@@ -37,6 +40,7 @@
 ### Extension Management (2 functions)
 
 #### 1. ✅ getAllExtensions()
+
 **Purpose:** List all installed Chrome extensions
 
 **Implementation:** `extension/background.js:291-312`
@@ -44,6 +48,7 @@
 **Parameters:** None
 
 **Returns:**
+
 ```javascript
 {
   extensions: [
@@ -61,6 +66,7 @@
 ```
 
 **🔍 HIDDEN FUNCTIONALITY:**
+
 - ❌ **Filters out itself** - Excludes `chrome.runtime.id`
 - ❌ **Filters out Chrome Apps** - Only `type === 'extension'`
 - ⭐ **installType values:**
@@ -76,14 +82,17 @@
 ---
 
 #### 2. ✅ getExtensionInfo(extensionId)
+
 **Purpose:** Get detailed information about specific extension
 
 **Implementation:** `extension/background.js:318-345`
 
 **Parameters:**
+
 - `extensionId` (string, required): 32-character extension ID
 
 **Returns:**
+
 ```javascript
 {
   id: string,
@@ -99,6 +108,7 @@
 ```
 
 **🔍 HIDDEN FUNCTIONALITY:**
+
 - ✅ **Existence validation** - Throws if extension not found
 - ✅ **Error context** - `"Extension not found: {id}"`
 - ⭐ **mayDisable field:**
@@ -109,6 +119,7 @@
   - Separated from API permissions (Manifest V3)
 
 **Validations:**
+
 1. extensionId required check
 2. Extension existence verification
 
@@ -119,14 +130,17 @@
 ### Extension Reload & Console Capture (3 functions)
 
 #### 3. ✅ reload(extensionId)
+
 **Purpose:** Reload extension (disable → enable)
 
 **Implementation:** `extension/background.js:206-265`
 
 **Parameters:**
+
 - `extensionId` (string, required): 32-character extension ID
 
 **Returns:**
+
 ```javascript
 {
   extensionId: string,
@@ -136,6 +150,7 @@
 ```
 
 **🔍 HIDDEN FUNCTIONALITY:**
+
 - ✅ **Self-reload protection** - `if (extension.id === chrome.runtime.id) throw`
 - ✅ **100ms sleep** between disable/enable - Prevents race conditions
 - ✅ **Double existence check** - Before and after lookup
@@ -146,6 +161,7 @@
   - `"Failed to enable extension: {reason}"`
 
 **Validations:**
+
 1. extensionId required
 2. Extension exists (via chrome.management.get)
 3. Extension exists (null check)
@@ -154,6 +170,7 @@
 6. Enable operation (with error handling)
 
 **Sequence:**
+
 1. Validate extensionId
 2. Get extension info
 3. Check not self
@@ -163,6 +180,7 @@
 7. Return success
 
 **Why 100ms?**
+
 - Allows Chrome to fully process disable
 - Too short → failures
 - Too long → wasted time
@@ -173,15 +191,18 @@
 ---
 
 #### 4. ✅ reloadAndCapture(extensionId, options)
+
 **Purpose:** Reload extension AND capture console logs
 
 **Implementation:** Uses `reload()` + `startConsoleCapture()`
 
 **Parameters:**
+
 - `extensionId` (string, required)
 - `options.duration` (number, optional): Default 5000ms, max 60000ms
 
 **Returns:**
+
 ```javascript
 {
   extensionId: string,
@@ -202,6 +223,7 @@
 ```
 
 **🔍 HIDDEN FUNCTIONALITY:**
+
 - ⭐ **Captures from ALL tabs** - `tabId = null` (not just extension tabs)
 - ⭐ **Message truncation** - 10,000 char limit per log
 - ⭐ **Command isolation** - Logs specific to this command
@@ -209,11 +231,13 @@
 - ✅ **Inherits all reload() validations** (6 checks)
 
 **Why capture all tabs?**
+
 - Extension affects all tabs where it has permissions
 - Content scripts in multiple tabs reload
 - All affected tabs' logs are relevant
 
 **Memory protection:**
+
 - Max 10,000 logs per capture
 - Max 10,000 chars per log
 - Warning added at limit
@@ -224,14 +248,17 @@
 ---
 
 #### 5. ✅ captureLogs(duration)
+
 **Purpose:** Capture console logs WITHOUT reloading
 
 **Implementation:** `extension/background.js:271-285`
 
 **Parameters:**
+
 - `duration` (number, optional): Default 5000ms, range 1-60000ms
 
 **Returns:**
+
 ```javascript
 {
   consoleLogs: Array<LogEntry>,
@@ -243,6 +270,7 @@
 **🔍 HIDDEN FUNCTIONALITY:**
 
 **API Layer Validation** (`claude-code/index.js:65-67`):
+
 ```javascript
 if (duration <= 0 || duration > 60000) {
   throw new Error('Duration must be between 1 and 60000 ms');
@@ -250,6 +278,7 @@ if (duration <= 0 || duration > 60000) {
 ```
 
 **Extension Layer Validation** (`extension/background.js:403-424`):
+
 ```javascript
 // 6 distinct checks:
 if (typeof duration !== 'number') throw
@@ -261,17 +290,20 @@ if (duration > MAX_DURATION) throw       // 10 minutes max (extension level)
 ```
 
 **⚠️ DISCREPANCY FOUND:**
+
 - API limit: 60,000ms (60 seconds)
 - Extension limit: 600,000ms (10 minutes)
 - **Resolution:** Extension has looser internal limit
 
 **Capture Behavior:**
+
 - ⭐ **Captures from ALL tabs** (`tabId = null`)
 - ⭐ **O(1) lookup** performance
 - ⭐ **Isolated logs** per command
 - ⭐ **Automatic cleanup** after retrieval
 
 **Validations:**
+
 1. Duration type check
 2. Duration finite check
 3. Duration non-negative check
@@ -285,11 +317,13 @@ if (duration > MAX_DURATION) throw       // 10 minutes max (extension level)
 ### Tab Management (3 functions)
 
 #### 6. ✅ openUrl(url, options)
+
 **Purpose:** Open URL in new tab
 
 **Implementation:** `extension/background.js:354-507` (153 lines - MOST COMPLEX)
 
 **Parameters:**
+
 - `url` (string, required)
 - `options.active` (boolean, optional): Default true
 - `options.captureConsole` (boolean, optional): Default false
@@ -297,6 +331,7 @@ if (duration > MAX_DURATION) throw       // 10 minutes max (extension level)
 - `options.autoClose` (boolean, optional): Default false
 
 **Returns:**
+
 ```javascript
 {
   tabId: number,
@@ -311,11 +346,13 @@ if (duration > MAX_DURATION) throw       // 10 minutes max (extension level)
 **Security Fortress (11 validations):**
 
 1. **URL Validation:**
+
 ```javascript
 if (!url || url === '' || url === null || url === undefined) throw
 ```
 
 2. **Dangerous Protocol Blocking:**
+
 ```javascript
 const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:'];
 if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
@@ -324,12 +361,14 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 ```
 
 **Blocked protocols:**
+
 - `javascript:` - XSS attack vector
 - `data:` - Can contain embedded scripts
 - `vbscript:` - VBScript execution (legacy IE)
 - `file:` - Local file system access
 
 3. **Duration Validation (6 checks):**
+
 - Type check (must be number)
 - Finite check (rejects Infinity)
 - Non-negative check
@@ -337,13 +376,15 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 - Range check (max 600000ms = 10 minutes)
 
 4. **Privacy Protection:**
+
 ```javascript
-url: url.substring(0, 100)  // Truncate in logs
+url: url.substring(0, 100); // Truncate in logs
 ```
 
 5. **Safe JSON Stringify:**
+
 ```javascript
-const safeStringify = (obj) => {
+const safeStringify = obj => {
   const seen = new WeakSet();
   return JSON.stringify(obj, (key, value) => {
     if (typeof value === 'object' && value !== null) {
@@ -358,6 +399,7 @@ const safeStringify = (obj) => {
 **Handles:** Circular references in params
 
 **AutoClose Feature (Undocumented Complexity):**
+
 ```javascript
 try {
   // Capture logic...
@@ -382,6 +424,7 @@ try {
 ```
 
 **AutoClose Hidden Behaviors:**
+
 1. ⭐ **finally block** - Ensures cleanup even on errors
 2. ⭐ **Tab existence check** - Prevents double-close errors
 3. ⭐ **Promise detection** - Chrome API version compatibility
@@ -389,11 +432,13 @@ try {
 5. ⭐ **Extensive error logging** - Type, message, code, stack
 
 **Edge Cases Handled:**
+
 - Tab already closed by user → `tabClosed = false`, no error
 - Permission denied → Error logged, `tabClosed = false`
 - Tab from different profile → Error logged, `tabClosed = false`
 
 **Console Capture:**
+
 - ⭐ **Tab-specific** - Only captures THIS tab (`tabId = tab.id`)
 - Different from reload/captureLogs (which capture all tabs)
 
@@ -404,17 +449,20 @@ try {
 ---
 
 #### 7. ✅ reloadTab(tabId, options)
+
 **Purpose:** Reload a tab
 
 **Implementation:** `extension/background.js:513-543`
 
 **Parameters:**
+
 - `tabId` (number, required)
 - `options.bypassCache` (boolean, optional): Default false
 - `options.captureConsole` (boolean, optional): Default false
 - `options.duration` (number, optional): Default 5000ms
 
 **Returns:**
+
 ```javascript
 {
   tabId: number,
@@ -426,16 +474,19 @@ try {
 **🔍 HIDDEN FUNCTIONALITY:**
 
 **bypassCache Behavior:**
+
 - `false` - Normal reload (Cmd+R)
 - `true` - Hard reload (Cmd+Shift+R) / bypass cache
 
 **Hard reload clears:**
+
 - ✅ HTTP cache
 - ✅ Service worker cache
 - ✅ Application cache
 - ❌ Does NOT clear: Cookies, localStorage, sessionStorage
 
 **Capture Timing:**
+
 ```javascript
 // 1. Start capture BEFORE reload
 if (captureConsole) {
@@ -452,16 +503,19 @@ if (captureConsole) {
 ```
 
 **Why start before reload?**
+
 - ⭐ Captures unload events
 - ⭐ Captures error messages during reload
 - ⭐ Captures document_start scripts
 
 **Auto-injection:**
+
 - Console capture script auto-injects at `document_start`
 - Runs before page scripts
 - Intercepts all console calls
 
 **Validations:**
+
 1. tabId required check (undefined only, not null)
 2. Chrome API validates rest
 
@@ -470,14 +524,17 @@ if (captureConsole) {
 ---
 
 #### 8. ✅ closeTab(tabId)
+
 **Purpose:** Close a tab
 
 **Implementation:** `extension/background.js:549-564` (15 lines - SIMPLEST)
 
 **Parameters:**
+
 - `tabId` (number, required)
 
 **Returns:**
+
 ```javascript
 {
   tabId: number,    // ⭐ UNDOCUMENTED (echoes input)
@@ -488,6 +545,7 @@ if (captureConsole) {
 **🔍 HIDDEN FUNCTIONALITY:**
 
 **Minimal validation:**
+
 ```javascript
 if (tabId === undefined) {
   throw new Error('tabId is required');
@@ -495,6 +553,7 @@ if (tabId === undefined) {
 ```
 
 **Why minimal?**
+
 - Chrome API handles validation
 - Throws descriptive errors for:
   - Invalid tabId type
@@ -503,10 +562,12 @@ if (tabId === undefined) {
 - No need to duplicate
 
 **Error propagation:**
+
 - All Chrome errors propagated to caller
 - No finally block (closing IS the cleanup)
 
 **Echo behavior:**
+
 - Returns tabId for confirmation
 - Useful in batch operations
 - Confirms correct tab closed
@@ -549,6 +610,7 @@ Storage (captureState)
 **Purpose:** Intercept console methods and capture log levels
 
 **Log Level Capture** (Lines 53-73):
+
 ```javascript
 // Store originals
 const originalLog = console.log;
@@ -558,33 +620,34 @@ const originalInfo = console.info;
 const originalDebug = console.debug;
 
 // Override with level tracking
-console.log = function() {
+console.log = function () {
   originalLog.apply(console, arguments);
-  sendToExtension('log', arguments);  // ← level: 'log'
+  sendToExtension('log', arguments); // ← level: 'log'
 };
 
-console.error = function() {
+console.error = function () {
   originalError.apply(console, arguments);
-  sendToExtension('error', arguments);  // ← level: 'error'
+  sendToExtension('error', arguments); // ← level: 'error'
 };
 
-console.warn = function() {
+console.warn = function () {
   originalWarn.apply(console, arguments);
-  sendToExtension('warn', arguments);  // ← level: 'warn'
+  sendToExtension('warn', arguments); // ← level: 'warn'
 };
 
-console.info = function() {
+console.info = function () {
   originalInfo.apply(console, arguments);
-  sendToExtension('info', arguments);  // ← level: 'info'
+  sendToExtension('info', arguments); // ← level: 'info'
 };
 
-console.debug = function() {
+console.debug = function () {
   originalDebug.apply(console, arguments);
-  sendToExtension('debug', arguments);  // ← level: 'debug'
+  sendToExtension('debug', arguments); // ← level: 'debug'
 };
 ```
 
 **Layer 1 Truncation** (Lines 36-39):
+
 ```javascript
 const MAX_MESSAGE_LENGTH = 10000;
 if (message.length > MAX_MESSAGE_LENGTH) {
@@ -593,6 +656,7 @@ if (message.length > MAX_MESSAGE_LENGTH) {
 ```
 
 **Purpose of Layer 1:**
+
 - ✅ Prevent memory exhaustion at source
 - ✅ Reduce data sent through CustomEvent bridge
 - ✅ First line of defense (before data leaves page)
@@ -603,14 +667,15 @@ if (message.length > MAX_MESSAGE_LENGTH) {
 // Lines 24-29 - HAS IMPLEMENTATION GAP
 if (typeof arg === 'object') {
   try {
-    return JSON.stringify(arg);  // ← Fails on circular refs
+    return JSON.stringify(arg); // ← Fails on circular refs
   } catch (e) {
-    return String(arg);  // ← Returns "[object Object]" (not useful!)
+    return String(arg); // ← Returns "[object Object]" (not useful!)
   }
 }
 ```
 
 **Impact:**
+
 - Circular refs captured as `"[object Object]"` instead of `{ name: 'parent', self: '[Circular]' }`
 - Test exists (`tests/fixtures/edge-circular-ref.html`) but only verifies no crash, not output quality
 - Workaround: Use Chrome DevTools directly (shows full object) or manually serialize before logging
@@ -626,6 +691,7 @@ if (typeof arg === 'object') {
 **Purpose:** Message relay between MAIN world and Service Worker
 
 **Implementation:**
+
 - Receives messages from MAIN world via `window.addEventListener('message')`
 - Forwards to service worker via `chrome.runtime.sendMessage()`
 - No processing, just relay (security boundary)
@@ -638,6 +704,7 @@ if (typeof arg === 'object') {
 **Purpose:** Aggregate logs from all tabs/frames and enforce limits
 
 **Layer 2 Truncation** (Lines 687-691):
+
 ```javascript
 const MAX_MESSAGE_LENGTH = 10000;
 let truncatedMessage = message.message;
@@ -647,11 +714,13 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 ```
 
 **Purpose of Layer 2:**
+
 - ✅ Backup truncation (if injection bypassed or tampered)
 - ✅ Final enforcement before storage
 - ✅ Defense-in-depth security
 
 **Why Two Layers?**
+
 1. **Performance:** Truncate early to reduce data transfer through bridges
 2. **Security:** If Layer 1 bypassed/failed, Layer 2 catches it
 3. **Memory:** Prevent OOM at both injection and storage points
@@ -663,11 +732,13 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 ### 2. Console Capture System
 
 #### startConsoleCapture(commandId, duration, tabId)
+
 **Location:** `extension/background.js:575-609`
 
 **Purpose:** Start isolated console capture for a command
 
 **Parameters:**
+
 - `commandId` (string): Unique UUID for this command
 - `duration` (number): Capture duration in ms
 - `tabId` (number|null): null = all tabs, number = specific tab
@@ -675,6 +746,7 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 **Returns:** `Promise.resolve()` (returns immediately, doesn't wait)
 
 **Data Structures:**
+
 ```javascript
 // Primary storage
 const captureState = new Map(); // Map<commandId, CaptureState>
@@ -684,6 +756,7 @@ const capturesByTab = new Map(); // Map<tabId, Set<commandId>>
 ```
 
 **CaptureState:**
+
 ```javascript
 {
   logs: Array,
@@ -695,13 +768,14 @@ const capturesByTab = new Map(); // Map<tabId, Set<commandId>>
 ```
 
 **Implementation:**
+
 ```javascript
 // 1. Initialize state
 captureState.set(commandId, {
   logs: [],
   active: true,
   timeout: null,
-  tabId: tabId
+  tabId: tabId,
 });
 
 // 2. Add to tab-specific index (if tab-specific)
@@ -729,6 +803,7 @@ return Promise.resolve();
 ```
 
 **Hidden Features:**
+
 1. ⭐ **Command isolation** - Each command has own logs
 2. ⭐ **O(1) tab lookup** - via capturesByTab index
 3. ⭐ **Automatic timeout** - Stops capture after duration
@@ -736,6 +811,7 @@ return Promise.resolve();
 5. ⭐ **endTime tracking** - For cleanup
 
 **Why dual data structures?**
+
 - `captureState`: Primary storage, lookup by command
 - `capturesByTab`: Index for fast tab-specific lookup
 - Without index: O(n) iteration on every log message
@@ -746,11 +822,13 @@ return Promise.resolve();
 ---
 
 #### Console Log Reception
+
 **Location:** `extension/background.js:668-753`
 
 **Purpose:** Receive logs from content scripts and distribute to active captures
 
 **Message Validation:**
+
 ```javascript
 // 1. Sender must be from tab
 if (!sender.tab) {
@@ -766,6 +844,7 @@ if (!message.level || !message.message || !message.timestamp) {
 ```
 
 **Message Truncation:**
+
 ```javascript
 const MAX_MESSAGE_LENGTH = 10000;
 if (message.message.length > MAX_MESSAGE_LENGTH) {
@@ -774,6 +853,7 @@ if (message.message.length > MAX_MESSAGE_LENGTH) {
 ```
 
 **Log Distribution Algorithm:**
+
 ```javascript
 // 1. Get tab-specific captures (O(1) lookup)
 if (capturesByTab.has(tabId)) {
@@ -809,18 +889,21 @@ for (const commandId of relevantCommandIds) {
 ```
 
 **Performance Optimizations:**
+
 1. ⭐ O(1) tab-specific lookup via index
 2. ⭐ Set deduplication (prevents duplicate entries)
 3. ⭐ Active-only filtering
 4. ⭐ Limit enforcement (prevents unbounded growth)
 
 **Memory Protection:**
+
 - MAX_LOGS_PER_CAPTURE = 10,000
 - Warning added at exactly 10,000
 - Logs beyond 10,001 silently dropped
 - Prevents OOM crashes
 
 **Security:**
+
 - Validates sender is from tab
 - Rejects non-tab sources
 - Validates message structure
@@ -833,11 +916,13 @@ for (const commandId of relevantCommandIds) {
 ### 2. Cleanup System
 
 #### cleanupCapture(commandId)
+
 **Location:** `extension/background.js:616-641`
 
 **Purpose:** Remove capture state and maintain index integrity
 
 **Implementation:**
+
 ```javascript
 function cleanupCapture(commandId) {
   const state = captureState.get(commandId);
@@ -866,6 +951,7 @@ function cleanupCapture(commandId) {
 ```
 
 **Hidden Features:**
+
 1. ⭐ **Timeout cancellation** - Prevents orphaned timers
 2. ⭐ **Index synchronization** - Maintains capturesByTab integrity
 3. ⭐ **Empty set cleanup** - Prevents memory leaks
@@ -873,6 +959,7 @@ function cleanupCapture(commandId) {
 5. ⭐ **3-step cleanup** - Timeout, index, state
 
 **Called by:**
+
 - getCommandLogs() - After retrieving logs
 - Periodic cleanup (every 60s)
 - Error handlers
@@ -883,11 +970,13 @@ function cleanupCapture(commandId) {
 ---
 
 #### getCommandLogs(commandId)
+
 **Location:** `extension/background.js:647-659`
 
 **Purpose:** Get logs for a specific command and clean up
 
 **Implementation:**
+
 ```javascript
 function getCommandLogs(commandId) {
   const state = captureState.get(commandId);
@@ -902,11 +991,13 @@ function getCommandLogs(commandId) {
 ```
 
 **Hidden Features:**
+
 1. ⭐ **Returns copy** - Not reference (prevents mutation)
 2. ⭐ **Automatic cleanup** - Removes state after retrieval
 3. ⭐ **Empty array default** - If state not found
 
 **Why copy?**
+
 - Prevents caller from mutating internal state
 - Safe to modify returned array
 - Internal state is immutable to caller
@@ -916,14 +1007,16 @@ function getCommandLogs(commandId) {
 ---
 
 #### Automatic Periodic Cleanup
+
 **Location:** `extension/background.js:22-37`
 
 **Purpose:** Remove old completed captures to prevent memory leaks
 
 **Implementation:**
+
 ```javascript
-const CLEANUP_INTERVAL_MS = 60000;   // 60 seconds
-const MAX_CAPTURE_AGE_MS = 300000;   // 5 minutes
+const CLEANUP_INTERVAL_MS = 60000; // 60 seconds
+const MAX_CAPTURE_AGE_MS = 300000; // 5 minutes
 
 setInterval(() => {
   const now = Date.now();
@@ -931,7 +1024,7 @@ setInterval(() => {
 
   for (const [commandId, state] of captureState.entries()) {
     // Clean up inactive captures older than 5 minutes
-    if (!state.active && state.endTime && (now - state.endTime) > MAX_CAPTURE_AGE_MS) {
+    if (!state.active && state.endTime && now - state.endTime > MAX_CAPTURE_AGE_MS) {
       cleanupCapture(commandId);
       cleanedCount++;
     }
@@ -944,6 +1037,7 @@ setInterval(() => {
 ```
 
 **Hidden Features:**
+
 1. ⭐ **Automatic** - Runs every 60 seconds
 2. ⭐ **Age-based** - 5 minutes after completion
 3. ⭐ **Active preservation** - Only cleans inactive
@@ -951,6 +1045,7 @@ setInterval(() => {
 5. ⭐ **Memory leak prevention** - Without this, captures accumulate forever
 
 **Why 5 minutes?**
+
 - Gives time to retrieve logs after completion
 - Balances memory vs usability
 - Most tests complete within 5 minutes
@@ -962,13 +1057,15 @@ setInterval(() => {
 ### 3. WebSocket Connection Management
 
 #### Auto-Start Server
+
 **Location:** `claude-code/index.js:251-261`
 
 **Purpose:** Automatically start server on first API call
 
 **Implementation:**
+
 ```javascript
-ws.on('error', async (err) => {
+ws.on('error', async err => {
   if (err.code === 'ECONNREFUSED' && !retried) {
     retried = true;
     try {
@@ -984,6 +1081,7 @@ ws.on('error', async (err) => {
 ```
 
 **startServer Implementation:**
+
 ```javascript
 async function startServer() {
   const serverPath = path.join(__dirname, '../server/websocket-server.js');
@@ -991,7 +1089,7 @@ async function startServer() {
   // Spawn as detached background process
   const serverProcess = spawn('node', [serverPath], {
     detached: true,
-    stdio: 'ignore'
+    stdio: 'ignore',
   });
 
   serverProcess.unref(); // Don't keep Node.js alive
@@ -1009,6 +1107,7 @@ async function startServer() {
 ```
 
 **Hidden Features:**
+
 1. ⭐ **Automatic** - No manual server management
 2. ⭐ **Detached process** - Runs in background
 3. ⭐ **Retry logic** - Attempts connection twice
@@ -1020,11 +1119,13 @@ async function startServer() {
 ---
 
 #### Auto-Reconnect (Extension → Server)
+
 **Location:** `extension/background.js:190-194`
 
 **Purpose:** Reconnect when WebSocket drops
 
 **Implementation:**
+
 ```javascript
 ws.onclose = () => {
   console.log('[ChromeDevAssist] Disconnected from server, reconnecting in 1s...');
@@ -1034,6 +1135,7 @@ ws.onclose = () => {
 ```
 
 **Hidden Features:**
+
 1. ⭐ **Automatic** - No manual reconnection
 2. ⭐ **1 second delay** - Prevents rapid reconnect loop
 3. ⭐ **Resilient** - Survives server restarts
@@ -1085,20 +1187,22 @@ ws.onclose = () => {
 **Purpose:** Track extension status in chrome.storage
 
 **Implementation:**
+
 ```javascript
 if (typeof chrome !== 'undefined' && chrome.storage) {
   chrome.storage.local.set({
     status: {
       running: true,
       version: '1.0.0',
-      lastUpdate: new Date().toISOString()
-    }
+      lastUpdate: new Date().toISOString(),
+    },
   });
   console.log('[ChromeDevAssist] Ready for commands');
 }
 ```
 
 **Hidden Features:**
+
 1. ⭐ Stores status in chrome.storage.local
 2. ⭐ Tracks version
 3. ⭐ Tracks last update timestamp
@@ -1111,6 +1215,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ## 📊 SUMMARY STATISTICS
 
 ### Validation Counts
+
 - **getAllExtensions:** 0 (no parameters)
 - **getExtensionInfo:** 2
 - **reload:** 6
@@ -1125,6 +1230,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ---
 
 ### Undocumented Features
+
 - **Return fields:** 7 additional fields
 - **Security checks:** 23 validations
 - **Edge cases:** 8 handlers
@@ -1137,6 +1243,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ---
 
 ### Lines of Code
+
 - **getAllExtensions:** 15 lines
 - **getExtensionInfo:** 27 lines
 - **reload:** 60 lines
@@ -1155,11 +1262,13 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ### Documentation vs Reality
 
 **Documentation claimed:**
+
 - 8 functions
 - Basic functionality
 - Simple API
 
 **Reality discovered:**
+
 - 8 functions ✅
 - 23 security validations
 - 55+ hidden features
@@ -1173,7 +1282,9 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ---
 
 ### Most Complex Function
+
 **openUrl()** - 153 lines
+
 - 11 validations
 - Security fortress
 - AutoClose feature
@@ -1185,7 +1296,9 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ---
 
 ### Safest Function
+
 **reload()** - Critical safety check
+
 - Self-reload protection prevents crash
 - Without this, reloading self would terminate execution
 - Would cause undefined behavior
@@ -1194,7 +1307,9 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ---
 
 ### Simplest Function
+
 **closeTab()** - 15 lines
+
 - 1 validation
 - Minimal by design
 - Chrome API handles rest
@@ -1212,6 +1327,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 **Purpose:** Security validation for multi-extension support
 
 **Exports:**
+
 1. `validateExtensionId(extensionId)` - Chrome ID format (32 chars a-p)
 2. `validateMetadata(metadata)` - 10KB limit, field whitelist
 3. `sanitizeManifest(manifest)` - Strip OAuth tokens, keys
@@ -1222,6 +1338,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 8. `ALLOWED_CAPABILITIES` - Constant (array)
 
 **Key Features:**
+
 - 🔒 7 security validations
 - 🔒 XSS prevention (HTML tag blocking)
 - 🔒 DoS prevention (size limits)
@@ -1238,12 +1355,14 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 **Why:** Chrome monitors `console.error` - too many calls mark extension as crashed and disable it
 
 **Exports:**
+
 1. `ErrorLogger.logExpectedError(context, message, error)` - Uses console.warn (no crash detection)
 2. `ErrorLogger.logUnexpectedError(context, message, error)` - Uses console.error (for real bugs)
 3. `ErrorLogger.logInfo(context, message, data)` - Uses console.log
 4. `ErrorLogger.logCritical(context, message, error)` - Alias for logUnexpectedError
 
 **Key Features:**
+
 - ✅ Prevents false-positive crash detection
 - ✅ Structured format: `[ChromeDevAssist][context] message`
 - ✅ Stack traces and timestamps
@@ -1259,6 +1378,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 **Purpose:** Class-based console capture management (future refactoring)
 
 **Exports:**
+
 1. `start(captureId, options)` - Start capture session
 2. `stop(captureId)` - Stop capture session
 3. `addLog(tabId, logEntry)` - Add log to captures
@@ -1270,11 +1390,13 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 9. `cleanupStale(thresholdMs)` - Clean up old captures (default 5 min)
 
 **Architecture:**
+
 - Dual-index system for O(1) lookups
 - Primary: `Map<captureId, CaptureState>`
 - Secondary: `Map<tabId, Set<captureId>>`
 
 **Key Features:**
+
 - ⚡ O(1) tab lookup
 - 🧹 Memory leak prevention
 - ⏱️ Auto-stop timers
@@ -1289,6 +1411,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 **Purpose:** WebSocket health monitoring and observability
 
 **Exports:**
+
 1. `setExtensionSocket(socket)` - Set extension WebSocket
 2. `setApiSocket(socket)` - Set API WebSocket (unused)
 3. `isExtensionConnected()` - Quick check (readyState === OPEN)
@@ -1299,11 +1422,13 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 8. `_arraysEqual(arr1, arr2)` - Array comparison
 
 **Events Emitted:**
+
 - `health-changed` - Overall health status changed
 - `connection-state-changed` - Extension connection changed
 - `issues-updated` - Issues array changed
 
 **Key Features:**
+
 - 📡 Real-time health monitoring
 - 🔔 Event-based observability
 - 🔍 State-specific error messages
@@ -1326,6 +1451,7 @@ Lines of Code:           894 (utility modules only)
 ```
 
 **Documentation:**
+
 - **Deep Analysis:** NEWLY-DISCOVERED-MODULES-ANALYSIS-2025-10-26.md
 - **Complete Inventory:** MODULE-DISCOVERY-FINAL-REPORT-2025-10-26.md
 
@@ -1334,6 +1460,7 @@ Lines of Code:           894 (utility modules only)
 ## 📝 RECOMMENDATIONS
 
 ### For Documentation
+
 1. ✅ Document all 7 additional return fields
 2. ✅ Explain security validations
 3. ✅ Clarify capture scope (all tabs vs specific)
@@ -1344,6 +1471,7 @@ Lines of Code:           894 (utility modules only)
 8. ✅ Document cleanup mechanisms
 
 ### For Testing
+
 1. ✅ Test dangerous protocol blocking
 2. ✅ Test duration edge cases (Infinity, NaN)
 3. ✅ Test self-reload protection
@@ -1359,6 +1487,7 @@ Lines of Code:           894 (utility modules only)
 **Verification Method:** Deep-dive code analysis of all 1,136 lines
 **Accuracy:** 100% - Every function examined, all hidden features revealed
 **Related Documents:**
+
 - FUNCTION-DEEP-DIVE-ANALYSIS-2025-10-26.md - Detailed analysis
 - CODE-AUDIT-FINDINGS-2025-10-26.md - Code verification
 - COMPLETE-FUNCTIONALITY-MAP.md - High-level overview

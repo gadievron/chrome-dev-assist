@@ -34,7 +34,6 @@ async function withTimeout(promise, timeoutMs, operation) {
 }
 
 describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
-
   describe('Basic functionality', () => {
     it('should resolve when promise completes before timeout', async () => {
       const fastPromise = new Promise(resolve => setTimeout(() => resolve('success'), 10));
@@ -43,19 +42,21 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
     });
 
     it('should reject with timeout error when promise exceeds timeout', async () => {
-      const slowPromise = new Promise(resolve => setTimeout(() => resolve('should not reach'), 200));
+      const slowPromise = new Promise(resolve =>
+        setTimeout(() => resolve('should not reach'), 200)
+      );
 
-      await expect(
-        withTimeout(slowPromise, 50, 'slow operation')
-      ).rejects.toThrow('slow operation timeout after 50ms');
+      await expect(withTimeout(slowPromise, 50, 'slow operation')).rejects.toThrow(
+        'slow operation timeout after 50ms'
+      );
     });
 
     it('should propagate promise rejection before timeout', async () => {
       const failingPromise = Promise.reject(new Error('original error'));
 
-      await expect(
-        withTimeout(failingPromise, 100, 'failing operation')
-      ).rejects.toThrow('original error');
+      await expect(withTimeout(failingPromise, 100, 'failing operation')).rejects.toThrow(
+        'original error'
+      );
     });
   });
 
@@ -64,7 +65,7 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
       // Track active timers
       let timerCleared = false;
       const originalClearTimeout = global.clearTimeout;
-      global.clearTimeout = (handle) => {
+      global.clearTimeout = handle => {
         timerCleared = true;
         originalClearTimeout(handle);
       };
@@ -80,7 +81,7 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
       // Track active timers
       let timerCleared = false;
       const originalClearTimeout = global.clearTimeout;
-      global.clearTimeout = (handle) => {
+      global.clearTimeout = handle => {
         timerCleared = true;
         originalClearTimeout(handle);
       };
@@ -117,9 +118,9 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
     it('should handle zero timeout', async () => {
       const promise = new Promise(resolve => setTimeout(() => resolve('done'), 100));
 
-      await expect(
-        withTimeout(promise, 0, 'zero timeout')
-      ).rejects.toThrow('zero timeout timeout after 0ms');
+      await expect(withTimeout(promise, 0, 'zero timeout')).rejects.toThrow(
+        'zero timeout timeout after 0ms'
+      );
     }, 1000); // 1 second test timeout
 
     it('should handle already resolved promise', async () => {
@@ -131,9 +132,7 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
     it('should handle already rejected promise', async () => {
       const promise = Promise.reject(new Error('immediate fail'));
 
-      await expect(
-        withTimeout(promise, 100, 'immediate fail')
-      ).rejects.toThrow('immediate fail');
+      await expect(withTimeout(promise, 100, 'immediate fail')).rejects.toThrow('immediate fail');
     });
 
     it('should work with very long timeouts', async () => {
@@ -147,9 +146,9 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
     it('should include operation name in timeout error', async () => {
       const slowPromise = new Promise(resolve => setTimeout(() => resolve(), 200));
 
-      await expect(
-        withTimeout(slowPromise, 50, 'chrome.tabs.get')
-      ).rejects.toThrow('chrome.tabs.get timeout after 50ms');
+      await expect(withTimeout(slowPromise, 50, 'chrome.tabs.get')).rejects.toThrow(
+        'chrome.tabs.get timeout after 50ms'
+      );
     }, 1000);
 
     it('should work with complex operation names', async () => {
@@ -166,7 +165,7 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
       const promises = [
         withTimeout(Promise.resolve('a'), 100, 'op-a'),
         withTimeout(Promise.resolve('b'), 100, 'op-b'),
-        withTimeout(Promise.resolve('c'), 100, 'op-c')
+        withTimeout(Promise.resolve('c'), 100, 'op-c'),
       ];
 
       const results = await Promise.all(promises);
@@ -176,7 +175,7 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
     it('should handle mixed success/timeout scenarios', async () => {
       const promises = [
         withTimeout(Promise.resolve('fast'), 100, 'fast-op'),
-        withTimeout(new Promise(resolve => setTimeout(() => resolve(), 200)), 50, 'slow-op')
+        withTimeout(new Promise(resolve => setTimeout(() => resolve(), 200)), 50, 'slow-op'),
       ];
 
       const results = await Promise.allSettled(promises);
@@ -192,9 +191,7 @@ describe('withTimeout() - Timeout Wrapper (Improvement 8)', () => {
       // Run many operations to check for timer leaks
       const operations = [];
       for (let i = 0; i < 100; i++) {
-        operations.push(
-          withTimeout(Promise.resolve(i), 100, `op-${i}`)
-        );
+        operations.push(withTimeout(Promise.resolve(i), 100, `op-${i}`));
       }
 
       const results = await Promise.all(operations);
@@ -241,8 +238,12 @@ describe('Verification: withTimeout implementation in background.js', () => {
 
     // Key implementation details that MUST be present
     expect(backgroundJs).toContain('Promise.race([promise, timeoutPromise])');
-    expect(backgroundJs).toContain('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success');
-    expect(backgroundJs).toContain('clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error');
+    expect(backgroundJs).toContain(
+      'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on success'
+    );
+    expect(backgroundJs).toContain(
+      'clearTimeout(timeoutHandle); // ✅ FIX: Clean up timer on error'
+    );
   });
 });
 
@@ -254,9 +255,9 @@ describe('Integration with chrome.* APIs (simulated)', () => {
       // Simulate slow chrome.tabs.get
       const mockTabsGet = () => new Promise(resolve => setTimeout(() => resolve({ id: 123 }), 500));
 
-      await expect(
-        withTimeout(mockTabsGet(), 100, 'chrome.tabs.get')
-      ).rejects.toThrow('chrome.tabs.get timeout after 100ms');
+      await expect(withTimeout(mockTabsGet(), 100, 'chrome.tabs.get')).rejects.toThrow(
+        'chrome.tabs.get timeout after 100ms'
+      );
     }, 2000);
 
     it('should allow fast chrome.tabs.get to complete', async () => {
@@ -271,9 +272,10 @@ describe('Integration with chrome.* APIs (simulated)', () => {
   describe('chrome.scripting.executeScript simulation', () => {
     it('should timeout on hung executeScript', async () => {
       // Simulate hung executeScript (malicious page blocking)
-      const mockExecuteScript = () => new Promise(() => {
-        // Never resolves (simulates hung page)
-      });
+      const mockExecuteScript = () =>
+        new Promise(() => {
+          // Never resolves (simulates hung page)
+        });
 
       await expect(
         withTimeout(mockExecuteScript(), 100, 'chrome.scripting.executeScript')
@@ -298,7 +300,11 @@ describe('Integration with chrome.* APIs (simulated)', () => {
 
     it('should use 10s timeout for chrome.scripting.executeScript', async () => {
       const mockExecuteScript = () => Promise.resolve([{ result: 'data' }]);
-      const result = await withTimeout(mockExecuteScript(), 10000, 'chrome.scripting.executeScript');
+      const result = await withTimeout(
+        mockExecuteScript(),
+        10000,
+        'chrome.scripting.executeScript'
+      );
       expect(result[0].result).toBe('data');
     });
 

@@ -12,6 +12,7 @@
 **Finding:** The actual implementations contain **significantly more functionality** than documented in API docs. Each of the 8 functions has hidden validation, security checks, error handling, and special features.
 
 **Key Discoveries:**
+
 - 🔒 **23 undocumented security validations** across all functions
 - ⚡ **7 undocumented performance optimizations**
 - 🧹 **5 automatic cleanup mechanisms**
@@ -30,29 +31,33 @@
 ### 1. ✅ getAllExtensions()
 
 **API Documentation Claims:**
+
 - Get list of all installed Chrome extensions
 - Returns: `{extensions: Array, count: number}`
 
 **ACTUAL IMPLEMENTATION REVEALS:**
 
 #### Hidden Filtering Logic
+
 **Location:** `extension/background.js:294-306`
 
 ```javascript
-const filtered = extensions
-  .filter(ext => ext.type === 'extension' && ext.id !== chrome.runtime.id)
+const filtered = extensions.filter(ext => ext.type === 'extension' && ext.id !== chrome.runtime.id);
 ```
 
 **Undocumented Filters:**
+
 1. ❌ **Filters out Chrome Apps** - Only returns `type === 'extension'`
 2. ❌ **Filters out itself** - Excludes `chrome.runtime.id`
 
 **Why undocumented:** Prevents confusion (apps aren't extensions) and self-reference issues
 
 #### Additional Return Fields
+
 **Documented:** id, name, version, enabled
 
 **ACTUALLY RETURNS:**
+
 ```javascript
 {
   id: string,
@@ -65,6 +70,7 @@ const filtered = extensions
 ```
 
 **installType values:**
+
 - `'normal'` - Installed from Chrome Web Store
 - `'development'` - Loaded unpacked (dev mode)
 - `'sideload'` - Installed from third-party source
@@ -73,6 +79,7 @@ const filtered = extensions
 **Use case:** Distinguish dev vs production extensions in testing
 
 #### Security Implications
+
 - ✅ Self-exclusion prevents accidental self-manipulation
 - ✅ App filtering prevents type confusion attacks
 
@@ -81,12 +88,14 @@ const filtered = extensions
 ### 2. ✅ getExtensionInfo(extensionId)
 
 **API Documentation Claims:**
+
 - Get detailed information about specific extension
 - Returns: id, name, version, enabled, permissions, manifest
 
 **ACTUAL IMPLEMENTATION REVEALS:**
 
 #### Validation Sequence
+
 **Location:** `extension/background.js:318-344`
 
 ```javascript
@@ -104,6 +113,7 @@ try {
 ```
 
 **Hidden validations:**
+
 1. ❌ Null/undefined check
 2. ❌ Extension existence verification
 3. ❌ Descriptive error messages with context
@@ -113,6 +123,7 @@ try {
 **Documented:** id, name, version, enabled, permissions
 
 **ACTUALLY RETURNS:**
+
 ```javascript
 {
   id: string,
@@ -128,11 +139,13 @@ try {
 ```
 
 **Critical field: mayDisable**
+
 - `false` = Extension is policy-installed (enterprise/admin)
 - `true` = User can disable extension
 - **Security impact:** Prevents attempts to disable enterprise-enforced extensions
 
 **hostPermissions vs permissions:**
+
 - `permissions`: API permissions (`tabs`, `storage`, etc.)
 - `hostPermissions`: Website access patterns (`https://*/*`, etc.)
 - **Manifest V3 requirement:** Separated for user privacy/security
@@ -142,12 +155,14 @@ try {
 ### 3. ✅ reload(extensionId)
 
 **API Documentation Claims:**
+
 - Reload extension (disable → enable)
 - Returns: `{extensionId, extensionName, reloadSuccess}`
 
 **ACTUAL IMPLEMENTATION REVEALS:**
 
 #### Complete Validation Chain
+
 **Location:** `extension/background.js:206-265`
 
 ```javascript
@@ -191,6 +206,7 @@ try {
 ```
 
 **Hidden validations:**
+
 1. ✅ Parameter required check
 2. ✅ Extension existence (double check!)
 3. ✅ **Self-reload protection** - CRITICAL safety feature
@@ -199,16 +215,19 @@ try {
 6. ✅ Enable error handling with context
 
 **Why 100ms sleep?**
+
 - Allows Chrome internals to fully process extension disable
 - Prevents race conditions in extension lifecycle
 - **Empirically determined** - too short causes failures, too long wastes time
 
 **Self-reload protection rationale:**
+
 - Reloading self would terminate current code execution
 - Would cause undefined behavior in WebSocket connection
 - Could leave orphaned captures/state
 
 **Error message evolution:**
+
 - Generic: `"Extension not found"`
 - Specific: `"Failed to disable extension: Permission denied"`
 - Gives developer actionable information
@@ -218,6 +237,7 @@ try {
 ### 4. ✅ reloadAndCapture(extensionId, options)
 
 **API Documentation Claims:**
+
 - Reload extension AND capture console logs
 - Options: `{duration: number}`
 - Returns: `{extensionId, extensionName, reloadSuccess, consoleLogs: Array}`
@@ -227,6 +247,7 @@ try {
 **Inherits ALL validation from reload()** (above) plus:
 
 #### Console Capture Behavior
+
 **Location:** `extension/background.js:251-257`
 
 ```javascript
@@ -240,17 +261,20 @@ const logs = captureConsole ? getCommandLogs(commandId) : [];
 ```
 
 **Hidden behavior:**
+
 1. ⭐ **Captures from ALL tabs** (`tabId = null`)
 2. ⭐ Not just the extension's tabs - EVERY tab in browser
 3. ⭐ Returns command-specific logs (isolation)
 4. ⭐ Automatic cleanup after getting logs
 
 **Why capture ALL tabs?**
+
 - Extension reload affects all tabs where extension has permissions
 - Extension content scripts in multiple tabs will all reload
 - Logs from all affected tabs are relevant
 
 **Return value details:**
+
 ```javascript
 {
   extensionId: string,
@@ -271,6 +295,7 @@ const logs = captureConsole ? getCommandLogs(commandId) : [];
 ```
 
 **Log truncation:**
+
 - Messages > 10,000 characters → truncated + `'... [truncated]'`
 - Prevents memory exhaustion from massive logs
 
@@ -279,6 +304,7 @@ const logs = captureConsole ? getCommandLogs(commandId) : [];
 ### 5. ✅ captureLogs(duration)
 
 **API Documentation Claims:**
+
 - Capture console logs WITHOUT reloading
 - Duration: 1-60000ms
 - Returns: `{consoleLogs: Array}`
@@ -286,6 +312,7 @@ const logs = captureConsole ? getCommandLogs(commandId) : [];
 **ACTUAL IMPLEMENTATION REVEALS:**
 
 #### Validation in API Layer
+
 **Location:** `claude-code/index.js:64-78`
 
 ```javascript
@@ -297,6 +324,7 @@ if (duration <= 0 || duration > 60000) {
 **API-level validation:** 1-60000ms (60 seconds)
 
 #### Validation in Extension Layer
+
 **Location:** `extension/background.js:403-424` (used by openUrl, applies to all)
 
 ```javascript
@@ -325,6 +353,7 @@ if (duration > MAX_DURATION) {
 ```
 
 **Extension-level validations:**
+
 1. ✅ Type check (must be number)
 2. ✅ Finite check (rejects Infinity)
 3. ✅ Non-negative check
@@ -332,6 +361,7 @@ if (duration > MAX_DURATION) {
 5. ✅ **MAX 600000ms (10 minutes)** - different from API limit!
 
 **DISCREPANCY FOUND:**
+
 - **API docs:** Max 60000ms (60 seconds)
 - **API code:** Max 60000ms (60 seconds)
 - **Extension code:** Max 600000ms (10 minutes)
@@ -339,6 +369,7 @@ if (duration > MAX_DURATION) {
 **Resolution:** Extension has looser limit for internal use. API enforces stricter limit for user safety.
 
 #### Capture Behavior
+
 **Location:** `extension/background.js:271-285`
 
 ```javascript
@@ -347,11 +378,13 @@ await startConsoleCapture(commandId, duration, null);
 ```
 
 **Hidden behavior:**
+
 1. ⭐ Captures from ALL tabs (not just current)
 2. ⭐ `tabId = null` means no tab filtering
 3. ⭐ Returns isolated command logs only
 
 **Memory protection:**
+
 - Max 10,000 logs per capture
 - Beyond limit: adds warning message, then silently drops
 - Warning: `[ChromeDevAssist] Log limit reached (10000). Further logs will be dropped.`
@@ -361,6 +394,7 @@ await startConsoleCapture(commandId, duration, null);
 ### 6. ✅ openUrl(url, options)
 
 **API Documentation Claims:**
+
 - Open URL in new tab
 - Options: `{active, captureConsole, duration, autoClose}`
 - Returns: `{tabId, url, consoleLogs, tabClosed}`
@@ -368,11 +402,13 @@ await startConsoleCapture(commandId, duration, null);
 **ACTUAL IMPLEMENTATION REVEALS:**
 
 #### Security Validation Fortress
+
 **Location:** `extension/background.js:354-507`
 
 This function has THE MOST security validations of any function:
 
 **1. URL Validation**
+
 ```javascript
 // Security: Validate URL parameter
 if (!url || url === '' || url === null || url === undefined) {
@@ -388,12 +424,14 @@ if (dangerousProtocols.some(protocol => urlLower.startsWith(protocol))) {
 ```
 
 **Blocked protocols:**
+
 - `javascript:` - XSS attack vector
 - `data:` - Can contain embedded scripts
 - `vbscript:` - VBScript execution (legacy IE)
 - `file:` - Local file system access
 
 **2. Duration Validation (6 checks!)**
+
 ```javascript
 if (typeof duration !== 'number') {
   throw new Error(`Invalid duration type: expected number, got ${typeof duration}`);
@@ -418,33 +456,40 @@ if (duration > MAX_DURATION) {
 ```
 
 **Duration attack vectors prevented:**
+
 - Infinity → DoS (infinite capture)
 - -1 → undefined behavior
 - NaN → logic errors
 - 10000000000 → resource exhaustion
 
 **3. Logging Privacy Protection**
+
 ```javascript
 // Truncate long URLs in logs
-url: url.substring(0, 100)
+url: url.substring(0, 100);
 ```
 
 **Why:** URLs can contain sensitive data (tokens, session IDs). Truncate in logs for privacy.
 
 **4. Safe JSON Stringify**
+
 ```javascript
-const safeStringify = (obj) => {
+const safeStringify = obj => {
   try {
     const seen = new WeakSet();
-    return JSON.stringify(obj, (key, value) => {
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return '[Circular]';
+    return JSON.stringify(
+      obj,
+      (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular]';
+          }
+          seen.add(value);
         }
-        seen.add(value);
-      }
-      return value;
-    }, 2);
+        return value;
+      },
+      2
+    );
   } catch (err) {
     return '[Unable to stringify]';
   }
@@ -454,6 +499,7 @@ const safeStringify = (obj) => {
 **Handles:** Circular references in params (prevents crash)
 
 #### AutoClose Feature (Undocumented Complexity)
+
 **Location:** `extension/background.js:452-498`
 
 ```javascript
@@ -496,6 +542,7 @@ try {
 ```
 
 **Hidden behaviors:**
+
 1. ⭐ **finally block** ensures cleanup even if capture errors
 2. ⭐ **Tab existence check** before closing (prevents errors)
 3. ⭐ **Promise detection** for cross-version compatibility
@@ -505,11 +552,13 @@ try {
 **Chrome API quirk:** `chrome.tabs.remove()` sometimes returns Promise, sometimes doesn't (version-dependent). Code handles both.
 
 **Edge cases:**
+
 - Tab already closed by user → `tabClosed = false`, no error
 - Permission denied → Error logged, `tabClosed = false`
 - Tab from different profile → Error logged, `tabClosed = false`
 
 #### Console Capture Tab-Specific
+
 ```javascript
 // Start console capture for this specific tab (if requested)
 if (captureConsole) {
@@ -518,6 +567,7 @@ if (captureConsole) {
 ```
 
 **Different from other captures:**
+
 - Filters logs to THIS tab only (`tabId = tab.id`)
 - Reload/capture commands capture ALL tabs
 - This captures only the opened tab
@@ -527,6 +577,7 @@ if (captureConsole) {
 ### 7. ✅ reloadTab(tabId, options)
 
 **API Documentation Claims:**
+
 - Reload a tab
 - Options: `{bypassCache, captureConsole, duration}`
 - Returns: `{tabId, consoleLogs}`
@@ -534,6 +585,7 @@ if (captureConsole) {
 **ACTUAL IMPLEMENTATION REVEALS:**
 
 #### Validation
+
 **Location:** `extension/background.js:513-543`
 
 ```javascript
@@ -543,29 +595,35 @@ if (tabId === undefined) {
 ```
 
 **Hidden validations:**
+
 1. ✅ Only checks undefined (not null, not type)
 2. ✅ Chrome API validates tabId type/existence
 
 **Why minimal validation?**
+
 - Chrome API throws descriptive errors for invalid tabIds
 - No need to duplicate validation
 
 #### bypassCache Behavior
+
 ```javascript
 await chrome.tabs.reload(tabId, { bypassCache: bypassCache });
 ```
 
 **bypassCache values:**
+
 - `false` (default): Normal reload (Cmd+R)
 - `true`: Hard reload / bypass cache (Cmd+Shift+R)
 
 **Hard reload clears:**
+
 - HTTP cache
 - Service worker cache
 - Application cache
 - But NOT: Cookies, localStorage, sessionStorage
 
 #### Console Capture Timing
+
 ```javascript
 // Start console capture for this specific tab (if requested)
 if (captureConsole) {
@@ -582,6 +640,7 @@ if (captureConsole) {
 ```
 
 **Sequence:**
+
 1. Start capture BEFORE reload
 2. Reload tab
 3. Console capture script auto-injects at document_start
@@ -589,6 +648,7 @@ if (captureConsole) {
 5. Return logs
 
 **Why start before reload?**
+
 - Captures logs from unload events
 - Captures error messages during reload
 - Captures logs from document_start scripts
@@ -598,6 +658,7 @@ if (captureConsole) {
 **Documented:** `{tabId, consoleLogs}`
 
 **ACTUALLY RETURNS:**
+
 ```javascript
 {
   tabId: number,
@@ -607,6 +668,7 @@ if (captureConsole) {
 ```
 
 **Why echo bypassCache?**
+
 - Confirms which reload type was performed
 - Useful for test assertions
 
@@ -615,12 +677,14 @@ if (captureConsole) {
 ### 8. ✅ closeTab(tabId)
 
 **API Documentation Claims:**
+
 - Close a tab
 - Returns: `{closed: true}`
 
 **ACTUAL IMPLEMENTATION REVEALS:**
 
 #### Validation
+
 **Location:** `extension/background.js:549-564`
 
 ```javascript
@@ -636,6 +700,7 @@ if (tabId === undefined) {
 **Documented:** `{closed: true}`
 
 **ACTUALLY RETURNS:**
+
 ```javascript
 {
   tabId: number,     // ⭐ UNDOCUMENTED - echoes input
@@ -644,10 +709,12 @@ if (tabId === undefined) {
 ```
 
 **Why echo tabId?**
+
 - Confirms which tab was closed
 - Useful in batch operations
 
 **Error handling:**
+
 - Invalid tabId → Chrome throws error
 - Already closed → Chrome throws error
 - Permission denied → Chrome throws error
@@ -662,11 +729,13 @@ if (tabId === undefined) {
 ### 1. Console Capture System
 
 #### startConsoleCapture(commandId, duration, tabId)
+
 **Location:** `extension/background.js:575-609`
 
 **Purpose:** Start isolated console capture for a command
 
 **Hidden features:**
+
 1. ⭐ **Command-specific isolation** - each command has own log collection
 2. ⭐ **Tab filtering** - `null` = all tabs, `number` = specific tab
 3. ⭐ **O(1) tab lookup** via `capturesByTab` index
@@ -678,7 +747,7 @@ captureState.set(commandId, {
   logs: [],
   active: true,
   timeout: null,
-  tabId: tabId  // null = capture all tabs, number = specific tab only
+  tabId: tabId, // null = capture all tabs, number = specific tab only
 });
 
 // Add to tab-specific index for O(1) lookup (prevents race conditions)
@@ -691,6 +760,7 @@ if (tabId !== null) {
 ```
 
 **Data structures:**
+
 ```javascript
 // Map<commandId, {logs: Array, active: boolean, timeout: number, endTime: number, tabId: number|null}>
 const captureState = new Map();
@@ -700,6 +770,7 @@ const capturesByTab = new Map();
 ```
 
 **Why two data structures?**
+
 - `captureState`: Primary storage, lookup by command
 - `capturesByTab`: Index for fast tab-specific lookup
 - Prevents O(n) iteration on every log message
@@ -712,6 +783,7 @@ const capturesByTab = new Map();
 **Location:** `extension/background.js:668-753`
 
 #### Message Validation
+
 ```javascript
 // Validate sender - must be from a content script in a tab
 if (!sender.tab) {
@@ -729,11 +801,13 @@ if (!message.level || !message.message || !message.timestamp) {
 ```
 
 **Security validations:**
+
 1. ✅ Sender must be from tab (not extension background)
 2. ✅ Required fields: level, message, timestamp
 3. ✅ Prevents spoofed messages
 
 #### Message Truncation
+
 ```javascript
 const MAX_MESSAGE_LENGTH = 10000;
 let truncatedMessage = message.message;
@@ -743,11 +817,13 @@ if (typeof message.message === 'string' && message.message.length > MAX_MESSAGE_
 ```
 
 **Prevents memory exhaustion from:**
+
 - Massive stack traces
 - Large JSON dumps
 - Repeated log spam
 
 #### Log Distribution Algorithm
+
 ```javascript
 // 1. Get tab-specific captures via O(1) lookup
 if (capturesByTab.has(tabId)) {
@@ -784,12 +860,14 @@ for (const commandId of relevantCommandIds) {
 ```
 
 **Performance optimizations:**
+
 1. ⭐ O(1) tab-specific lookup
 2. ⭐ Set deduplication (same command won't be added twice)
 3. ⭐ Active-only filtering
 4. ⭐ Limit enforcement prevents unbounded growth
 
 **Memory protection:**
+
 - MAX_LOGS_PER_CAPTURE = 10,000
 - Warning added at exactly 10,000
 - Logs beyond 10,001 silently dropped
@@ -800,6 +878,7 @@ for (const commandId of relevantCommandIds) {
 ### 3. Cleanup System
 
 #### cleanupCapture(commandId)
+
 **Location:** `extension/background.js:616-641`
 
 **Purpose:** Remove capture state and maintain index integrity
@@ -834,12 +913,14 @@ function cleanupCapture(commandId) {
 ```
 
 **Hidden features:**
+
 1. ⭐ **Timeout cancellation** - prevents orphaned timers
 2. ⭐ **Index synchronization** - maintains capturesByTab integrity
 3. ⭐ **Empty set cleanup** - prevents memory leaks
 4. ⭐ **Idempotent** - safe to call multiple times
 
 **Called by:**
+
 - getCommandLogs() - after retrieving logs
 - Periodic cleanup (every 60s)
 - Error handlers
@@ -852,8 +933,8 @@ function cleanupCapture(commandId) {
 **Location:** `extension/background.js:22-37`
 
 ```javascript
-const CLEANUP_INTERVAL_MS = 60000;   // 60 seconds
-const MAX_CAPTURE_AGE_MS = 300000;   // 5 minutes
+const CLEANUP_INTERVAL_MS = 60000; // 60 seconds
+const MAX_CAPTURE_AGE_MS = 300000; // 5 minutes
 
 setInterval(() => {
   const now = Date.now();
@@ -861,30 +942,35 @@ setInterval(() => {
 
   for (const [commandId, state] of captureState.entries()) {
     // Clean up inactive captures older than MAX_CAPTURE_AGE_MS
-    if (!state.active && state.endTime && (now - state.endTime) > MAX_CAPTURE_AGE_MS) {
+    if (!state.active && state.endTime && now - state.endTime > MAX_CAPTURE_AGE_MS) {
       cleanupCapture(commandId);
       cleanedCount++;
     }
   }
 
   if (cleanedCount > 0) {
-    console.log(`[ChromeDevAssist] Cleaned up ${cleanedCount} old capture(s). Active captures: ${captureState.size}`);
+    console.log(
+      `[ChromeDevAssist] Cleaned up ${cleanedCount} old capture(s). Active captures: ${captureState.size}`
+    );
   }
 }, CLEANUP_INTERVAL_MS);
 ```
 
 **Hidden features:**
+
 1. ⭐ **Automatic cleanup** every 60 seconds
 2. ⭐ **Age-based removal** - 5 minutes after completion
 3. ⭐ **Active captures preserved** - only cleans inactive
 4. ⭐ **Logging** - announces cleanup actions
 
 **Why 5 minutes?**
+
 - Gives time to retrieve logs after completion
 - Balances memory usage vs usability
 - Most tests complete within 5 minutes
 
 **Memory leak prevention:**
+
 - Without this, completed captures accumulate indefinitely
 - With this, memory usage stays bounded
 
@@ -900,14 +986,15 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
     status: {
       running: true,
       version: '1.0.0',
-      lastUpdate: new Date().toISOString()
-    }
+      lastUpdate: new Date().toISOString(),
+    },
   });
   console.log('[ChromeDevAssist] Ready for commands');
 }
 ```
 
 **Hidden features:**
+
 1. ⭐ Stores status in chrome.storage.local
 2. ⭐ Tracks version
 3. ⭐ Tracks last update timestamp
@@ -920,11 +1007,13 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ## 🔒 SECURITY FEATURES SUMMARY
 
 ### URL Validation (openUrl)
+
 1. ✅ Null/empty check
 2. ✅ Dangerous protocol blocking (javascript:, data:, vbscript:, file:)
 3. ✅ URL truncation in logs (privacy)
 
 ### Duration Validation (all capture functions)
+
 1. ✅ Type check (must be number)
 2. ✅ Finite check (rejects Infinity)
 3. ✅ Non-negative check
@@ -932,20 +1021,24 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 5. ✅ Range check (1-60000ms API, 1-600000ms extension)
 
 ### Extension ID Validation (reload, getExtensionInfo)
+
 1. ✅ Required check
 2. ✅ Existence verification
 3. ✅ **Self-reload protection** (critical!)
 
 ### Tab ID Validation (reloadTab, closeTab)
+
 1. ✅ Required check
 2. ✅ Chrome API validates rest
 
 ### Message Validation (console log reception)
+
 1. ✅ Sender must be from tab
 2. ✅ Required fields check
 3. ✅ Message truncation (10,000 chars)
 
 ### Memory Protection
+
 1. ✅ Max logs per capture (10,000)
 2. ✅ Message truncation (10,000 chars)
 3. ✅ Periodic cleanup (60s interval, 5min retention)
@@ -971,19 +1064,23 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ## 📊 UNDOCUMENTED RETURN FIELDS
 
 ### getAllExtensions()
+
 - ✅ `description` - Extension description from manifest
 - ✅ `installType` - Installation source ('normal', 'development', 'sideload', 'admin')
 
 ### getExtensionInfo()
+
 - ✅ `description` - Extension description
 - ✅ `hostPermissions` - Website access patterns (Manifest V3)
 - ✅ `installType` - Installation source
 - ✅ `mayDisable` - Whether user can disable (false for enterprise)
 
 ### reloadTab()
+
 - ✅ `bypassCache` - Echoes input value
 
 ### closeTab()
+
 - ✅ `tabId` - Echoes input value
 
 **Total Undocumented Fields:** 7
@@ -1031,26 +1128,31 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ## 🏗️ ARCHITECTURAL PATTERNS
 
 ### 1. Command Isolation
+
 - Each command has unique UUID
 - State stored by commandId
 - No cross-contamination between commands
 
 ### 2. Dual Index System
+
 - Primary: `captureState` Map (by commandId)
 - Secondary: `capturesByTab` Map (by tabId)
 - O(1) lookup performance
 
 ### 3. Fail-Safe Cleanup
+
 - finally blocks ensure cleanup
 - Idempotent cleanup function
 - Multiple cleanup triggers (automatic, manual, error)
 
 ### 4. Validation Layers
+
 - API layer (user-facing limits)
 - Extension layer (security limits)
 - Chrome API layer (enforcement)
 
 ### 5. Graceful Degradation
+
 - Tab already closed → No error, just tabClosed=false
 - Cleanup already done → No error, just return early
 - Malformed message → Reject, don't crash
@@ -1060,6 +1162,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ## 📈 COMPLEXITY METRICS
 
 ### Lines of Code
+
 - **getAllExtensions:** 15 lines (filtering)
 - **getExtensionInfo:** 27 lines (validation + return)
 - **reload:** 60 lines (extensive validation)
@@ -1074,6 +1177,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 **Total:** ~465 lines of implementation
 
 ### Validation Checks per Function
+
 - **getAllExtensions:** 0 (no parameters)
 - **getExtensionInfo:** 2
 - **reload:** 6
@@ -1124,6 +1228,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 ## 🎯 RECOMMENDATIONS
 
 ### For Documentation
+
 1. ✅ Document all return fields (including description, installType, etc.)
 2. ✅ Explain security validations (why protocols blocked)
 3. ✅ Clarify capture scope (all tabs vs specific tab)
@@ -1134,6 +1239,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 8. ✅ Document cleanup mechanisms
 
 ### For Testing
+
 1. ✅ Test dangerous protocol blocking
 2. ✅ Test duration edge cases (Infinity, NaN, negative)
 3. ✅ Test self-reload protection
@@ -1144,6 +1250,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 8. ✅ Test concurrent captures
 
 ### For Future Features
+
 1. ✅ Consider exposing status API
 2. ✅ Consider exposing cleanup stats
 3. ✅ Consider configurable log limits
@@ -1156,6 +1263,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 **Initial Assessment:** Simple 8-function API
 
 **Reality:** Sophisticated system with:
+
 - 23 security validations
 - 7 performance optimizations
 - 6 memory leak prevention mechanisms
@@ -1175,6 +1283,7 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 **Method:** Line-by-line implementation review
 **Confidence:** 100% - Every line examined
 **Files Analyzed:**
+
 - claude-code/index.js (350 lines)
 - extension/background.js (786 lines)
-**Total Lines Reviewed:** 1,136 lines
+  **Total Lines Reviewed:** 1,136 lines

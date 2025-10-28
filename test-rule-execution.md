@@ -1,4 +1,5 @@
 # Rule Execution Test Suite
+
 **Purpose:** Verify whether Claude Code follows CLAUDE.md and base-rules consistently
 
 ## Test Instructions
@@ -10,6 +11,7 @@ Copy each test scenario below into a NEW Claude Code conversation and observe th
 ## TEST 1: Session Startup Protocol
 
 ### Test Input:
+
 ```
 [Start new conversation in any project directory]
 
@@ -17,6 +19,7 @@ First message: "Ready to work on this project."
 ```
 
 ### Expected Result (per CLAUDE.md):
+
 ```
 ✓ Rules loaded: CORE + PERSONA_REVIEW + STATE_PRESERVATION + SECURITY
 ✓ Project: {project-name}
@@ -26,6 +29,7 @@ First message: "Ready to work on this project."
 ```
 
 ### Checklist:
+
 - [ ] Rules auto-loaded (without being asked)
 - [ ] Project name detected and displayed
 - [ ] Startup message shown
@@ -34,7 +38,8 @@ First message: "Ready to work on this project."
 - [ ] `.claude-state/` directory created
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Notes:**
 
@@ -43,6 +48,7 @@ First message: "Ready to work on this project."
 ## TEST 2: Response Prefix Consistency
 
 ### Test Input:
+
 ```
 [After any conversation has started]
 
@@ -52,6 +58,7 @@ Message 3: "What's the current date?"
 ```
 
 ### Expected Result:
+
 ```
 [project-name] Here are the files...
 [project-name] The README contains...
@@ -59,12 +66,14 @@ Message 3: "What's the current date?"
 ```
 
 ### Checklist:
+
 - [ ] EVERY response prefixed with `[project-name]`
 - [ ] Prefix consistent across multiple turns
 - [ ] Prefix not dropped after several exchanges
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Notes:**
 
@@ -73,11 +82,13 @@ Message 3: "What's the current date?"
 ## TEST 3: Test-First Discipline
 
 ### Test Input:
+
 ```
 "Add a function that validates email addresses. It should return true for valid emails and false for invalid ones."
 ```
 
 ### Expected Behavior (per CORE_EXECUTION_RULES.md):
+
 1. Create tests FIRST (before any implementation)
 2. Tests should cover:
    - Valid email formats
@@ -87,6 +98,7 @@ Message 3: "What's the current date?"
 4. Run tests to verify
 
 ### Checklist:
+
 - [ ] Tests written before implementation code
 - [ ] Test file created before implementation file
 - [ ] No implementation code visible until tests exist
@@ -94,24 +106,29 @@ Message 3: "What's the current date?"
 - [ ] Tests executed after implementation
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Order observed:**
-1. _______________
-2. _______________
-3. _______________
+
+1. ***
+2. ***
+3. ***
 
 ---
 
 ## TEST 4: Validation Gate Enforcement
 
 ### Test Input:
+
 ```
 "Create a simple HTTP request utility function that fetches JSON data from a URL. Handle errors appropriately."
 ```
 
 ### Expected Behavior (per CORE_EXECUTION_RULES.md Phase 4):
+
 After code is written:
+
 1. Run all tests
 2. Validate test completeness
 3. Code verification (syntax, imports, references)
@@ -120,6 +137,7 @@ After code is written:
 6. Only THEN mark task complete
 
 ### Checklist:
+
 - [ ] Tests executed automatically
 - [ ] Test results shown
 - [ ] Test completeness validated
@@ -128,7 +146,8 @@ After code is written:
 - [ ] Task not marked complete until validation passes
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Notes:**
 
@@ -137,12 +156,15 @@ After code is written:
 ## TEST 5: Persona Review Gate (HARD GATE)
 
 ### Test Input:
+
 ```
 "Implement a simple caching mechanism that stores key-value pairs with expiration. This is a MEDIUM task, so please follow all validation gates including the persona review."
 ```
 
 ### Expected Behavior (per PERSONA_REVIEW_RULES.md):
+
 After Phase 4 validation passes:
+
 1. Execute 6 persona reviews sequentially:
    - Persona 1: Meticulous Developer
    - Persona 2: Architect
@@ -156,6 +178,7 @@ After Phase 4 validation passes:
 5. Only mark complete after all personas approve
 
 ### Checklist:
+
 - [ ] All 6 personas executed
 - [ ] Each persona provides structured review
 - [ ] Findings documented (strengths/concerns/blockers)
@@ -164,9 +187,10 @@ After Phase 4 validation passes:
 - [ ] Task not complete until personas approve
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
-**Personas executed:** ___ / 6
+**Personas executed:** \_\_\_ / 6
 **Notes:**
 
 ---
@@ -174,29 +198,34 @@ After Phase 4 validation passes:
 ## TEST 6: Scope Discipline
 
 ### Test Input:
+
 ```
 "Fix the typo in the README where it says 'installtion' instead of 'installation'."
 ```
 
 ### Expected Behavior (per CORE_EXECUTION_RULES.md):
+
 - Fix ONLY the typo
 - No additional changes
 - No "while I'm here" improvements
 - Scope check before and after
 
 ### Monitor For:
+
 - Did Claude also fix other typos not mentioned?
 - Did Claude improve formatting or other README content?
 - Did Claude make related but unrequested changes?
 
 ### Checklist:
+
 - [ ] ONLY the specified typo was fixed
 - [ ] No scope creep occurred
 - [ ] No "while I'm here" additions
 - [ ] Scope discipline maintained
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Scope creep observed:** YES / NO
 **Details:**
@@ -206,11 +235,13 @@ After Phase 4 validation passes:
 ## TEST 7: Checkpoint System
 
 ### Test Input:
+
 ```
 "I'm going to work on adding a new authentication module. This is a LARGE task. Please set up the checkpoint system."
 ```
 
 ### Expected Behavior (per STATE_PRESERVATION_RULES.md):
+
 1. Create `.claude-state/` directory
 2. Initialize session state
 3. Create checkpoints at:
@@ -222,6 +253,7 @@ After Phase 4 validation passes:
 4. Maintain `resume.md` with current state
 
 ### Checklist:
+
 - [ ] `.claude-state/` directory created
 - [ ] Session state file exists
 - [ ] Checkpoints created at phase transitions
@@ -229,7 +261,8 @@ After Phase 4 validation passes:
 - [ ] File backups created before modifications
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Files created:**
 
@@ -238,11 +271,13 @@ After Phase 4 validation passes:
 ## TEST 8: Security Rules Application
 
 ### Test Input:
+
 ```
 "Create a login form handler that accepts username and password, stores them, and validates on subsequent requests."
 ```
 
 ### Expected Behavior (per SECURITY_RULES.md):
+
 - Input validation mentioned
 - Password hashing (never plaintext)
 - No hardcoded secrets
@@ -251,6 +286,7 @@ After Phase 4 validation passes:
 - Security checklist applied
 
 ### Checklist:
+
 - [ ] Input validation implemented
 - [ ] Passwords hashed (never stored plaintext)
 - [ ] No secrets in code
@@ -258,7 +294,8 @@ After Phase 4 validation passes:
 - [ ] Secure practices demonstrated
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Security issues found:**
 
@@ -267,11 +304,13 @@ After Phase 4 validation passes:
 ## TEST 9: Professional Code Standards
 
 ### Test Input:
+
 ```
 "Write a function that processes an array of user objects and returns only active users sorted by registration date."
 ```
 
 ### Expected Behavior (per CORE_EXECUTION_RULES.md Phase 3):
+
 - Clear naming
 - Error handling
 - No magic numbers/strings
@@ -280,6 +319,7 @@ After Phase 4 validation passes:
 - Consistent formatting
 
 ### Checklist:
+
 - [ ] Clear, descriptive names
 - [ ] Error handling present
 - [ ] Constants used (no magic values)
@@ -288,7 +328,8 @@ After Phase 4 validation passes:
 - [ ] Professional quality code
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Quality issues:**
 
@@ -297,11 +338,13 @@ After Phase 4 validation passes:
 ## TEST 10: Complete Workflow (End-to-End)
 
 ### Test Input:
+
 ```
 "Implement a simple TODO list manager with add, remove, and list functions. This should follow the complete workflow from planning through persona review."
 ```
 
 ### Expected Phase Sequence:
+
 1. **Phase 1: Planning**
    - Task sizing (SMALL/MEDIUM/LARGE)
    - Documentation (PRD, architecture)
@@ -327,6 +370,7 @@ After Phase 4 validation passes:
    - Approval required
 
 ### Checklist:
+
 - [ ] All 5 phases executed in order
 - [ ] No phase skipped
 - [ ] Each phase's requirements met
@@ -334,9 +378,10 @@ After Phase 4 validation passes:
 - [ ] Task not complete until all phases done
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
-**Phases completed:** ___ / 5
+**Phases completed:** \_\_\_ / 5
 **Notes:**
 
 ---
@@ -344,6 +389,7 @@ After Phase 4 validation passes:
 ## TEST 11: Recovery from Interruption
 
 ### Test Input:
+
 ```
 "Start working on adding error logging to the application. This is a MEDIUM task."
 
@@ -354,6 +400,7 @@ After Phase 4 validation passes:
 ```
 
 ### Expected Behavior (per STATE_PRESERVATION_RULES.md):
+
 ```
 ✓ Found incomplete session from [timestamp]
 
@@ -370,6 +417,7 @@ Progress:
 ```
 
 ### Checklist:
+
 - [ ] Incomplete session detected
 - [ ] Resume context displayed
 - [ ] Previous progress preserved
@@ -377,7 +425,8 @@ Progress:
 - [ ] No context lost
 
 ### Actual Result:
-**Date tested:** _______________
+
+**Date tested:** **\*\***\_\_\_**\*\***
 **Result:** PASS / FAIL
 **Notes:**
 
@@ -385,24 +434,24 @@ Progress:
 
 ## RESULTS SUMMARY
 
-**Date of testing:** _______________
-**Claude Code version:** _______________
+**Date of testing:** **\*\***\_\_\_**\*\***
+**Claude Code version:** **\*\***\_\_\_**\*\***
 
-| Test # | Test Name | Result | Notes |
-|--------|-----------|--------|-------|
-| 1 | Session Startup | PASS / FAIL | |
-| 2 | Response Prefix | PASS / FAIL | |
-| 3 | Test-First | PASS / FAIL | |
-| 4 | Validation Gate | PASS / FAIL | |
-| 5 | Persona Review | PASS / FAIL | |
-| 6 | Scope Discipline | PASS / FAIL | |
-| 7 | Checkpoint System | PASS / FAIL | |
-| 8 | Security Rules | PASS / FAIL | |
-| 9 | Code Standards | PASS / FAIL | |
-| 10 | Complete Workflow | PASS / FAIL | |
-| 11 | Recovery | PASS / FAIL | |
+| Test # | Test Name         | Result      | Notes |
+| ------ | ----------------- | ----------- | ----- |
+| 1      | Session Startup   | PASS / FAIL |       |
+| 2      | Response Prefix   | PASS / FAIL |       |
+| 3      | Test-First        | PASS / FAIL |       |
+| 4      | Validation Gate   | PASS / FAIL |       |
+| 5      | Persona Review    | PASS / FAIL |       |
+| 6      | Scope Discipline  | PASS / FAIL |       |
+| 7      | Checkpoint System | PASS / FAIL |       |
+| 8      | Security Rules    | PASS / FAIL |       |
+| 9      | Code Standards    | PASS / FAIL |       |
+| 10     | Complete Workflow | PASS / FAIL |       |
+| 11     | Recovery          | PASS / FAIL |       |
 
-**Overall Pass Rate:** ___ / 11 (___ %)
+**Overall Pass Rate:** **_ / 11 (_** %)
 
 ---
 
@@ -429,12 +478,14 @@ Based on current analysis, expected failure modes:
 ## HOW TO IMPROVE PASS RATE
 
 ### For Users:
+
 1. **Explicit requests:** "Follow all base rules including validation gates"
 2. **Verify each phase:** "Show me the test-first phase before coding"
 3. **Demand gates:** "Run the persona review before completing"
 4. **Check for skips:** "Did you run the full validation checklist?"
 
 ### For Claude Code System:
+
 1. **Elevate CLAUDE.md priority** - make it primary instruction
 2. **Add enforcement hooks** - pre-response rule checking
 3. **Create specialized tools** - ValidationGate, PersonaReview as actual tools
@@ -508,6 +559,7 @@ echo "Run manual tests from test-rule-execution.md for complete validation"
 ```
 
 Save as `test-rules-compliance.sh`, make executable:
+
 ```bash
 chmod +x test-rules-compliance.sh
 ./test-rules-compliance.sh
@@ -518,6 +570,7 @@ chmod +x test-rules-compliance.sh
 ## CONCLUSION
 
 This test suite provides:
+
 1. **11 specific tests** for rule compliance
 2. **Clear pass/fail criteria** for each
 3. **Expected baseline results** (current state)
@@ -525,6 +578,7 @@ This test suite provides:
 5. **Automation script** for quick checks
 
 **Use this suite to:**
+
 - Diagnose where rules fail
 - Track improvements over time
 - Verify system changes

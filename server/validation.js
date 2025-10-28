@@ -16,7 +16,7 @@ const ALLOWED_CAPABILITIES = [
   'test-orchestration',
   'console-capture',
   'window-management',
-  'tab-control'
+  'tab-control',
 ];
 
 /**
@@ -98,7 +98,7 @@ function sanitizeManifest(manifest) {
   return {
     name: manifest.name,
     version: manifest.version,
-    permissions: manifest.permissions
+    permissions: manifest.permissions,
   };
 }
 
@@ -191,5 +191,5 @@ module.exports = {
   validateVersion,
   // Export constants for testing
   METADATA_SIZE_LIMIT,
-  ALLOWED_CAPABILITIES
+  ALLOWED_CAPABILITIES,
 };

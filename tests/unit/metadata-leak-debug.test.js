@@ -36,7 +36,7 @@ describe('ISSUE-001 Debug: Metadata Leak Investigation', () => {
     const openResult = await chromeDevAssist.openUrl(url, { active: true });
     openTabs.push(openResult.tabId);
 
-    await new Promise(resolve => setTimeout(resolve, 3000));  // Wait for iframes to load
+    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for iframes to load
 
     // Extract metadata - check extension console for debug logs
     const metadata = await chromeDevAssist.getPageMetadata(openResult.tabId);
@@ -52,7 +52,11 @@ describe('ISSUE-001 Debug: Metadata Leak Investigation', () => {
     console.log('Actual:');
     console.log('  - testId:', metadata.metadata.testId);
     console.log('  - securityLevel:', metadata.metadata.securityLevel);
-    console.log('  - secret:', metadata.metadata.secret, metadata.metadata.secret === undefined ? '✅ PASS' : '❌ FAIL - LEAKED!');
+    console.log(
+      '  - secret:',
+      metadata.metadata.secret,
+      metadata.metadata.secret === undefined ? '✅ PASS' : '❌ FAIL - LEAKED!'
+    );
   });
 
   it('TODO: Create minimal reproduction without extension', () => {
@@ -61,13 +65,13 @@ describe('ISSUE-001 Debug: Metadata Leak Investigation', () => {
     // Data URI iframe with data-test="iframe"
     // If metadata extraction returns "iframe", bug is reproduced
 
-    expect(true).toBe(true);  // Placeholder
+    expect(true).toBe(true); // Placeholder
   });
 
   it('TODO: Test if Chrome executeScript allFrames:false actually works', () => {
     // Research: Does allFrames:false prevent execution in dynamically created data: URI iframes?
     // Or is there a Chrome bug?
 
-    expect(true).toBe(true);  // Placeholder
+    expect(true).toBe(true); // Placeholder
   });
 });

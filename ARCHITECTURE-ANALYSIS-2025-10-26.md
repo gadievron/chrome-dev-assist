@@ -60,6 +60,7 @@
 ## 📂 File Organization Analysis
 
 ### Extension Files
+
 ```
 extension/
 ├── background.js (2359 lines) ⚠️ TOO LARGE
@@ -80,6 +81,7 @@ extension/
 ```
 
 ### Server Files
+
 ```
 server/
 ├── websocket-server.js (930 lines) ⚠️ Large but acceptable
@@ -91,6 +93,7 @@ server/
 ```
 
 ### Prototype Files (ISSUE-014)
+
 ```
 prototype/
 └── server.js ⚠️ CONFUSING - WebSocket-only, incomplete
@@ -103,20 +106,24 @@ prototype/
 ### CRITICAL Issues
 
 #### 1. **background.js is TOO LARGE (2359 lines)**
+
 **Severity:** HIGH
 **Problem:** Single file contains ALL extension logic
 **Impact:**
+
 - Hard to maintain
 - Hard to test
 - Easy to introduce bugs
 - Violates Single Responsibility Principle
 
 **Evidence:**
+
 - `handleOpenUrlCommand()` alone is 240 lines (lines 889-1130)
 - Contains: WebSocket, commands, crash detection, state management, persistence
 - All in one global scope
 
 **Recommendation:** Split into modules
+
 ```
 extension/
 ├── background.js (entry point, <200 lines)
@@ -133,19 +140,23 @@ extension/
 ---
 
 #### 2. **ConsoleCapture.js Module Exists But Unused**
+
 **Severity:** MEDIUM
 **Problem:** `extension/modules/ConsoleCapture.js` exists (found earlier) but background.js doesn't use it
 **Impact:**
+
 - Dead code (or future code not integrated)
 - Confusion about where console logic lives
 - Duplication risk
 
 **Evidence:**
+
 - background.js has console capture logic inline (lines 900-1100)
 - modules/ConsoleCapture.js exists separately
 - No imports found in background.js
 
 **Recommendation:**
+
 - Option A: Migrate console capture to module, import in background.js
 - Option B: Remove module if obsolete
 - Option C: Finish migration (might be in progress)
@@ -153,6 +164,7 @@ extension/
 ---
 
 #### 3. **Prototype Server Confusion (ISSUE-014)**
+
 **Severity:** CRITICAL (already documented)
 **Problem:** Two servers on same port cause debug confusion
 **Impact:** Wasted hours of debugging (already experienced)
@@ -164,11 +176,13 @@ extension/
 ### MEDIUM Issues
 
 #### 4. **No Clear Module Boundaries**
+
 **Severity:** MEDIUM
 **Problem:** Functions in background.js don't have clear separation of concerns
 **Impact:** Hard to test individual components
 
 **Example:**
+
 ```javascript
 // handleOpenUrlCommand does:
 - Auth token logic
@@ -190,15 +204,18 @@ ScriptInjector.injectConsoleWrapper(tabId)
 ---
 
 #### 5. **Global State Management is Fragile**
+
 **Severity:** MEDIUM
 **Problem:** captureState, capturesByTab, sessionMetadata, testState all global Maps/objects
 **Impact:**
+
 - Hard to reason about state changes
 - No single source of truth
 - Race conditions possible
 - Hard to test
 
 **Example:**
+
 ```javascript
 // Global mutable state
 const captureState = new Map();
@@ -208,6 +225,7 @@ let sessionMetadata = { ... };
 ```
 
 **Recommendation:** Create StateManager class
+
 ```javascript
 class StateManager {
   constructor() {
@@ -229,6 +247,7 @@ class StateManager {
 ### LOW Issues
 
 #### 6. **Inconsistent Error Handling**
+
 **Severity:** LOW
 **Problem:** Some places use console.error, some use ErrorLogger, some throw
 **Impact:** Inconsistent logging, hard to debug
@@ -238,11 +257,13 @@ class StateManager {
 ---
 
 #### 7. **No TypeScript / JSDoc**
+
 **Severity:** LOW
 **Problem:** No type hints, easy to pass wrong parameters
 **Impact:** Runtime errors instead of compile-time errors
 
 **Recommendation:** Add JSDoc comments (or migrate to TypeScript)
+
 ```javascript
 /**
  * @param {string} commandId
@@ -260,8 +281,10 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ## ✅ Good Architecture Decisions
 
 ### 1. **3-Layer Separation (MAIN/ISOLATED/BACKGROUND)**
+
 **Why Good:** Follows Chrome extension security model
 **Benefits:**
+
 - Isolated worlds prevent page from interfering with extension
 - Clear data flow: Page → Content → Background
 - Security: Page can't access extension APIs
@@ -269,8 +292,10 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ---
 
 ### 2. **Test-First Discipline**
+
 **Why Good:** 53 tests written this session
 **Benefits:**
+
 - Catches bugs early
 - Documents behavior
 - Refactoring confidence
@@ -278,8 +303,10 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ---
 
 ### 3. **Utility Functions (withTimeout, markCleanShutdown)**
+
 **Why Good:** Reusable, testable, composable
 **Benefits:**
+
 - DRY principle
 - Easy to test
 - Clear purpose
@@ -287,8 +314,10 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ---
 
 ### 4. **Crash Detection System**
+
 **Why Good:** Service workers can restart unexpectedly
 **Benefits:**
+
 - Recovers state automatically
 - Distinguishes crashes from normal shutdowns
 - User doesn't lose work
@@ -298,17 +327,20 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ## 🎯 Recommended Refactoring Priority
 
 ### Immediate (This Session)
+
 ✅ Finish smarter completion detection implementation
 ✅ Update TO-FIX with architecture issues
 ✅ Document what should be refactored
 
 ### Short-term (Next Session)
+
 1. Split background.js into modules (use existing modules/ directory)
 2. Migrate console capture to ConsoleCapture.js
 3. Create TabManager module with timeout protection
 4. Create StateManager for centralized state
 
 ### Long-term (Future)
+
 1. Add JSDoc comments throughout
 2. Consider TypeScript migration
 3. Implement proper module bundler (currently using plain JS)
@@ -319,14 +351,16 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ## 📊 Code Metrics
 
 **Current State:**
+
 - background.js: 2359 lines (⚠️ TOO LARGE)
 - server/websocket-server.js: 930 lines (acceptable)
 - Tests: 53 passing (✅ good coverage for new features)
 - Modules: Exist but unused (⚠️ incomplete migration)
 
 **Target State:**
+
 - background.js: <200 lines (entry point only)
-- modules/*: 6 files, ~300 lines each
+- modules/\*: 6 files, ~300 lines each
 - Tests: 100+ (cover refactored modules)
 - Clear separation of concerns
 
@@ -335,25 +369,30 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ## 🔍 Why Things Are Where They Are
 
 ### inject-console-capture.js (MAIN world)
+
 **Why:** Only MAIN world has access to page's real console object
 **Cannot Move:** ISOLATED world console is separate from page console
 **Correct Location:** ✅
 
 ### content-script.js (ISOLATED world)
+
 **Why:** Bridge between MAIN (page) and BACKGROUND (extension)
 **Cannot Move:** MAIN world can't access chrome.runtime APIs
 **Correct Location:** ✅
 
 ### background.js (Service Worker)
+
 **Why:** Only place with:
+
 - Persistent state (while running)
-- Access to chrome.* APIs (tabs, storage, scripting)
+- Access to chrome.\* APIs (tabs, storage, scripting)
 - WebSocket connections
 - Cross-origin requests
 
 **Should Split:** ❌ TOO MANY RESPONSIBILITIES
 
 ### server/websocket-server.js
+
 **Why:** Coordinates tests, serves fixtures, manages auth
 **Correct Location:** ✅ (though could split HTTP from WebSocket)
 
@@ -362,6 +401,7 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 ## 🚨 Biggest Risk
 
 **Single Point of Failure:** background.js contains EVERYTHING
+
 - If it crashes, entire extension stops
 - If one function has bug, whole file is suspect
 - Hard to review PRs (2359 lines changed)
@@ -380,12 +420,14 @@ async function handleOpenUrlCommand(commandId, params) { ... }
 **Effort Required:** ~8 hours (split background.js into 6 modules)
 
 **Should We Refactor Now?**
+
 - **Short answer:** Not in this session (finish current features first)
 - **Next session:** Yes, prioritize modularization
 
 ---
 
 **Next Steps:**
+
 1. ✅ Finish smarter completion implementation
 2. ✅ Document architecture issues (this file)
 3. ⏳ Plan modularization for next session

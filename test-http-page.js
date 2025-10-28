@@ -11,14 +11,11 @@ async function testHttpPage() {
   console.log('');
 
   try {
-    const result = await chromeDevAssist.openUrl(
-      'http://localhost:8765/test-http-with-logs.html',
-      {
-        captureConsole: true,
-        duration: 2000,
-        active: false
-      }
-    );
+    const result = await chromeDevAssist.openUrl('http://localhost:8765/test-http-with-logs.html', {
+      captureConsole: true,
+      duration: 2000,
+      active: false,
+    });
 
     console.log('✅ Page opened, tabId:', result.tabId);
     console.log('✅ Captured', result.consoleLogs.length, 'messages');
@@ -33,8 +30,8 @@ async function testHttpPage() {
       console.log('═══════════════════════════════════════════════════════');
       console.log('');
 
-      const hasTestLogs = result.consoleLogs.some(l =>
-        l.message.includes('HTTP TEST PAGE') || l.message.includes('Message 1')
+      const hasTestLogs = result.consoleLogs.some(
+        l => l.message.includes('HTTP TEST PAGE') || l.message.includes('Message 1')
       );
 
       if (hasTestLogs) {
@@ -49,7 +46,6 @@ async function testHttpPage() {
     console.log('');
     await chromeDevAssist.closeTab(result.tabId);
     console.log('✅ Tab closed');
-
   } catch (error) {
     console.error('❌ Error:', error.message);
   }

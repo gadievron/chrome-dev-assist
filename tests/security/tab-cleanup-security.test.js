@@ -16,7 +16,7 @@ describe('Security: Tab Cleanup Input Validation', () => {
     global.console = {
       log: jest.fn(),
       warn: jest.fn(),
-      error: jest.fn()
+      error: jest.fn(),
     };
 
     // Mock Chrome API (external dependency)
@@ -24,11 +24,11 @@ describe('Security: Tab Cleanup Input Validation', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -39,42 +39,44 @@ describe('Security: Tab Cleanup Input Validation', () => {
   });
 
   test('should reject missing URL parameter', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {}))
-      .rejects.toThrow(/url is required/i);
+    await expect(handleOpenUrlCommand('cmd-1', {})).rejects.toThrow(/url is required/i);
   });
 
   test('should reject null URL', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', { url: null }))
-      .rejects.toThrow(/url is required/i);
+    await expect(handleOpenUrlCommand('cmd-1', { url: null })).rejects.toThrow(/url is required/i);
   });
 
   test('should reject undefined URL', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', { url: undefined }))
-      .rejects.toThrow(/url is required/i);
+    await expect(handleOpenUrlCommand('cmd-1', { url: undefined })).rejects.toThrow(
+      /url is required/i
+    );
   });
 
   test('should reject empty string URL', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', { url: '' }))
-      .rejects.toThrow(/url is required/i);
+    await expect(handleOpenUrlCommand('cmd-1', { url: '' })).rejects.toThrow(/url is required/i);
   });
 
   test('should reject javascript: protocol URLs', async () => {
     const maliciousUrl = 'javascript:alert(document.cookie)';
 
     // Should either reject or sanitize
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: maliciousUrl,
-      autoClose: true
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: maliciousUrl,
+        autoClose: true,
+      })
+    ).rejects.toThrow();
   });
 
   test('should reject data: URLs with JavaScript', async () => {
     const maliciousUrl = 'data:text/html,<script>alert(1)</script>';
 
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: maliciousUrl,
-      autoClose: true
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: maliciousUrl,
+        autoClose: true,
+      })
+    ).rejects.toThrow();
   });
 
   test('should handle extremely long URLs safely', async () => {
@@ -84,7 +86,7 @@ describe('Security: Tab Cleanup Input Validation', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: longUrl,
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     }).catch(err => ({ error: err.message }));
 
     // Either succeeds with truncation or fails with clear error
@@ -92,40 +94,50 @@ describe('Security: Tab Cleanup Input Validation', () => {
   });
 
   test('should validate duration parameter type', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: 'not a number'
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: 'not a number',
+      })
+    ).rejects.toThrow();
   });
 
   test('should reject negative duration', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: -1000
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: -1000,
+      })
+    ).rejects.toThrow();
   });
 
   test('should reject infinite duration', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: Infinity
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: Infinity,
+      })
+    ).rejects.toThrow();
   });
 
   test('should reject NaN duration', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: NaN
-    })).rejects.toThrow();
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: NaN,
+      })
+    ).rejects.toThrow();
   });
 
   test('should reject duration exceeding reasonable maximum', async () => {
-    await expect(handleOpenUrlCommand('cmd-1', {
-      url: 'https://example.com',
-      duration: 999999999,  // Very long duration
-      autoClose: true,
-      captureConsole: false
-    })).rejects.toThrow(/exceeds maximum allowed/);
+    await expect(
+      handleOpenUrlCommand('cmd-1', {
+        url: 'https://example.com',
+        duration: 999999999, // Very long duration
+        autoClose: true,
+        captureConsole: false,
+      })
+    ).rejects.toThrow(/exceeds maximum allowed/);
   });
 
   test('should sanitize command ID to prevent injection', async () => {
@@ -135,7 +147,7 @@ describe('Security: Tab Cleanup Input Validation', () => {
     const result = await handleOpenUrlCommand(maliciousId, {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     expect(result.tabId).toBeDefined();
@@ -144,7 +156,7 @@ describe('Security: Tab Cleanup Input Validation', () => {
   test('should reject prototype pollution attempts via __proto__', async () => {
     const maliciousParams = {
       url: 'https://example.com',
-      '__proto__': { autoClose: false, injected: true }
+      __proto__: { autoClose: false, injected: true },
     };
 
     await handleOpenUrlCommand('cmd-1', maliciousParams);
@@ -157,7 +169,7 @@ describe('Security: Tab Cleanup Input Validation', () => {
   test('should reject prototype pollution via constructor', async () => {
     const maliciousParams = {
       url: 'https://example.com',
-      'constructor': { prototype: { polluted: true } }
+      constructor: { prototype: { polluted: true } },
     };
 
     await handleOpenUrlCommand('cmd-1', maliciousParams);
@@ -172,7 +184,7 @@ describe('Security: Tab Cleanup Input Validation', () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: maliciousUrl,
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     }).catch(err => ({ error: err.message }));
 
     // Should either sanitize or reject
@@ -182,9 +194,9 @@ describe('Security: Tab Cleanup Input Validation', () => {
   test('should validate boolean parameters', async () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
-      autoClose: 'true',  // String instead of boolean
-      active: 1,  // Number instead of boolean
-      captureConsole: false
+      autoClose: 'true', // String instead of boolean
+      active: 1, // Number instead of boolean
+      captureConsole: false,
     });
 
     // Should handle type coercion safely
@@ -194,9 +206,9 @@ describe('Security: Tab Cleanup Input Validation', () => {
   test('should handle circular reference in params safely', async () => {
     const params = {
       url: 'https://example.com',
-      autoClose: true
+      autoClose: true,
     };
-    params.self = params;  // Circular reference
+    params.self = params; // Circular reference
 
     // Should not cause infinite loop or crash
     const result = await handleOpenUrlCommand('cmd-1', params);
@@ -207,7 +219,7 @@ describe('Security: Tab Cleanup Input Validation', () => {
     const hugeParams = {
       url: 'https://example.com',
       autoClose: true,
-      metadata: {}
+      metadata: {},
     };
 
     // Create huge nested object
@@ -231,11 +243,11 @@ describe('Security: Tab Cleanup Authorization', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -249,14 +261,14 @@ describe('Security: Tab Cleanup Authorization', () => {
     // Create tab for example.com
     mockChrome.tabs.create.mockResolvedValue({
       id: 999,
-      url: 'https://sensitive-bank.com'
+      url: 'https://sensitive-bank.com',
     });
 
     // Try to close with autoClose
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://sensitive-bank.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Should only close tabs it created
@@ -264,14 +276,12 @@ describe('Security: Tab Cleanup Authorization', () => {
   });
 
   test('should handle permission denied errors gracefully', async () => {
-    mockChrome.tabs.remove.mockRejectedValue(
-      new Error('Permission denied: Cannot close tab')
-    );
+    mockChrome.tabs.remove.mockRejectedValue(new Error('Permission denied: Cannot close tab'));
 
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Should not crash, should log error
@@ -290,11 +300,11 @@ describe('Security: Tab Cleanup Rate Limiting', () => {
       tabs: {
         create: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
         remove: jest.fn().mockResolvedValue(undefined),
-        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' })
+        get: jest.fn().mockResolvedValue({ id: 123, url: 'https://example.com' }),
       },
       scripting: {
-        executeScript: jest.fn().mockResolvedValue([])
-      }
+        executeScript: jest.fn().mockResolvedValue([]),
+      },
     };
 
     global.chrome = mockChrome;
@@ -305,13 +315,15 @@ describe('Security: Tab Cleanup Rate Limiting', () => {
   });
 
   test('should handle rapid sequential tab operations', async () => {
-    const operations = Array(100).fill().map((_, i) =>
-      handleOpenUrlCommand(`cmd-${i}`, {
-        url: `https://example.com/${i}`,
-        autoClose: true,
-        captureConsole: false
-      })
-    );
+    const operations = Array(100)
+      .fill()
+      .map((_, i) =>
+        handleOpenUrlCommand(`cmd-${i}`, {
+          url: `https://example.com/${i}`,
+          autoClose: true,
+          captureConsole: false,
+        })
+      );
 
     const results = await Promise.allSettled(operations);
 
@@ -334,11 +346,10 @@ describe('Security: Tab Cleanup Rate Limiting', () => {
     const operationPromise = handleOpenUrlCommand('cmd-1', {
       url: 'https://example.com',
       autoClose: true,
-      captureConsole: false
+      captureConsole: false,
     });
 
     // Should complete before timeout
-    await expect(Promise.race([operationPromise, timeoutPromise]))
-      .resolves.toBeDefined();
+    await expect(Promise.race([operationPromise, timeoutPromise])).resolves.toBeDefined();
   });
 });

@@ -11,6 +11,7 @@
 ## Context
 
 The WebSocket server serves test fixtures over HTTP to enable integration testing. Without authentication, any localhost application could access test fixtures, potentially causing:
+
 - Test interference from other local processes
 - Unexpected fixture access during development
 - Debugging confusion when multiple projects use port 9876
@@ -24,19 +25,21 @@ The WebSocket server serves test fixtures over HTTP to enable integration testin
 Implement **token-based authentication** with **defense-in-depth** (4 layers):
 
 ### Layer 1: Network Binding
+
 ```javascript
 const HOST = '127.0.0.1'; // localhost only
 httpServer.listen(PORT, HOST);
 ```
 
 ### Layer 2: Host Header Validation
+
 ```javascript
-const isLocalhost = host.startsWith('localhost:') ||
-                    host.startsWith('127.0.0.1:');
+const isLocalhost = host.startsWith('localhost:') || host.startsWith('127.0.0.1:');
 if (!isLocalhost) return 403;
 ```
 
 ### Layer 3: Token Authentication
+
 ```javascript
 // Server: Generate random token at startup
 const AUTH_TOKEN = crypto.randomBytes(32).toString('hex');
@@ -51,6 +54,7 @@ if (clientToken !== AUTH_TOKEN) return 401;
 ```
 
 ### Layer 4: Directory Traversal Protection
+
 ```javascript
 if (!filepath.startsWith(FIXTURES_PATH)) return 403;
 ```
@@ -60,6 +64,7 @@ if (!filepath.startsWith(FIXTURES_PATH)) return 403;
 ## Consequences
 
 ### Positive ✅
+
 - **Simple**: No complex OAuth/JWT setup for test infrastructure
 - **Secure**: Prevents cross-localhost access from other applications
 - **Ephemeral**: Token regenerates on server restart (no persistent secrets)
@@ -68,12 +73,14 @@ if (!filepath.startsWith(FIXTURES_PATH)) return 403;
 - **Self-Contained**: No external dependencies
 
 ### Negative ⚠️
+
 - **Localhost-Only**: Not suitable for remote/distributed testing
 - **Single Token**: All clients share same token (acceptable for tests)
 - **Query Parameter**: Token visible in URLs (acceptable for localhost)
 - **Manual Cleanup**: Requires server restart to rotate token
 
 ### Trade-offs
+
 - **Chose Simplicity Over Enterprise Features**: No token rotation, no per-client tokens, no audit logs
 - **Chose Speed Over Perfect Security**: Query params vs headers (acceptable for localhost)
 
@@ -82,30 +89,39 @@ if (!filepath.startsWith(FIXTURES_PATH)) return 403;
 ## Alternatives Considered
 
 ### 1. No Authentication ❌
+
 **Rejected**: Any localhost app could interfere with tests
 
 ### 2. Basic Auth (username:password) ❌
+
 **Rejected**:
+
 - Still need to store credentials somewhere
 - More complex than token approach
 - No benefit over random token
 
 ### 3. JWT with RSA Signing ❌
+
 **Rejected**:
+
 - Overkill for test infrastructure
 - Requires key management
 - Performance overhead
 - Complexity not justified
 
 ### 4. OAuth2 + PKCE ❌
+
 **Rejected**:
+
 - Massive overkill for test fixtures
 - Adds external dependencies
 - Slower test execution
 - See [ADR-003](./003-future-oauth2-strategy.md) for production auth
 
 ### 5. Certificate-based (mTLS) ❌
+
 **Rejected**:
+
 - Certificate generation/management complexity
 - Breaks standard test tooling
 - No additional security benefit for localhost
@@ -115,11 +131,13 @@ if (!filepath.startsWith(FIXTURES_PATH)) return 403;
 ## Implementation Notes
 
 **Token Generation**:
+
 ```javascript
 const AUTH_TOKEN = crypto.randomBytes(32).toString('hex'); // 256 bits entropy
 ```
 
 **Token Storage**:
+
 ```javascript
 // Server writes on startup
 fs.writeFileSync('.auth-token', AUTH_TOKEN, 'utf8');
@@ -129,6 +147,7 @@ const AUTH_TOKEN = fs.readFileSync('.auth-token', 'utf8').trim();
 ```
 
 **Token Cleanup**:
+
 ```javascript
 // Server deletes on shutdown (SIGINT/SIGTERM)
 if (fs.existsSync(TOKEN_FILE)) {
@@ -137,6 +156,7 @@ if (fs.existsSync(TOKEN_FILE)) {
 ```
 
 **Token Validation**:
+
 ```javascript
 // Parse token from query parameter or header
 let clientToken = req.headers['x-auth-token'];

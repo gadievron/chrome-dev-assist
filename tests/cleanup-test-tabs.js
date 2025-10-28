@@ -19,9 +19,9 @@ async function closeAllTestTabs() {
         type: 'command',
         id: 'cleanup-' + Date.now(),
         command: {
-          type: 'getAllTabs'
-        }
-      })
+          type: 'getAllTabs',
+        },
+      }),
     });
 
     // If getAllTabs doesn't exist, we'll manually close tabs by pattern
@@ -41,7 +41,7 @@ async function closeAllTestTabs() {
       'basic-test.html',
       'console-errors-test.html',
       'console-mixed-test.html',
-      'empty-test.html'
+      'empty-test.html',
     ];
 
     console.log('Test fixture patterns to clean:');
@@ -65,7 +65,6 @@ async function closeAllTestTabs() {
     console.log('  testTabs.forEach(t => chrome.tabs.remove(t.id));');
     console.log('});');
     console.log('\n');
-
   } catch (err) {
     console.error('Error during cleanup:', err.message);
     console.log('\n⚠️  Manual cleanup required - see instructions above');

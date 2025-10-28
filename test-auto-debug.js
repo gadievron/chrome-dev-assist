@@ -38,7 +38,7 @@ async function autoDebugTest() {
     const result = await chromeDevAssist.openUrl(dataUrl, {
       captureConsole: true,
       duration: 2000,
-      active: false
+      active: false,
     });
 
     console.log('✅ Page opened, tabId:', result.tabId);
@@ -88,7 +88,6 @@ async function autoDebugTest() {
     console.log('');
     await chromeDevAssist.closeTab(result.tabId);
     console.log('✅ Tab closed');
-
   } catch (error) {
     console.error('❌ Error:', error.message);
     console.error(error.stack);

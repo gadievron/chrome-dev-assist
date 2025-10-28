@@ -12,7 +12,6 @@
 const chromeDevAssist = require('../../claude-code/index.js');
 
 describe('Keep-Alive Mechanisms', () => {
-
   describe('WebSocket Ping Mechanism', () => {
     it('should send ping messages when connection is active', async () => {
       // Wake service worker to ensure connection
@@ -66,7 +65,7 @@ describe('Keep-Alive Mechanisms', () => {
         chromeDevAssist.getServiceWorkerStatus(),
         chromeDevAssist.getServiceWorkerStatus(),
         chromeDevAssist.wakeServiceWorker(),
-        chromeDevAssist.getServiceWorkerStatus()
+        chromeDevAssist.getServiceWorkerStatus(),
       ]);
 
       results.forEach((result, i) => {

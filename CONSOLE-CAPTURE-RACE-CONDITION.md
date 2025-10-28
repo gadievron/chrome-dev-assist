@@ -35,6 +35,7 @@ if (captureConsole) {
 ```
 
 **Timeline:**
+
 ```
 T+0ms:    chrome.tabs.create() called
 T+1ms:    Tab created, page starts loading
@@ -53,11 +54,13 @@ T+3050ms: Capture ends, returns 0 messages
 ## Evidence
 
 ### Code Location
+
 **File:** extension/background.js
 **Function:** handleOpenUrlCommand (lines 875-1033)
 **Issue:** Lines 952 (tab creation) vs 971 (capture start)
 
 ### Message Handler
+
 **File:** extension/background.js
 **Lines:** 2007-2011
 
@@ -86,10 +89,12 @@ If `tabId` is not in `capturesByTab`, message is dropped (no capture registered)
 ## Impact
 
 ### Affected Commands
+
 - `openUrl` with `captureConsole: true`
 - Potentially `reloadTab` with `captureConsole: true`
 
 ### NOT Affected
+
 - ErrorLogger implementation (uses extension service worker console, not page console)
 - Extension functionality (console capture is testing feature only)
 - WebSocket server/client communication
@@ -101,10 +106,11 @@ If `tabId` is not in `capturesByTab`, message is dropped (no capture registered)
 ## Solution Options
 
 ### Option 1: Global Capture Then Filter (Simplest)
+
 ```javascript
 // Start GLOBAL capture before creating tab
 if (captureConsole) {
-  await startConsoleCapture(commandId, duration, null);  // null = all tabs
+  await startConsoleCapture(commandId, duration, null); // null = all tabs
 }
 
 const tab = await chrome.tabs.create({ url, active });
@@ -123,6 +129,7 @@ const logs = allLogs.filter(log => log.tabId === tab.id);
 **Cons:** Captures from ALL tabs (minor performance impact)
 
 ### Option 2: Message Buffering
+
 ```javascript
 // Buffer messages that arrive before capture is registered
 const messageBuffer = new Map(); // tabId -> messages[]
@@ -157,6 +164,7 @@ function startConsoleCapture(commandId, duration, tabId) {
 **Cons:** Complex, requires careful implementation
 
 ### Option 3: Pre-Registration
+
 ```javascript
 // Add pending capture entry before creating tab
 const pendingId = 'pending-' + Date.now();
@@ -164,7 +172,7 @@ captureState.set(pendingId, {
   logs: [],
   active: true,
   pending: true,
-  tabId: null  // Will be set after tab created
+  tabId: null, // Will be set after tab created
 });
 
 const tab = await chrome.tabs.create({ url, active });
@@ -186,12 +194,14 @@ capturesByTab.set(tab.id, new Set([pendingId]));
 **Option 1** (Global Capture Then Filter)
 
 **Reasoning:**
+
 - Simplest to implement
 - Lowest risk
 - Minimal code changes
 - Performance impact negligible (only during active tests)
 
 **Implementation Steps:**
+
 1. Write tests FIRST (test-first discipline)
    - Unit test for startConsoleCapture with null tabId
    - Integration test for openUrl console capture
@@ -206,6 +216,7 @@ capturesByTab.set(tab.id, new Set([pendingId]));
 ## Testing Strategy
 
 ### Unit Tests
+
 ```javascript
 describe('Console Capture Race Condition Fix', () => {
   it('should capture messages from tab created after capture starts', async () => {
@@ -216,7 +227,7 @@ describe('Console Capture Race Condition Fix', () => {
     const tabId = 12345;
     const messages = [
       { level: 'log', message: 'Test 1', tabId },
-      { level: 'warn', message: 'Test 2', tabId }
+      { level: 'warn', message: 'Test 2', tabId },
     ];
 
     messages.forEach(msg => addConsoleLog(msg));
@@ -231,13 +242,14 @@ describe('Console Capture Race Condition Fix', () => {
 ```
 
 ### Integration Tests
+
 ```javascript
 describe('openUrl with console capture', () => {
   it('should capture all console messages from page', async () => {
     const result = await handleOpenUrlCommand('cmd-1', {
       url: 'http://localhost:9876/fixtures/test-console-simple.html',
       captureConsole: true,
-      duration: 3000
+      duration: 3000,
     });
 
     // Should capture at least 5 messages (from test page)
@@ -263,6 +275,7 @@ describe('openUrl with console capture', () => {
 **Effort Estimate:** 2-3 hours (tests + implementation + verification)
 
 **Next Steps:**
+
 1. User decides: Fix now or defer to future session
 2. If defer: Add to FEATURE-SUGGESTIONS-TBD.md
 3. If now: Follow test-first discipline implementation
@@ -272,6 +285,7 @@ describe('openUrl with console capture', () => {
 ## Workaround (Current)
 
 Use indirect verification methods:
+
 - Check extension status (if extension runs = background.js loaded = ErrorLogger loaded)
 - Manual testing in Chrome DevTools
 - Service worker console inspection

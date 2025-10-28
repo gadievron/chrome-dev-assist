@@ -22,11 +22,11 @@
 global.chrome = {
   tabs: {
     create: jest.fn(),
-    remove: jest.fn()
+    remove: jest.fn(),
   },
   runtime: {
-    sendMessage: jest.fn()
-  }
+    sendMessage: jest.fn(),
+  },
 };
 
 // Mock console capture state
@@ -56,7 +56,6 @@ async function handlePageReadySignal(tabId) {
 }
 
 describe('Smarter Completion Detection', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
     captureState.clear();
@@ -67,12 +66,11 @@ describe('Smarter Completion Detection', () => {
   // ========================================================================
 
   describe('Page-ready signal mechanism', () => {
-
     test('should send page-ready signal after window.load event', () => {
       // Simulate: Page with defer scripts
       const mockWindow = {
         addEventListener: jest.fn(),
-        dispatchEvent: jest.fn()
+        dispatchEvent: jest.fn(),
       };
 
       // Simulate inject script registering listener
@@ -95,13 +93,13 @@ describe('Smarter Completion Detection', () => {
       chrome.runtime.sendMessage({
         type: 'pageReady',
         tabId: 123,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
         type: 'pageReady',
         tabId: 123,
-        timestamp: expect.any(Number)
+        timestamp: expect.any(Number),
       });
     });
 
@@ -110,7 +108,7 @@ describe('Smarter Completion Detection', () => {
 
       chrome.runtime.sendMessage({
         type: 'pageReady',
-        tabId: tabId
+        tabId: tabId,
       });
 
       expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
@@ -124,7 +122,6 @@ describe('Smarter Completion Detection', () => {
   // ========================================================================
 
   describe('Early completion on page-ready', () => {
-
     test('should end capture early when page signals ready', async () => {
       // GIVEN: Active capture with 10s duration
       captureState.set('cmd-1', {
@@ -134,7 +131,7 @@ describe('Smarter Completion Detection', () => {
         startTime: Date.now(),
         maxDuration: 10000,
         timeoutHandle: setTimeout(() => {}, 10000),
-        completedEarly: false
+        completedEarly: false,
       });
 
       // WHEN: Page signals ready after 2s
@@ -153,7 +150,7 @@ describe('Smarter Completion Detection', () => {
         tabId: 123,
         active: true,
         logs: [],
-        timeoutHandle: setTimeout(() => {}, 10000)
+        timeoutHandle: setTimeout(() => {}, 10000),
       });
 
       // WHEN: Page-ready signal for different tab
@@ -171,7 +168,7 @@ describe('Smarter Completion Detection', () => {
         active: true,
         logs: [],
         timeoutHandle: setTimeout(() => {}, 10000),
-        completedEarly: false
+        completedEarly: false,
       });
 
       captureState.set('cmd-2', {
@@ -179,7 +176,7 @@ describe('Smarter Completion Detection', () => {
         active: true,
         logs: [],
         timeoutHandle: setTimeout(() => {}, 10000),
-        completedEarly: false
+        completedEarly: false,
       });
 
       // WHEN: Tab 100 signals ready
@@ -188,7 +185,7 @@ describe('Smarter Completion Detection', () => {
       // THEN: Only cmd-1 ends early
       expect(captureState.get('cmd-1').active).toBe(false);
       expect(captureState.get('cmd-1').completedEarly).toBe(true);
-      expect(captureState.get('cmd-2').active).toBe(true);  // Still active
+      expect(captureState.get('cmd-2').active).toBe(true); // Still active
       expect(captureState.get('cmd-2').completedEarly).toBe(false);
     });
 
@@ -199,7 +196,7 @@ describe('Smarter Completion Detection', () => {
         tabId: 123,
         active: true,
         logs: [],
-        timeoutHandle: mockTimeout
+        timeoutHandle: mockTimeout,
       });
 
       await handlePageReadySignal(123);
@@ -213,7 +210,6 @@ describe('Smarter Completion Detection', () => {
   // ========================================================================
 
   describe('Timeout fallback for slow pages', () => {
-
     test('should still end capture after max duration if no page-ready signal', async () => {
       jest.useFakeTimers();
 
@@ -231,7 +227,7 @@ describe('Smarter Completion Detection', () => {
         logs: [],
         startTime: startTime,
         maxDuration: 5000,
-        timeoutHandle: timeoutHandle
+        timeoutHandle: timeoutHandle,
       });
 
       // WHEN: No page-ready signal arrives
@@ -247,10 +243,10 @@ describe('Smarter Completion Detection', () => {
       // GIVEN: Capture already ended
       captureState.set('cmd-1', {
         tabId: 123,
-        active: false,  // Already ended
+        active: false, // Already ended
         logs: [],
-        completedEarly: false,  // Ended via timeout, not early
-        timeoutHandle: null
+        completedEarly: false, // Ended via timeout, not early
+        timeoutHandle: null,
       });
 
       // WHEN: Late page-ready signal arrives
@@ -267,7 +263,6 @@ describe('Smarter Completion Detection', () => {
   // ========================================================================
 
   describe('Real-world page scenarios', () => {
-
     test('should complete fast page (data URI) in <1s', async () => {
       jest.useFakeTimers();
 
@@ -278,7 +273,7 @@ describe('Smarter Completion Detection', () => {
         logs: [],
         startTime: startTime,
         maxDuration: 10000,
-        timeoutHandle: setTimeout(() => {}, 10000)
+        timeoutHandle: setTimeout(() => {}, 10000),
       });
 
       // WHEN: Fast page signals ready after 500ms
@@ -308,7 +303,7 @@ describe('Smarter Completion Detection', () => {
         maxDuration: 10000,
         timeoutHandle: setTimeout(() => {
           timeoutFired = true;
-        }, 10000)
+        }, 10000),
       });
 
       // WHEN: Page never signals ready
@@ -330,7 +325,7 @@ describe('Smarter Completion Detection', () => {
         logs: [],
         startTime: startTime,
         maxDuration: 10000,
-        timeoutHandle: setTimeout(() => {}, 10000)
+        timeoutHandle: setTimeout(() => {}, 10000),
       });
 
       // Simulate: Page load (1s) + DOMContentLoaded (1s) + defer scripts (1s) = ~3s total
@@ -353,14 +348,13 @@ describe('Smarter Completion Detection', () => {
   // ========================================================================
 
   describe('Edge cases and error handling', () => {
-
     test('should handle page-ready signal arriving multiple times', async () => {
       captureState.set('cmd-1', {
         tabId: 123,
         active: true,
         logs: [],
         timeoutHandle: setTimeout(() => {}, 10000),
-        completedEarly: false
+        completedEarly: false,
       });
 
       // WHEN: Page-ready signal arrives twice
@@ -394,7 +388,7 @@ describe('Smarter Completion Detection', () => {
         tabId: 123,
         active: true,
         logs: [],
-        timeoutHandle: timeoutHandle
+        timeoutHandle: timeoutHandle,
       });
 
       // WHEN: Page-ready arrives just before timeout
@@ -406,7 +400,7 @@ describe('Smarter Completion Detection', () => {
 
       // THEN: Capture ended via page-ready, timeout was cleared
       expect(captureState.get('cmd-1').timeoutHandle).toBeNull();
-      expect(timeoutFired).toBe(false);  // Timeout was cleared
+      expect(timeoutFired).toBe(false); // Timeout was cleared
 
       jest.useRealTimers();
     });
@@ -414,14 +408,14 @@ describe('Smarter Completion Detection', () => {
     test('should preserve console logs when ending early', async () => {
       const existingLogs = [
         { level: 'log', message: 'Test 1', timestamp: Date.now() },
-        { level: 'warn', message: 'Test 2', timestamp: Date.now() }
+        { level: 'warn', message: 'Test 2', timestamp: Date.now() },
       ];
 
       captureState.set('cmd-1', {
         tabId: 123,
         active: true,
         logs: existingLogs,
-        timeoutHandle: setTimeout(() => {}, 10000)
+        timeoutHandle: setTimeout(() => {}, 10000),
       });
 
       await handlePageReadySignal(123);

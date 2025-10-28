@@ -9,7 +9,6 @@
 const chromeDevAssist = require('../../claude-code/index.js');
 
 describe('Service Worker API - New Features', () => {
-
   describe('wakeServiceWorker()', () => {
     it('should wake the service worker by sending a ping', async () => {
       const result = await chromeDevAssist.wakeServiceWorker();
@@ -153,7 +152,7 @@ describe('Service Worker API - New Features', () => {
     it('should enable external logging with endpoint', async () => {
       const result = await chromeDevAssist.enableExternalLogging({
         endpoint: 'http://localhost:9999/logs',
-        levels: ['error', 'warn']
+        levels: ['error', 'warn'],
       });
 
       expect(result).toBeDefined();
@@ -164,7 +163,7 @@ describe('Service Worker API - New Features', () => {
     it('should disable external logging', async () => {
       // Enable first
       await chromeDevAssist.enableExternalLogging({
-        endpoint: 'http://localhost:9999/logs'
+        endpoint: 'http://localhost:9999/logs',
       });
 
       // Then disable
@@ -190,7 +189,7 @@ describe('Service Worker API - New Features', () => {
     it('should accept valid log levels only', async () => {
       const result = await chromeDevAssist.enableExternalLogging({
         endpoint: 'http://localhost:9999/logs',
-        levels: ['log', 'error', 'warn', 'info', 'debug']
+        levels: ['log', 'error', 'warn', 'info', 'debug'],
       });
 
       expect(result.success).toBe(true);

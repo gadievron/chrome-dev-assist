@@ -17,6 +17,7 @@ rm extension/content-script-v2.js         # 2,851 bytes
 ```
 
 **Evidence**:
+
 - `manifest.json` line 25 only references `content-script.js`
 - No imports/requires from these files
 - Backup files with obvious naming
@@ -50,6 +51,7 @@ README-OLD-v2.md   # Old version (delete?)
 ```
 
 **Recommendation**:
+
 - ✅ **DELETE** `README-OLD-v2.md` if current README is comprehensive
 - OR consolidate useful content into main README, then delete
 
@@ -86,6 +88,7 @@ test-http-with-logs.html
 **Recommendation**: **ORGANIZE OR DELETE**
 
 Option A - **Move to `scripts/manual-tests/`**:
+
 ```bash
 mkdir -p scripts/manual-tests
 mv test-*.js scripts/manual-tests/
@@ -93,6 +96,7 @@ mv test-*.html scripts/manual-tests/
 ```
 
 Option B - **DELETE** if covered by automated tests:
+
 - If jest tests cover these scenarios → delete standalone files
 - If you use them for manual testing → keep but organize
 
@@ -116,6 +120,7 @@ test-rules-compliance.sh
 These appear to be from development/testing of rules system.
 
 Option A - **Archive**:
+
 ```bash
 mkdir -p .archive/rule-development
 mv *rule*.md .archive/rule-development/
@@ -123,6 +128,7 @@ mv *rule*.sh .archive/rule-development/
 ```
 
 Option B - **DELETE**:
+
 ```bash
 rm global-rule-enforcement-PRD.md
 rm rule-failure-analysis.md
@@ -314,18 +320,21 @@ Decide whether to keep prototype/ for manual testing or delete once Phase 2 is s
 ## 📈 **IMPACT SUMMARY**
 
 **Before Cleanup**:
+
 - Root directory: 20+ test files
 - Extension directory: 2 dead backup files
 - Docs directory: 8+ historical files
 - Total clutter: ~30 files
 
 **After Cleanup**:
+
 - Root directory: Clean (test files → scripts/manual-tests/)
 - Extension directory: Clean (backups deleted)
 - Docs directory: Clean (history → .archive/)
 - Total clutter: 0 files
 
 **Benefits**:
+
 - ✅ Faster file navigation
 - ✅ Cleaner `ls` output
 - ✅ Easier for new developers
@@ -333,6 +342,7 @@ Decide whether to keep prototype/ for manual testing or delete once Phase 2 is s
 - ✅ Reduced confusion
 
 **Risks**:
+
 - ❌ NONE (no production users, history preserved in .archive/)
 
 ---

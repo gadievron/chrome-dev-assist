@@ -12,18 +12,28 @@
 Debug logging has been added to **three critical files** in the console capture flow:
 
 ### 1. `extension/inject-console-capture.js` (MAIN world)
+
 ```javascript
 // Line 42: Logs when CustomEvent is dispatched
-originalLog('[ChromeDevAssist DEBUG INJECT] Dispatching console event:', level, message.substring(0, 100));
+originalLog(
+  '[ChromeDevAssist DEBUG INJECT] Dispatching console event:',
+  level,
+  message.substring(0, 100)
+);
 ```
 
 ### 2. `extension/content-script.js` (ISOLATED world)
+
 ```javascript
 // Line 14: Logs when content script loads
 console.log('[ChromeDevAssist DEBUG CONTENT] Content script loaded in:', window.location.href);
 
 // Line 20: Logs when event is received
-console.log('[ChromeDevAssist DEBUG CONTENT] Received console event:', logData.level, logData.message.substring(0, 100));
+console.log(
+  '[ChromeDevAssist DEBUG CONTENT] Received console event:',
+  logData.level,
+  logData.message.substring(0, 100)
+);
 
 // Line 30: Logs when message is sent to background
 console.log('[ChromeDevAssist DEBUG CONTENT] Message sent to background');
@@ -33,9 +43,18 @@ console.log('[ChromeDevAssist DEBUG CONTENT] Event listener registered');
 ```
 
 ### 3. `extension/background.js` (Service Worker)
+
 ```javascript
 // Line 1657: Logs when background receives message
-console.log('[ChromeDevAssist DEBUG BACKGROUND] Received console message:', message.level, message.message.substring(0, 100), 'from tab:', sender.tab?.id, 'url:', sender.url);
+console.log(
+  '[ChromeDevAssist DEBUG BACKGROUND] Received console message:',
+  message.level,
+  message.message.substring(0, 100),
+  'from tab:',
+  sender.tab?.id,
+  'url:',
+  sender.url
+);
 ```
 
 ---
@@ -110,6 +129,7 @@ npm run reload-extension
 6. Keep this window open during testing
 
 **What you should see:**
+
 ```
 [ChromeDevAssist] Extension started
 [ChromeDevAssist] Console capture script registered in MAIN world
@@ -122,6 +142,7 @@ npm run reload-extension
 ### 3.1 Open Simple Test Page
 
 1. In a new Chrome tab, navigate to:
+
    ```
    http://localhost:9876/fixtures/integration-test-2.html?token=0f09fad1179386c8c33c82c796d99a30b1ca6bf74ff74f5d15a525f446d0e99c
    ```
@@ -165,6 +186,7 @@ In the **extension background console**, you should see:
 ### 4.1 Open Adversarial Security Page
 
 1. In a new Chrome tab, navigate to:
+
    ```
    http://localhost:9876/fixtures/adversarial-security.html?token=0f09fad1179386c8c33c82c796d99a30b1ca6bf74ff74f5d15a525f446d0e99c
    ```
@@ -176,6 +198,7 @@ In the **extension background console**, you should see:
 **Look for the same pattern as Step 3.2:**
 
 #### Scenario 1: Content script NOT loaded ❌
+
 ```
 (No debug logs at all)
 ```
@@ -184,6 +207,7 @@ In the **extension background console**, you should see:
 **Root cause:** Manifest configuration issue or Chrome bug
 
 #### Scenario 2: Content script loaded, but NO events ⚠️
+
 ```
 [ChromeDevAssist DEBUG CONTENT] Content script loaded in: http://localhost:9876/fixtures/adversarial-security.html
 [ChromeDevAssist DEBUG CONTENT] Event listener registered
@@ -195,6 +219,7 @@ In the **extension background console**, you should see:
 **Root cause:** Dynamic script registration failing on complex pages
 
 #### Scenario 3: Inject script loaded, but content script NOT receiving events ⚠️
+
 ```
 [ChromeDevAssist DEBUG CONTENT] Content script loaded in: http://localhost:9876/fixtures/adversarial-security.html
 [ChromeDevAssist DEBUG CONTENT] Event listener registered
@@ -206,6 +231,7 @@ In the **extension background console**, you should see:
 **Root cause:** Possible Chrome security restriction or event dispatch issue
 
 #### Scenario 4: Everything works locally but tests fail ✅
+
 ```
 [ChromeDevAssist DEBUG CONTENT] Content script loaded in: http://localhost:9876/fixtures/adversarial-security.html
 [ChromeDevAssist DEBUG INJECT] Dispatching console event: log [MAIN-PAGE] Logging from main page
@@ -233,6 +259,7 @@ Complex pages have multiple iframes. Check if content scripts load in iframes:
 ### 5.2 Expected Logs (Iframe Console)
 
 **Same-origin iframe:**
+
 ```
 [ChromeDevAssist DEBUG CONTENT] Content script loaded in: http://localhost:9876/iframe.html
 [ChromeDevAssist DEBUG CONTENT] Event listener registered
@@ -240,11 +267,13 @@ Complex pages have multiple iframes. Check if content scripts load in iframes:
 ```
 
 **Sandboxed iframe:**
+
 ```
 (May have no logs if sandbox prevents script execution)
 ```
 
 **Data URI iframe:**
+
 ```
 [ChromeDevAssist DEBUG CONTENT] Content script loaded in: data:text/html,...
 [ChromeDevAssist DEBUG INJECT] Dispatching console event: log [DATA-URI] Logging from data URI
@@ -278,6 +307,7 @@ npm test -- tests/integration/adversarial-tests.test.js --verbose
 ### Template for Results:
 
 **Simple Page (integration-test-2.html):**
+
 - [ ] Content script loaded? (YES/NO)
 - [ ] Inject script loaded? (YES/NO)
 - [ ] Events dispatched? (YES/NO)
@@ -285,6 +315,7 @@ npm test -- tests/integration/adversarial-tests.test.js --verbose
 - [ ] Messages to background? (YES/NO)
 
 **Complex Page (adversarial-security.html):**
+
 - [ ] Content script loaded in main frame? (YES/NO)
 - [ ] Content script loaded in iframes? (YES/NO)
 - [ ] Inject script loaded in main frame? (YES/NO)
@@ -295,6 +326,7 @@ npm test -- tests/integration/adversarial-tests.test.js --verbose
 - [ ] Messages to background? (YES/NO)
 
 **Root Cause Identified:**
+
 ```
 [Describe where the flow breaks based on debug logs]
 ```
@@ -306,6 +338,7 @@ npm test -- tests/integration/adversarial-tests.test.js --verbose
 ### If Simple Page Works, Complex Page Fails:
 
 **Possible root causes:**
+
 1. Dynamic script registration not working on iframe pages
 2. Content script injection timing issue
 3. CustomEvent not crossing boundaries on complex pages
@@ -314,6 +347,7 @@ npm test -- tests/integration/adversarial-tests.test.js --verbose
 ### If Both Fail:
 
 **Possible root causes:**
+
 1. Extension not reloaded after debug logging added
 2. Manifest configuration error
 3. Chrome version incompatibility
@@ -321,6 +355,7 @@ npm test -- tests/integration/adversarial-tests.test.js --verbose
 ### If Both Work:
 
 **Possible root causes:**
+
 1. Test automation timing issue
 2. API client not waiting for extension to attach
 3. Server/auth issue in automated environment
@@ -330,16 +365,19 @@ npm test -- tests/integration/adversarial-tests.test.js --verbose
 ## Troubleshooting
 
 ### "No debug logs at all"
+
 - Reload extension via chrome://extensions
 - Check manifest.json includes content-script.js
 - Verify inject-console-capture.js registered (check background console)
 
 ### "Content script loaded but no inject logs"
+
 - Check background console for registration errors
 - Verify `chrome.scripting.registerContentScripts()` succeeded
 - Try manually restarting extension
 
 ### "Events dispatched but not received"
+
 - Check CustomEvent name matches exactly
 - Verify content script in ISOLATED world (not MAIN)
 - Try adding event listener BEFORE inject script runs

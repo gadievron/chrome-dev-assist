@@ -11,6 +11,7 @@
 **Status:** ⚠️ CRITICAL DISCREPANCIES FOUND
 
 **Key Findings:**
+
 1. ✅ README.md is ACCURATE (claims 8 functions, code has 8 functions)
 2. ❌ docs/API.md is INACCURATE (claims v1.2.0 with 20 functions, but only 8 exist)
 3. ❌ COMPLETE-FUNCTIONALITY-MAP.md is INACCURATE (claims 20 API functions, but only 8 exist)
@@ -33,18 +34,19 @@
 
 ```javascript
 module.exports = {
-  reloadAndCapture,      // 1
-  reload,                // 2
-  captureLogs,           // 3
-  getAllExtensions,      // 4
-  getExtensionInfo,      // 5
-  openUrl,               // 6
-  reloadTab,             // 7
-  closeTab               // 8
+  reloadAndCapture, // 1
+  reload, // 2
+  captureLogs, // 3
+  getAllExtensions, // 4
+  getExtensionInfo, // 5
+  openUrl, // 6
+  reloadTab, // 7
+  closeTab, // 8
 };
 ```
 
 **Command Handlers in Extension (background.js):**
+
 - `reload` ✅
 - `capture` ✅
 - `getAllExtensions` ✅
@@ -60,8 +62,10 @@ module.exports = {
 ### DOCUMENTED API
 
 #### README.md ✅ ACCURATE
+
 **Claims:** 8 API functions (3 core MVP + 5 utilities)
 **Lists:**
+
 - `reload()`
 - `reloadAndCapture()`
 - `captureLogs()`
@@ -76,50 +80,32 @@ module.exports = {
 ---
 
 #### docs/API.md ❌ INACCURATE
+
 **Claims:** v1.2.0 with 20+ functions
 **Lists:**
 
 **Extension Management (5 functions):**
+
 1. ✅ `getAllExtensions()` - EXISTS
 2. ✅ `getExtensionInfo(id)` - EXISTS
 3. ❌ `enableExtension(id)` - DOES NOT EXIST
 4. ❌ `disableExtension(id)` - DOES NOT EXIST
 5. ❌ `toggleExtension(id)` - DOES NOT EXIST
 
-**Extension Reload & Console Capture (6 functions):**
-6. ✅ `reload(id)` - EXISTS
-7. ✅ `reloadAndCapture(id, opts)` - EXISTS
-8. ✅ `captureLogs(duration)` - EXISTS
-9. ❌ `captureScreenshot(tabId, opts)` - DOES NOT EXIST
-10. ❌ `forceReload()` - DOES NOT EXIST
-11. ❌ `level4Reload(id, opts)` - DOES NOT EXIST
+**Extension Reload & Console Capture (6 functions):** 6. ✅ `reload(id)` - EXISTS 7. ✅ `reloadAndCapture(id, opts)` - EXISTS 8. ✅ `captureLogs(duration)` - EXISTS 9. ❌ `captureScreenshot(tabId, opts)` - DOES NOT EXIST 10. ❌ `forceReload()` - DOES NOT EXIST 11. ❌ `level4Reload(id, opts)` - DOES NOT EXIST
 
-**Tab Management (3 functions):**
-12. ✅ `openUrl(url, opts)` - EXISTS
-13. ✅ `reloadTab(tabId, opts)` - EXISTS
-14. ✅ `closeTab(tabId)` - EXISTS
+**Tab Management (3 functions):** 12. ✅ `openUrl(url, opts)` - EXISTS 13. ✅ `reloadTab(tabId, opts)` - EXISTS 14. ✅ `closeTab(tabId)` - EXISTS
 
-**DOM Interaction (1 function):**
-15. ❌ `getPageMetadata(tabId)` - DOES NOT EXIST
+**DOM Interaction (1 function):** 15. ❌ `getPageMetadata(tabId)` - DOES NOT EXIST
 
-**Test Orchestration (5 functions):**
-16. ❌ `startTest(id, opts)` - DOES NOT EXIST
-17. ❌ `endTest(id, result)` - DOES NOT EXIST
-18. ❌ `getTestStatus()` - DOES NOT EXIST
-19. ❌ `abortTest(id, reason)` - DOES NOT EXIST
-20. ❌ `verifyCleanup(opts)` - DOES NOT EXIST
+**Test Orchestration (5 functions):** 16. ❌ `startTest(id, opts)` - DOES NOT EXIST 17. ❌ `endTest(id, result)` - DOES NOT EXIST 18. ❌ `getTestStatus()` - DOES NOT EXIST 19. ❌ `abortTest(id, reason)` - DOES NOT EXIST 20. ❌ `verifyCleanup(opts)` - DOES NOT EXIST
 
-**Service Worker API (3 functions - v1.2.0):**
-21. ❌ `wakeServiceWorker()` - DOES NOT EXIST
-22. ❌ `getServiceWorkerStatus()` - DOES NOT EXIST
-23. ❌ `captureServiceWorkerLogs(duration)` - DOES NOT EXIST
+**Service Worker API (3 functions - v1.2.0):** 21. ❌ `wakeServiceWorker()` - DOES NOT EXIST 22. ❌ `getServiceWorkerStatus()` - DOES NOT EXIST 23. ❌ `captureServiceWorkerLogs(duration)` - DOES NOT EXIST
 
-**External Logging API (3 functions - v1.2.0):**
-24. ❌ `enableExternalLogging(options)` - DOES NOT EXIST
-25. ❌ `disableExternalLogging()` - DOES NOT EXIST
-26. ❌ `getExternalLoggingStatus()` - DOES NOT EXIST
+**External Logging API (3 functions - v1.2.0):** 24. ❌ `enableExternalLogging(options)` - DOES NOT EXIST 25. ❌ `disableExternalLogging()` - DOES NOT EXIST 26. ❌ `getExternalLoggingStatus()` - DOES NOT EXIST
 
 **Summary:**
+
 - ✅ 8 functions exist and are documented correctly
 - ❌ 18 functions documented but DO NOT EXIST in code
 
@@ -128,6 +114,7 @@ module.exports = {
 ---
 
 #### COMPLETE-FUNCTIONALITY-MAP.md ❌ INACCURATE
+
 **Claims:** 20 Public API Functions - 100% TESTED
 **Reality:** Only 8 functions exist
 
@@ -142,6 +129,7 @@ module.exports = {
 **Hypothesis:** docs/API.md and COMPLETE-FUNCTIONALITY-MAP.md document **PLANNED** features for v1.1.0 and v1.2.0 that were never implemented.
 
 **Evidence:**
+
 1. docs/API.md has version history section showing:
    - v1.2.0 (2025-10-25) - Service Worker API, External Logging API
    - v1.1.0 (2025-10-24) - Test Orchestration API
@@ -160,16 +148,19 @@ module.exports = {
 ### ✅ ACCURATE DOCUMENTATION
 
 **README.md**
+
 - Claims: 8 API functions
 - Reality: 8 API functions
 - Status: ✅ 100% ACCURATE
 
 **package.json**
+
 - Claims: v1.0.0
 - Reality: v1.0.0
 - Status: ✅ ACCURATE
 
 **extension/manifest.json**
+
 - Claims: v1.0.0
 - Reality: v1.0.0
 - Status: ✅ ACCURATE
@@ -179,18 +170,21 @@ module.exports = {
 ### ❌ INACCURATE DOCUMENTATION
 
 **docs/API.md**
+
 - Claims: v1.2.0, 26 functions
 - Reality: v1.0.0, 8 functions
 - Accuracy: 30% (8/26 functions)
 - **Action Required:** Update to v1.0.0, remove undocumented functions
 
 **COMPLETE-FUNCTIONALITY-MAP.md**
+
 - Claims: 20 Public API functions, 100% TESTED
 - Reality: 8 Public API functions
 - Accuracy: 40% (8/20 functions)
 - **Action Required:** Update to reflect actual 8 functions
 
 **DOCUMENTATION-INDEX.md**
+
 - Claims: References v1.2.0 features throughout
 - Reality: Only v1.0.0 exists
 - **Action Required:** Update version references, mark v1.1.0/v1.2.0 features as "PLANNED"
@@ -200,10 +194,12 @@ module.exports = {
 ### ⚠️ POTENTIALLY MISLEADING
 
 **docs/SERVICE-WORKER-LIFECYCLE-CAPABILITIES.md**
+
 - May document features not in public API
 - **Action Required:** Review and verify
 
 **docs/TEST-ORCHESTRATION-PROTOCOL.md**
+
 - Documents Test Orchestration API (v1.1.0) that doesn't exist
 - **Action Required:** Mark as "PLANNED" or move to design docs
 
@@ -212,6 +208,7 @@ module.exports = {
 ## 🔧 RECOMMENDED ACTIONS
 
 ### Priority 1: Update Core API Documentation
+
 1. **docs/API.md**
    - Change version from v1.2.0 → v1.0.0
    - Remove all functions that don't exist in `claude-code/index.js`
@@ -224,12 +221,14 @@ module.exports = {
    - Update test status accurately
 
 ### Priority 2: Update Index and References
+
 3. **DOCUMENTATION-INDEX.md**
    - Mark v1.1.0 and v1.2.0 features as "PLANNED - NOT YET IMPLEMENTED"
    - Update version references throughout
    - Add warning about planned vs implemented features
 
 ### Priority 3: Clean Up Planning Docs
+
 4. **Create PLANNED-FEATURES.md**
    - Move all v1.1.0 and v1.2.0 documented features here
    - Mark as design documents, not implementation docs
@@ -244,16 +243,16 @@ module.exports = {
 
 ### Functions That EXIST ✅
 
-| Function | File | Line | Exported | Handler |
-|----------|------|------|----------|---------|
-| `reloadAndCapture` | claude-code/index.js | 23 | ✅ | background.js:127 |
-| `reload` | claude-code/index.js | 44 | ✅ | background.js:127 |
-| `captureLogs` | claude-code/index.js | 64 | ✅ | background.js:131 |
-| `getAllExtensions` | claude-code/index.js | 84 | ✅ | background.js:135 |
-| `getExtensionInfo` | claude-code/index.js | 99 | ✅ | background.js:139 |
-| `openUrl` | claude-code/index.js | 121 | ✅ | background.js:143 |
-| `reloadTab` | claude-code/index.js | 161 | ✅ | background.js:147 |
-| `closeTab` | claude-code/index.js | 189 | ✅ | background.js:151 |
+| Function           | File                 | Line | Exported | Handler           |
+| ------------------ | -------------------- | ---- | -------- | ----------------- |
+| `reloadAndCapture` | claude-code/index.js | 23   | ✅       | background.js:127 |
+| `reload`           | claude-code/index.js | 44   | ✅       | background.js:127 |
+| `captureLogs`      | claude-code/index.js | 64   | ✅       | background.js:131 |
+| `getAllExtensions` | claude-code/index.js | 84   | ✅       | background.js:135 |
+| `getExtensionInfo` | claude-code/index.js | 99   | ✅       | background.js:139 |
+| `openUrl`          | claude-code/index.js | 121  | ✅       | background.js:143 |
+| `reloadTab`        | claude-code/index.js | 161  | ✅       | background.js:147 |
+| `closeTab`         | claude-code/index.js | 189  | ✅       | background.js:151 |
 
 **Status:** All 8 functions implemented and working
 
@@ -261,26 +260,26 @@ module.exports = {
 
 ### Functions That DO NOT EXIST ❌
 
-| Function | Documented In | Claimed Version | Status |
-|----------|---------------|-----------------|--------|
-| `enableExtension` | docs/API.md | v1.0.0 | ❌ NOT IN CODE |
-| `disableExtension` | docs/API.md | v1.0.0 | ❌ NOT IN CODE |
-| `toggleExtension` | docs/API.md | v1.0.0 | ❌ NOT IN CODE |
-| `captureScreenshot` | docs/API.md | v1.0.0 | ❌ NOT IN CODE |
-| `forceReload` | docs/API.md | v1.0.0 | ❌ NOT IN CODE |
-| `level4Reload` | docs/API.md | v1.0.0 | ❌ NOT IN CODE |
-| `getPageMetadata` | docs/API.md | v1.0.0 | ❌ NOT IN CODE |
-| `startTest` | docs/API.md | v1.1.0 | ❌ NOT IN CODE |
-| `endTest` | docs/API.md | v1.1.0 | ❌ NOT IN CODE |
-| `getTestStatus` | docs/API.md | v1.1.0 | ❌ NOT IN CODE |
-| `abortTest` | docs/API.md | v1.1.0 | ❌ NOT IN CODE |
-| `verifyCleanup` | docs/API.md | v1.1.0 | ❌ NOT IN CODE |
-| `wakeServiceWorker` | docs/API.md | v1.2.0 | ❌ NOT IN CODE |
-| `getServiceWorkerStatus` | docs/API.md | v1.2.0 | ❌ NOT IN CODE |
-| `captureServiceWorkerLogs` | docs/API.md | v1.2.0 | ❌ NOT IN CODE |
-| `enableExternalLogging` | docs/API.md | v1.2.0 | ❌ NOT IN CODE |
-| `disableExternalLogging` | docs/API.md | v1.2.0 | ❌ NOT IN CODE |
-| `getExternalLoggingStatus` | docs/API.md | v1.2.0 | ❌ NOT IN CODE |
+| Function                   | Documented In | Claimed Version | Status         |
+| -------------------------- | ------------- | --------------- | -------------- |
+| `enableExtension`          | docs/API.md   | v1.0.0          | ❌ NOT IN CODE |
+| `disableExtension`         | docs/API.md   | v1.0.0          | ❌ NOT IN CODE |
+| `toggleExtension`          | docs/API.md   | v1.0.0          | ❌ NOT IN CODE |
+| `captureScreenshot`        | docs/API.md   | v1.0.0          | ❌ NOT IN CODE |
+| `forceReload`              | docs/API.md   | v1.0.0          | ❌ NOT IN CODE |
+| `level4Reload`             | docs/API.md   | v1.0.0          | ❌ NOT IN CODE |
+| `getPageMetadata`          | docs/API.md   | v1.0.0          | ❌ NOT IN CODE |
+| `startTest`                | docs/API.md   | v1.1.0          | ❌ NOT IN CODE |
+| `endTest`                  | docs/API.md   | v1.1.0          | ❌ NOT IN CODE |
+| `getTestStatus`            | docs/API.md   | v1.1.0          | ❌ NOT IN CODE |
+| `abortTest`                | docs/API.md   | v1.1.0          | ❌ NOT IN CODE |
+| `verifyCleanup`            | docs/API.md   | v1.1.0          | ❌ NOT IN CODE |
+| `wakeServiceWorker`        | docs/API.md   | v1.2.0          | ❌ NOT IN CODE |
+| `getServiceWorkerStatus`   | docs/API.md   | v1.2.0          | ❌ NOT IN CODE |
+| `captureServiceWorkerLogs` | docs/API.md   | v1.2.0          | ❌ NOT IN CODE |
+| `enableExternalLogging`    | docs/API.md   | v1.2.0          | ❌ NOT IN CODE |
+| `disableExternalLogging`   | docs/API.md   | v1.2.0          | ❌ NOT IN CODE |
+| `getExternalLoggingStatus` | docs/API.md   | v1.2.0          | ❌ NOT IN CODE |
 
 **Total:** 18 documented functions DO NOT EXIST in code
 
@@ -309,6 +308,7 @@ await chromeDevAssist.reload('abc123...');
 ```
 
 **Impact:**
+
 - ❌ Broken code examples in docs
 - ❌ Developers waste time trying to use non-existent functions
 - ❌ Loss of trust in documentation accuracy
@@ -319,6 +319,7 @@ await chromeDevAssist.reload('abc123...');
 ## 🎯 NEXT STEPS
 
 ### Immediate (This Session)
+
 1. ✅ Complete this audit document
 2. ⏳ Update README.md version references if needed
 3. ⏳ Update docs/API.md to v1.0.0 (remove non-existent functions)
@@ -326,12 +327,14 @@ await chromeDevAssist.reload('abc123...');
 5. ⏳ Update DOCUMENTATION-INDEX.md with warnings
 
 ### Short-Term (Next Session)
+
 6. Create PLANNED-FEATURES.md with v1.1.0/v1.2.0 designs
 7. Review and verify all other documentation files
 8. Update any test documentation that references non-existent functions
 9. Add documentation linting to prevent future drift
 
 ### Long-Term (Future)
+
 10. Implement v1.1.0 features (Test Orchestration API) if needed
 11. Implement v1.2.0 features (Service Worker + External Logging APIs) if needed
 12. Set up automated doc-code sync validation

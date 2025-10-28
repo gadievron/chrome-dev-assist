@@ -9,7 +9,6 @@ const HealthManager = require('../../src/health/health-manager');
 const WebSocket = require('ws');
 
 describe('HealthManager - API Socket Tracking', () => {
-
   test('should accept API socket via setApiSocket()', () => {
     const health = new HealthManager();
 
@@ -61,11 +60,9 @@ describe('HealthManager - API Socket Tracking', () => {
 
     expect(health.apiSocket).toBeNull();
   });
-
 });
 
 describe('HealthManager - API Socket in Health Status (Future)', () => {
-
   test('should not affect health status when API socket is null (MVP behavior)', () => {
     const health = new HealthManager();
 
@@ -108,11 +105,9 @@ describe('HealthManager - API Socket in Health Status (Future)', () => {
     // Still healthy - API status not checked in MVP
     expect(status.healthy).toBe(true);
   });
-
 });
 
 describe('HealthManager - API Socket Future Expansion', () => {
-
   test('should preserve API socket reference for future use', () => {
     const health = new HealthManager();
 
@@ -133,5 +128,4 @@ describe('HealthManager - API Socket Future Expansion', () => {
     // Should not throw when getting health status
     expect(() => health.getHealthStatus()).not.toThrow();
   });
-
 });

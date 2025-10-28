@@ -3,7 +3,7 @@
  * Injects console capture into the page's main world
  */
 
-(function() {
+(function () {
   'use strict';
 
   // This script runs in the isolated content script world
@@ -106,26 +106,31 @@
   console.log('[ChromeDevAssist] Content script loaded in isolated world');
 
   // Listen for console log events from the page's world
-  window.addEventListener('chromeDevAssist:consoleLog', (event) => {
+  window.addEventListener('chromeDevAssist:consoleLog', event => {
     const logData = event.detail;
 
     // Forward to background script
     try {
-      chrome.runtime.sendMessage({
-        type: 'console',
-        level: logData.level,
-        message: logData.message,
-        timestamp: logData.timestamp,
-        source: logData.source
-      }, (response) => {
-        if (chrome.runtime.lastError) {
-          // Extension might not be ready - that's okay
-          console.warn('[ChromeDevAssist] Failed to send message:', chrome.runtime.lastError.message);
+      chrome.runtime.sendMessage(
+        {
+          type: 'console',
+          level: logData.level,
+          message: logData.message,
+          timestamp: logData.timestamp,
+          source: logData.source,
+        },
+        response => {
+          if (chrome.runtime.lastError) {
+            // Extension might not be ready - that's okay
+            console.warn(
+              '[ChromeDevAssist] Failed to send message:',
+              chrome.runtime.lastError.message
+            );
+          }
         }
-      });
+      );
     } catch (err) {
       console.error('[ChromeDevAssist] Exception forwarding message:', err);
     }
   });
-
 })();

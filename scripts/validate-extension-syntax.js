@@ -27,29 +27,29 @@ const FORBIDDEN_PATTERNS = [
     pattern: /\brequire\s*\(/g,
     message: 'require() is Node.js only - use importScripts() in Chrome extensions',
     severity: 'ERROR',
-    exception: /if\s*\(typeof\s+module\s*!==\s*['"]undefined['"]\s*&&\s*module\.exports\)/  // Allow conditional exports
+    exception: /if\s*\(typeof\s+module\s*!==\s*['"]undefined['"]\s*&&\s*module\.exports\)/, // Allow conditional exports
   },
   {
     pattern: /\bmodule\.exports\s*=/g,
     message: 'module.exports is Node.js only - Chrome extensions use global scope',
     severity: 'WARNING',
-    exception: /if\s*\(typeof\s+module\s*!==\s*['"]undefined['"]\s*&&\s*module\.exports\)/  // Allow conditional exports
+    exception: /if\s*\(typeof\s+module\s*!==\s*['"]undefined['"]\s*&&\s*module\.exports\)/, // Allow conditional exports
   },
   {
     pattern: /\bprocess\.env\b/g,
     message: 'process.env is Node.js only - not available in Chrome extensions',
-    severity: 'ERROR'
+    severity: 'ERROR',
   },
   {
     pattern: /\b__dirname\b/g,
     message: '__dirname is Node.js only - not available in Chrome extensions',
-    severity: 'ERROR'
+    severity: 'ERROR',
   },
   {
     pattern: /\b__filename\b/g,
     message: '__filename is Node.js only - not available in Chrome extensions',
-    severity: 'ERROR'
-  }
+    severity: 'ERROR',
+  },
 ];
 
 // Scan a file for forbidden patterns
@@ -84,7 +84,7 @@ function scanFile(filePath) {
         column: columnNumber,
         severity: check.severity,
         pattern: match[0],
-        message: check.message
+        message: check.message,
       });
     }
   }

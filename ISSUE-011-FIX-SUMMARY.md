@@ -24,12 +24,14 @@ Identified and fixed **6 critical issues** in the WebSocket connection logic tha
 **Fix:** Created `safeSend()` wrapper function that validates state before sending.
 
 **Changes:**
+
 - Added `safeSend(message)` function (lines 125-164)
 - Validates WebSocket state (CONNECTING, CLOSING, CLOSED, OPEN)
 - Returns boolean success/failure
 - Replaced ALL `ws.send()` calls with `safeSend()` (4 locations)
 
 **Code:**
+
 ```javascript
 function safeSend(message) {
   if (!ws) {
@@ -68,6 +70,7 @@ function safeSend(message) {
 ```
 
 **Locations Updated:**
+
 - Line 237: Registration message
 - Line 377: Force reload response
 - Line 409: Success response
@@ -82,12 +85,14 @@ function safeSend(message) {
 **Fix:** Implemented exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (max).
 
 **Changes:**
+
 - Added `reconnectAttempts` counter (line 122)
 - Added `getReconnectDelay(attempt)` function (lines 166-175)
 - Added `scheduleReconnect()` function (lines 458-474)
 - Reset backoff on successful connection (line 218)
 
 **Code:**
+
 ```javascript
 function getReconnectDelay(attempt) {
   // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (max)
@@ -99,10 +104,12 @@ function scheduleReconnect() {
   const delay = getReconnectDelay(reconnectAttempts);
   const seconds = Math.min(Math.pow(2, reconnectAttempts), 30);
 
-  console.log(`[ChromeDevAssist] Scheduling reconnection attempt #${reconnectAttempts + 1} in ${seconds}s`);
+  console.log(
+    `[ChromeDevAssist] Scheduling reconnection attempt #${reconnectAttempts + 1} in ${seconds}s`
+  );
 
   // Cancel any existing reconnect alarm to prevent duplicates
-  chrome.alarms.clear('reconnect-websocket', (wasCleared) => {
+  chrome.alarms.clear('reconnect-websocket', wasCleared => {
     if (wasCleared) {
       console.log('[ChromeDevAssist] Cleared existing reconnect alarm');
     }
@@ -112,6 +119,7 @@ function scheduleReconnect() {
 ```
 
 **Impact:**
+
 - Server restart: Extension backs off instead of spamming
 - First reconnect: 1 second (fast recovery)
 - Multiple failures: Gradually increases to 30 seconds max
@@ -126,11 +134,13 @@ function scheduleReconnect() {
 **Fix:** Added `isRegistered` flag to track registration status.
 
 **Changes:**
+
 - Added `isRegistered` flag (line 121)
 - Set to false on disconnect
 - Set to true after registration sent (future: wait for server ACK)
 
 **Code:**
+
 ```javascript
 let isRegistered = false; // Track registration status
 ```
@@ -144,11 +154,13 @@ let isRegistered = false; // Track registration status
 **Problem:** Two alarms (`reconnect-websocket` and `keep-alive`) could trigger `connectToServer()` simultaneously.
 
 **Fix:**
+
 1. Added `isConnecting` flag to prevent duplicate attempts
 2. Clear existing reconnect alarm before creating new one
 3. Check `isConnecting` in both alarm handlers
 
 **Changes:**
+
 - Added `isConnecting` flag (line 123)
 - Set `isConnecting = true` at start of `connectToServer()` (line 201)
 - Set `isConnecting = false` in `ws.onopen` (line 217)
@@ -157,6 +169,7 @@ let isRegistered = false; // Track registration status
 - Clear alarm before creating new one (line 468)
 
 **Code:**
+
 ```javascript
 let isConnecting = false; // Prevent duplicate connection attempts
 
@@ -184,6 +197,7 @@ function connectToServer() {
 ```
 
 **Impact:**
+
 - No more duplicate WebSocket instances
 - No more memory leaks from orphaned connections
 - No more duplicate registrations
@@ -197,14 +211,16 @@ function connectToServer() {
 **Fix:** Added reconnection trigger to `ws.onerror`.
 
 **Changes:**
+
 - Updated `ws.onerror` to trigger reconnection immediately (lines 436-445)
 - Check if WebSocket is CLOSED/CLOSING before reconnecting
 - Increment `reconnectAttempts` for backoff
 - Call `scheduleReconnect()`
 
 **Code:**
+
 ```javascript
-ws.onerror = (err) => {
+ws.onerror = err => {
   console.error('[ChromeDevAssist] WebSocket error:', err);
   // Trigger reconnection immediately (don't wait for keep-alive)
   if (ws && (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING)) {
@@ -217,6 +233,7 @@ ws.onerror = (err) => {
 ```
 
 **Impact:**
+
 - Error recovery: 1-2 seconds (was 15 seconds)
 - Immediate response to WebSocket errors
 - Better user experience during network issues
@@ -228,16 +245,19 @@ ws.onerror = (err) => {
 **Problem:** Reconnection logic didn't check for CONNECTING state, allowing duplicate connections.
 
 **Fix:**
+
 1. Check CONNECTING state in `connectToServer()`
 2. Check CONNECTING state in alarm handlers
 3. Add 5-second timeout for CONNECTING state
 
 **Changes:**
+
 - Check `ws.readyState === WebSocket.CONNECTING` before reconnecting (lines 190-193)
 - Add 5-second timeout for CONNECTING state (lines 204-213)
 - Check `isConnecting` flag in alarm handlers (lines 491, 501)
 
 **Code:**
+
 ```javascript
 // In connectToServer()
 if (ws && ws.readyState === WebSocket.CONNECTING) {
@@ -263,6 +283,7 @@ ws.onopen = () => {
 ```
 
 **Impact:**
+
 - No more duplicate connections during CONNECTING state
 - Connection attempts timeout after 5 seconds
 - Prevents infinite CONNECTING state hang
@@ -276,11 +297,13 @@ ws.onopen = () => {
 **Lines Changed:** ~120 lines (new functions + modifications)
 
 **New Functions:**
+
 - `safeSend(message)` - lines 125-164
 - `getReconnectDelay(attempt)` - lines 166-175
 - `scheduleReconnect()` - lines 458-474
 
 **Modified Functions:**
+
 - `connectToServer()` - lines 177-282 (added state checks, timeout, isConnecting)
 - `ws.onopen` - lines 215-282 (reset backoff, use safeSend)
 - `ws.onerror` - lines 436-445 (added reconnection logic)
@@ -288,6 +311,7 @@ ws.onopen = () => {
 - Alarm handler - lines 486-510 (added isConnecting checks)
 
 **Replaced `ws.send()` Calls:**
+
 - Line 237: Registration (was direct `ws.send()`)
 - Line 377: Force reload response (was direct `ws.send()`)
 - Line 409: Success response (was direct `ws.send()`)
@@ -376,6 +400,7 @@ ws.onopen = () => {
    - Check service worker console for startup banner
 
 2. **Check connection logs**
+
    ```
    [ChromeDevAssist] ✅ Connected to server at 2025-10-25T...
    ```
@@ -431,18 +456,22 @@ npm test -- tests/unit/websocket-connection-stability.test.js
 ## Performance Impact
 
 ### Connection Stability:
+
 - **Before:** Unstable (user observation: "unstable for a while")
 - **After:** Stable with proper state machine and backoff
 
 ### Error Recovery Time:
+
 - **Before:** 15 seconds (keep-alive interval)
 - **After:** 1-2 seconds (immediate error recovery)
 
 ### Server Load on Restart:
+
 - **Before:** Spam (1 reconnect/second indefinitely)
 - **After:** Graceful (1s, 2s, 4s, 8s, 16s, 30s backoff)
 
 ### Memory Usage:
+
 - **Before:** Memory leaks from orphaned WebSocket instances
 - **After:** Clean (duplicate prevention ensures single instance)
 
@@ -462,21 +491,25 @@ npm test -- tests/unit/websocket-connection-stability.test.js
 ## Future Improvements (Marked as TODO)
 
 ### 1. Message Queuing (SUB-ISSUE A Enhancement)
+
 **Current:** Messages rejected during CONNECTING state
 **Future:** Queue messages and send after OPEN
 
 **Code Location:** `safeSend()` line 138-139
 
 ### 2. Registration Confirmation Flow (SUB-ISSUE C Enhancement)
+
 **Current:** Fire-and-forget registration
 **Future:** Wait for server ACK before processing commands
 
 **Implementation:**
+
 - Add `ws.onmessage` handler for registration ACK
 - Queue commands until `isRegistered === true`
 - Retry registration on server rejection
 
 ### 3. Persistent Reconnection State (SUB-ISSUE B Enhancement)
+
 **Current:** Backoff counter resets on service worker restart
 **Future:** Store `reconnectAttempts` in chrome.storage for persistence
 
@@ -487,11 +520,13 @@ npm test -- tests/unit/websocket-connection-stability.test.js
 If fixes cause issues, rollback by:
 
 1. **Restore previous version:**
+
    ```bash
    git checkout HEAD~1 extension/background.js
    ```
 
 2. **Remove test file:**
+
    ```bash
    rm tests/unit/websocket-connection-stability.test.js
    ```
@@ -529,6 +564,6 @@ If fixes cause issues, rollback by:
 
 ---
 
-*Fix Summary Created: 2025-10-25 Late Evening*
-*Implemented By: Claude Code (Auditor + Code Logician Personas)*
-*Status: ✅ IMPLEMENTED - Awaiting Testing*
+_Fix Summary Created: 2025-10-25 Late Evening_
+_Implemented By: Claude Code (Auditor + Code Logician Personas)_
+_Status: ✅ IMPLEMENTED - Awaiting Testing_

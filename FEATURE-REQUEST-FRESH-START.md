@@ -11,6 +11,7 @@
 ## Problem Statement
 
 When all other reload methods fail or when you need a completely clean slate:
+
 - Chrome instance is broken/crashed
 - Extension ID has changed (loaded from different path)
 - Need to test fresh installation behavior
@@ -24,6 +25,7 @@ When all other reload methods fail or when you need a completely clean slate:
 ## Proposed Solution
 
 Add `freshStart()` method that:
+
 1. Launches new Chrome instance with debugging enabled
 2. Loads extension from directory via CDP
 3. Auto-discovers extension ID using one of three methods:
@@ -43,10 +45,10 @@ const chromeDevAssist = require('./claude-code/index.js');
 // Launch Chrome and load extension
 const result = await chromeDevAssist.freshStart({
   extensionPath: './extension',
-  chromePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',  // Optional
-  debugPort: 9222,  // Optional
-  userDataDir: '/tmp/chrome-test',  // Optional (default: temp)
-  headless: false  // Optional
+  chromePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // Optional
+  debugPort: 9222, // Optional
+  userDataDir: '/tmp/chrome-test', // Optional (default: temp)
+  headless: false, // Optional
 });
 
 console.log('Extension ID:', result.extensionId);
@@ -60,6 +62,7 @@ await chromeDevAssist.closeChromeInstance(result.chromeInstance);
 ```
 
 **Return value:**
+
 ```javascript
 {
   extensionId: string,           // Auto-discovered ID
@@ -76,6 +79,7 @@ await chromeDevAssist.closeChromeInstance(result.chromeInstance);
 ### Method 1: Fixed Key in manifest.json (RECOMMENDED)
 
 **Add to extension/manifest.json:**
+
 ```json
 {
   "manifest_version": 3,
@@ -86,12 +90,14 @@ await chromeDevAssist.closeChromeInstance(result.chromeInstance);
 ```
 
 **Benefits:**
+
 - Extension ID is always the same: `gnojocphflllgichkehjhkojkihcihfn`
 - No discovery needed
 - Works across all Chrome instances
 - Recommended by Chrome for published extensions
 
 **How to generate:**
+
 ```bash
 # Chrome generates .pem file when you package extension
 # Use chrome.runtime.id from a packaged version
@@ -110,21 +116,21 @@ const client = await CDP({ port: 9222 });
 const { extensions } = await client.Management.getAll();
 
 // Find by name and version
-const target = extensions.find(ext =>
-  ext.name === 'Chrome Dev Assist' &&
-  ext.version === '1.0.0' &&
-  ext.type === 'extension'
+const target = extensions.find(
+  ext => ext.name === 'Chrome Dev Assist' && ext.version === '1.0.0' && ext.type === 'extension'
 );
 
 const extensionId = target.id;
 ```
 
 **Benefits:**
+
 - Works without manifest key
 - Most reliable fallback
 - Chrome's official API
 
 **Drawbacks:**
+
 - Requires CDP connection
 - Requires extension to be loaded first
 
@@ -153,10 +159,12 @@ for (const id of fs.readdirSync(extensionsDir)) {
 ```
 
 **Benefits:**
+
 - Works without running Chrome
 - Fast
 
 **Drawbacks:**
+
 - OS-specific paths
 - Fragile (Chrome can change directory structure)
 - May find wrong version if multiple installed
@@ -166,6 +174,7 @@ for (const id of fs.readdirSync(extensionsDir)) {
 ## Implementation Plan
 
 ### Phase 1: Basic Chrome Launch + CDP (1-2 hours)
+
 ```javascript
 // src/chrome-launcher.js
 async function launchChrome(options) {
@@ -176,7 +185,7 @@ async function launchChrome(options) {
     `--user-data-dir=${userDataDir}`,
     `--load-extension=${options.extensionPath}`,
     '--no-first-run',
-    '--no-default-browser-check'
+    '--no-default-browser-check',
   ]);
 
   // Wait for CDP ready
@@ -187,6 +196,7 @@ async function launchChrome(options) {
 ```
 
 ### Phase 2: Extension ID Discovery (2-3 hours)
+
 ```javascript
 // src/extension-id-discovery.js
 async function discoverExtensionId(options) {
@@ -197,7 +207,7 @@ async function discoverExtensionId(options) {
   if (manifest.key) {
     return {
       extensionId: calculateIdFromKey(manifest.key),
-      method: 'manifest-key'
+      method: 'manifest-key',
     };
   }
 
@@ -206,27 +216,27 @@ async function discoverExtensionId(options) {
   const client = await CDP({ port: options.debugPort });
   const { extensions } = await client.Management.getAll();
 
-  const target = extensions.find(ext =>
-    ext.name === manifest.name &&
-    ext.version === manifest.version
+  const target = extensions.find(
+    ext => ext.name === manifest.name && ext.version === manifest.version
   );
 
   if (target) {
     return {
       extensionId: target.id,
-      method: 'management-api'
+      method: 'management-api',
     };
   }
 
   // Method 3: Filesystem scan (fallback)
   return {
     extensionId: await scanExtensionsDirectory(manifest.name),
-    method: 'filesystem'
+    method: 'filesystem',
   };
 }
 ```
 
 ### Phase 3: API Integration (1 hour)
+
 ```javascript
 // claude-code/index.js
 async function freshStart(options) {
@@ -237,20 +247,21 @@ async function freshStart(options) {
     extensionId,
     chromeInstance: chrome,
     debugUrl: `http://localhost:${options.debugPort}`,
-    discoveryMethod: method
+    discoveryMethod: method,
   };
 }
 
 module.exports = {
   freshStart,
-  closeChromeInstance: async (chrome) => {
+  closeChromeInstance: async chrome => {
     chrome.kill('SIGTERM');
     await waitForExit(chrome);
-  }
+  },
 };
 ```
 
 ### Phase 4: Tests (2-3 hours)
+
 - Unit tests for ID discovery methods
 - Integration tests for Chrome launch
 - End-to-end tests with real extension
@@ -262,6 +273,7 @@ module.exports = {
 ## Use Cases
 
 ### Use Case 1: CI/CD Pipeline
+
 ```javascript
 // .github/workflows/test.yml
 test:
@@ -284,22 +296,24 @@ await runTests(extensionId);
 ```
 
 ### Use Case 2: Chrome Recovery
+
 ```javascript
 // Extension broke, need fresh start
 const { extensionId } = await chromeDevAssist.freshStart({
   extensionPath: './extension',
-  userDataDir: '/tmp/recovery-profile'  // Fresh profile
+  userDataDir: '/tmp/recovery-profile', // Fresh profile
 });
 
 console.log('Extension loaded with new ID:', extensionId);
 ```
 
 ### Use Case 3: Automated Testing Framework
+
 ```javascript
 // Setup hook
 beforeAll(async () => {
   const result = await chromeDevAssist.freshStart({
-    extensionPath: './extension'
+    extensionPath: './extension',
   });
 
   global.EXTENSION_ID = result.extensionId;
@@ -316,18 +330,21 @@ afterAll(async () => {
 ## Alternatives Considered
 
 ### Alternative 1: Require Fixed Manifest Key
+
 **Pros:** Simplest, no discovery needed
 **Cons:** Requires manifest.json modification, not flexible
 
 **Decision:** Support both (key preferred, discovery as fallback)
 
 ### Alternative 2: User Provides ID
+
 **Pros:** No discovery logic needed
 **Cons:** Defeats purpose (user doesn't know ID yet)
 
 **Decision:** Rejected - defeats the feature goal
 
 ### Alternative 3: Store ID After First Load
+
 **Pros:** Only discover once
 **Cons:** Doesn't help with fresh starts
 
@@ -337,23 +354,25 @@ afterAll(async () => {
 
 ## Risks and Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Chrome launch fails | High | Low | Validate Chrome path, clear error messages |
-| ID discovery fails | High | Medium | Try all 3 methods, fail with helpful error |
-| Process cleanup fails | Medium | Low | Use SIGTERM → SIGKILL escalation |
-| Platform differences | Medium | High | Test on macOS/Linux/Windows |
-| CDP port conflicts | Low | Low | Make port configurable |
+| Risk                  | Impact | Likelihood | Mitigation                                 |
+| --------------------- | ------ | ---------- | ------------------------------------------ |
+| Chrome launch fails   | High   | Low        | Validate Chrome path, clear error messages |
+| ID discovery fails    | High   | Medium     | Try all 3 methods, fail with helpful error |
+| Process cleanup fails | Medium | Low        | Use SIGTERM → SIGKILL escalation           |
+| Platform differences  | Medium | High       | Test on macOS/Linux/Windows                |
+| CDP port conflicts    | Low    | Low        | Make port configurable                     |
 
 ---
 
 ## Dependencies
 
 **External:**
+
 - `chrome-remote-interface` (CDP client)
 - `chrome-launcher` (or custom Chrome launch)
 
 **Internal:**
+
 - Existing CDP infrastructure (from level4Reload work)
 - Extension manifest.json parsing
 
@@ -362,16 +381,19 @@ afterAll(async () => {
 ## Testing Strategy
 
 ### Unit Tests
+
 - Extension ID calculation from manifest key
 - Manifest.json parsing
 - Extensions directory scanning
 
 ### Integration Tests
+
 - Chrome launch with various options
 - CDP connection establishment
 - Management API queries
 
 ### End-to-End Tests
+
 - Full fresh start workflow
 - ID discovery accuracy
 - Process cleanup
@@ -383,6 +405,7 @@ afterAll(async () => {
 ## Documentation
 
 **Files to update:**
+
 - ✅ EXTENSION-RELOAD-GUIDE.md (Level 0 added)
 - [ ] claude-code/README.md (API reference)
 - [ ] docs/TESTING-GUIDELINES-FOR-TESTERS.md (fresh start usage)
@@ -393,6 +416,7 @@ afterAll(async () => {
 ## Acceptance Criteria
 
 ✅ **Must have:**
+
 - [ ] Launches Chrome with extension loaded
 - [ ] Discovers extension ID (at least one method works)
 - [ ] Returns extension ID and Chrome instance
@@ -401,6 +425,7 @@ afterAll(async () => {
 - [ ] 80%+ test coverage
 
 ⚠️ **Should have:**
+
 - [ ] All three discovery methods implemented
 - [ ] Works on Linux
 - [ ] Works on Windows
@@ -408,6 +433,7 @@ afterAll(async () => {
 - [ ] Error messages guide user to fix issues
 
 💡 **Nice to have:**
+
 - [ ] Auto-detect Chrome path
 - [ ] Multiple Chrome versions support
 - [ ] Parallel instance support
@@ -435,6 +461,7 @@ afterAll(async () => {
 ## Decision
 
 **User to decide:**
+
 1. Implement now (add to current session)
 2. Defer to future session (add to FEATURE-SUGGESTIONS-TBD.md)
 3. Use workaround (add fixed `key` to manifest.json)

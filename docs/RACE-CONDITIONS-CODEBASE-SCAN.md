@@ -10,11 +10,13 @@
 ## Executive Summary
 
 **Issues Found:** 7 critical race conditions and logical errors
+
 - **Console Capture:** 5 issues (3 logical errors, 1 timing issue, 1 pollution issue)
 - **Async setTimeout:** 2 instances of antipattern
 - **Debug Logging Pollution:** 6 instances triggering wrapper recursion
 
 **Root Causes:**
+
 1. Non-atomic state updates (flag cleared before index updated)
 2. Circular buffer dependency (buffer keyed by unknown value)
 3. Debug logging triggering wrapped functions
@@ -35,13 +37,13 @@
 ```javascript
 // Line 984-985: Flag cleared FIRST
 capture.tabId = tab.id;
-capture.pendingTabUpdate = false;  // ← Flag cleared here
+capture.pendingTabUpdate = false; // ← Flag cleared here
 
 // Lines 988-991: Index updated SECOND (6 lines later!)
 if (!capturesByTab.has(tab.id)) {
   capturesByTab.set(tab.id, new Set());
 }
-capturesByTab.get(tab.id).add(commandId);  // ← Registration happens here
+capturesByTab.get(tab.id).add(commandId); // ← Registration happens here
 ```
 
 ### Race Window Timeline
@@ -70,9 +72,9 @@ capture.tabId = tab.id;
 if (!capturesByTab.has(tab.id)) {
   capturesByTab.set(tab.id, new Set());
 }
-capturesByTab.get(tab.id).add(commandId);  // Register FIRST
+capturesByTab.get(tab.id).add(commandId); // Register FIRST
 
-capture.pendingTabUpdate = false;  // Clear flag AFTER
+capture.pendingTabUpdate = false; // Clear flag AFTER
 ```
 
 ---
@@ -88,7 +90,8 @@ capture.pendingTabUpdate = false;  // Clear flag AFTER
 
 ```javascript
 // Line 2085-2091
-if (!messageBuffer.has(tabId)) {  // ← tabId is KNOWN here
+if (!messageBuffer.has(tabId)) {
+  // ← tabId is KNOWN here
   messageBuffer.set(tabId, []);
 }
 const buffer = messageBuffer.get(tabId);
@@ -128,16 +131,14 @@ if (pendingCaptures.length > 0) {
     }
 
     const buffer = messageBuffer.get(cmdId);
-    buffer.push({ tabId, logEntry });  // Store both tabId and logEntry
+    buffer.push({ tabId, logEntry }); // Store both tabId and logEntry
   }
 }
 
 // Flush code update:
 if (messageBuffer.has(commandId)) {
   const buffered = messageBuffer.get(commandId);
-  const matching = buffered
-    .filter(entry => entry.tabId === tab.id)
-    .map(entry => entry.logEntry);
+  const matching = buffered.filter(entry => entry.tabId === tab.id).map(entry => entry.logEntry);
 
   capture.logs.push(...matching);
   messageBuffer.delete(commandId);
@@ -181,8 +182,7 @@ Result: Tab 200's message buffered ❌ (wrong tab!)
 ```javascript
 // Check if THIS specific tab might have a pending capture
 const hasPendingForThisTab = Array.from(captureState.values()).some(
-  state => state.active && state.pendingTabUpdate &&
-          (state.tabId === null || state.tabId === tabId)
+  state => state.active && state.pendingTabUpdate && (state.tabId === null || state.tabId === tabId)
 );
 ```
 
@@ -199,7 +199,11 @@ const hasPendingForThisTab = Array.from(captureState.values()).some(
 
 ```javascript
 // Line 42 (inside sendToExtension)
-originalLog('[ChromeDevAssist DEBUG INJECT] Dispatching console event:', level, message.substring(0, 100));
+originalLog(
+  '[ChromeDevAssist DEBUG INJECT] Dispatching console event:',
+  level,
+  message.substring(0, 100)
+);
 
 // Line 82 (after wrapper installed)
 console.log('[ChromeDevAssist] Console capture initialized in main world');
@@ -208,6 +212,7 @@ console.log('[ChromeDevAssist] Console capture initialized in main world');
 ### Problem
 
 **Line 82 calls wrapped console:**
+
 ```
 1. console.log('[ChromeDevAssist] Console capture initialized...')
    ↓
@@ -250,7 +255,11 @@ originalLog('[ChromeDevAssist] Console capture initialized in main world');
 console.log('[ChromeDevAssist DEBUG CONTENT] Content script loaded in:', window.location.href);
 
 // Line 20
-console.log('[ChromeDevAssist DEBUG CONTENT] Received console event:', logData.level, logData.message.substring(0, 100));
+console.log(
+  '[ChromeDevAssist DEBUG CONTENT] Received console event:',
+  logData.level,
+  logData.message.substring(0, 100)
+);
 
 // Line 30
 console.log('[ChromeDevAssist DEBUG CONTENT] Message sent to background');
@@ -271,16 +280,18 @@ console.log('[ChromeDevAssist DEBUG CONTENT] Event listener registered');
 ### Fix
 
 **Option A:** Remove all debug logging
+
 ```javascript
 // DELETE lines 14, 20, 30, 32, 37
 ```
 
 **Option B:** Use different logging mechanism
+
 ```javascript
 // Send debug messages via chrome.runtime.sendMessage with special flag
 chrome.runtime.sendMessage({
   type: 'debug',
-  message: 'Content script loaded'
+  message: 'Content script loaded',
 });
 ```
 
@@ -309,6 +320,7 @@ T+12ms: Wrapper announces initialization
 ### Root Cause
 
 **Chrome's execution order:**
+
 1. Inline `<script>` in `<head>` or `<body>` (FIRST)
 2. MAIN world registered scripts (SECOND - inject-console-capture.js)
 3. ISOLATED world content scripts (THIRD - content-script.js)
@@ -324,6 +336,7 @@ T+12ms: Wrapper announces initialization
 ### Fix
 
 **Option A:** Modify test fixtures (RECOMMENDED)
+
 ```html
 <!-- Use deferred scripts -->
 <script defer>
@@ -334,6 +347,7 @@ T+12ms: Wrapper announces initialization
 ```
 
 **Option B:** Modify test to wait
+
 ```html
 <!-- Add delay -->
 <script>
@@ -345,6 +359,7 @@ T+12ms: Wrapper announces initialization
 ```
 
 **Option C:** Document limitation
+
 - Console capture only works for post-load console calls
 - Inline scripts will be missed
 - This is a Manifest V3 limitation
@@ -365,10 +380,10 @@ T+12ms: Wrapper announces initialization
 const timeout = setTimeout(async () => {
   const state = captureState.get(commandId);
   if (state) {
-    state.active = false;  // ← Async state mutation
+    state.active = false; // ← Async state mutation
     state.endTime = Date.now();
     console.log(`[ChromeDevAssist] Console capture complete...`);
-    await persistState();  // ← Async operation
+    await persistState(); // ← Async operation
   }
 }, duration);
 ```
@@ -402,7 +417,7 @@ T+3052: persistState() completes
 const timeout = setTimeout(() => {
   const state = captureState.get(commandId);
   if (state) {
-    state.active = false;  // ← Synchronous state mutation
+    state.active = false; // ← Synchronous state mutation
     state.endTime = Date.now();
 
     // Schedule async operations separately (won't be cancelled by clearTimeout)
@@ -417,15 +432,15 @@ const timeout = setTimeout(() => {
 
 ## Summary Table
 
-| Issue | File | Lines | Severity | Type | Impact |
-|-------|------|-------|----------|------|--------|
-| 1. Non-Atomic State Update | background.js | 984-991 | CRITICAL | Logic | Message drops |
-| 2. Circular Buffer Dependency | background.js | 2085-2091 | CRITICAL | Logic | Buffer never works |
-| 3. Wrong Buffer Check | background.js | 2079-2081 | HIGH | Logic | Cross-contamination |
-| 4. Debug Logging (Inject) | inject-console-capture.js | 42, 82 | CRITICAL | Pollution | Only captures own logs |
-| 5. Debug Logging (Content) | content-script.js | 14,20,30,32,37 | HIGH | Pollution | Pollutes captures |
-| 6. Inject Script Timing | inject-console-capture.js | Architecture | CRITICAL | Timing | Misses early logs |
-| 7. Async setTimeout | background.js | 1021, 1948 | MEDIUM | Antipattern | State inconsistency |
+| Issue                         | File                      | Lines          | Severity | Type        | Impact                 |
+| ----------------------------- | ------------------------- | -------------- | -------- | ----------- | ---------------------- |
+| 1. Non-Atomic State Update    | background.js             | 984-991        | CRITICAL | Logic       | Message drops          |
+| 2. Circular Buffer Dependency | background.js             | 2085-2091      | CRITICAL | Logic       | Buffer never works     |
+| 3. Wrong Buffer Check         | background.js             | 2079-2081      | HIGH     | Logic       | Cross-contamination    |
+| 4. Debug Logging (Inject)     | inject-console-capture.js | 42, 82         | CRITICAL | Pollution   | Only captures own logs |
+| 5. Debug Logging (Content)    | content-script.js         | 14,20,30,32,37 | HIGH     | Pollution   | Pollutes captures      |
+| 6. Inject Script Timing       | inject-console-capture.js | Architecture   | CRITICAL | Timing      | Misses early logs      |
+| 7. Async setTimeout           | background.js             | 1021, 1948     | MEDIUM   | Antipattern | State inconsistency    |
 
 ---
 
@@ -456,7 +471,7 @@ await chrome.tabs.reload(tabId, { bypassCache: bypassCache });
 const tab = await chrome.tabs.create({ url });
 
 if (testState.activeTestId !== null) {
-  testState.trackedTabs.push(tab.id);  // ← Synchronous tracking
+  testState.trackedTabs.push(tab.id); // ← Synchronous tracking
   await saveTestState();
 }
 ```
@@ -510,6 +525,7 @@ When adding new features with similar patterns:
 **Next Steps:** Implement fixes in priority order, test each fix individually
 
 **Files to Modify:**
+
 1. extension/inject-console-capture.js (remove lines 42, 82 or use originalLog)
 2. extension/content-script.js (remove lines 14, 20, 30, 32, 37)
 3. extension/background.js (fix lines 984-991, 2079-2091, 1021-1029, 1948-1958)

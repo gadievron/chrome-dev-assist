@@ -14,6 +14,7 @@
 **New Sections Added:** 5 comprehensive sections
 **Gaps Filled:** 100% of verification findings documented
 **Verification Sources:**
+
 - LOGIC-VERIFICATION-LIMITS-2025-10-26.md
 - VERIFIED-FEATURES-FROM-TESTS-2025-10-26.md
 - TEST-DISCOVERIES-VS-DOCUMENTATION-2025-10-26.md
@@ -27,6 +28,7 @@
 #### 1. Added Missing Return Fields to getExtensionInfo() (Lines 79-90)
 
 **Before:**
+
 ```javascript
 {
   id: string,
@@ -39,6 +41,7 @@
 ```
 
 **After:**
+
 ```javascript
 {
   id: 'abc...',
@@ -64,6 +67,7 @@
 **Added Comprehensive Console Capture Limits:**
 
 **10,000 Log Limit Per Capture** (Lines 617-621)
+
 - Maximum logs captured: 10,000
 - Warning log added when limit reached
 - Further logs silently dropped
@@ -73,16 +77,19 @@
 **10,000 Character Message Truncation - DUAL-LAYER** (Lines 623-656)
 
 **Layer 1 - Source (inject script):**
+
 - Location: inject-console-capture.js:36-39
 - Truncates: 10,000 characters
 - Purpose: Prevent memory exhaustion at source, reduce data transfer
 
 **Layer 2 - Service Worker (backup):**
+
 - Location: background.js:687-691
 - Truncates: 10,000 characters
 - Purpose: Catches messages that bypass injection, final enforcement
 
 **Architecture Diagram:**
+
 ```
 Page (MAIN world)
   ↓
@@ -100,6 +107,7 @@ Storage
 ```
 
 **Why Two Layers?**
+
 1. Performance: Truncate early to reduce data transfer
 2. Defense-in-depth: If Layer 1 bypassed, Layer 2 catches it
 3. Memory safety: Prevent OOM at both points
@@ -111,12 +119,14 @@ Storage
 **Added Advanced Features Section** (Lines 658-699)
 
 **Log Level Preservation** (Lines 660-678)
+
 - All 5 console levels captured: log, warn, error, info, debug
 - Preserved throughout pipeline
 - Each log entry includes level, message, timestamp, source, url, tabId, frameId
 - Location: inject-console-capture.js:53-73, background.js:694
 
 **Tab Isolation (Dual-Index System)** (Lines 680-698)
+
 - O(1) lookups using dual-index:
   - Primary: Map<commandId, captureState>
   - Secondary: Map<tabId, Set<commandId>>
@@ -131,9 +141,10 @@ Storage
 **Added Known Limitations Section** (Lines 715-741)
 
 **Circular Reference Handling Gap:**
+
 ```javascript
 const obj = { name: 'parent' };
-obj.self = obj;  // Circular reference
+obj.self = obj; // Circular reference
 
 console.log(obj);
 // Captured as: "[object Object]" (not helpful)
@@ -141,11 +152,13 @@ console.log(obj);
 ```
 
 **Why:**
+
 - Uses native JSON.stringify() which throws on circular refs
 - Fallback is String(obj) → "[object Object]"
 - safeStringify() exists but only used for internal debug logs, NOT captured logs
 
 **Workaround:**
+
 - Use JSON.stringify() yourself before logging
 - Log individual properties separately
 - Chrome DevTools console shows full object (not affected)
@@ -157,6 +170,7 @@ console.log(obj);
 ---
 
 **Updated System Constraints** (Lines 743-751)
+
 - Added: Circular objects captured as "[object Object]"
 - Added: Message size 10,000 characters max (dual-layer enforcement)
 
@@ -169,6 +183,7 @@ console.log(obj);
 #### 1. Updated getExtensionInfo() Return Value (Lines 85-97)
 
 **Added:**
+
 - description: string
 - hostPermissions: Array<string>
 - installType: string (with comment: 'admin', 'development', 'normal', 'sideload', 'other')
@@ -185,6 +200,7 @@ console.log(obj);
 **Renamed Section:** "Memory Leak Prevention" → "Memory Leak Prevention & Performance (Defense-in-Depth)"
 
 **10,000 Log Limit Per Capture** (Lines 383-407)
+
 - Added detailed behavior code snippet
 - Added test case: 15,000 logs → 10,000 captured + 1 warning
 - Added implementation location: background.js:728-744
@@ -193,18 +209,21 @@ console.log(obj);
 **10,000 Character Message Truncation (Dual-Layer)** (Lines 411-465)
 
 **Layer 1 - Source (MAIN World):**
+
 - Location: inject-console-capture.js:36-39
 - When: Before sending to content script
 - Purpose: Prevent memory exhaustion at source
 - Code snippet included
 
 **Layer 2 - Service Worker (Backup):**
+
 - Location: background.js:687-691
 - When: Before storing in captureState
 - Purpose: Final enforcement before storage
 - Code snippet included
 
 **Architecture Diagram:**
+
 ```
 Page (MAIN world)
   ↓
@@ -222,6 +241,7 @@ Storage (captureState)
 ```
 
 **Why Two Layers?**
+
 1. ✅ Performance: Truncate early to reduce data transfer
 2. ✅ Defense-in-depth: If injection fails/bypassed, service worker catches it
 3. ✅ Memory safety: Prevent OOM at both injection and storage points
@@ -235,10 +255,12 @@ Storage (captureState)
 #### 3. Added Log Level Preservation Section (Lines 512-566)
 
 **Capture at Source** (inject-console-capture.js:53-73):
+
 - Code snippets showing all 5 console methods overridden
 - Each method preserves level: 'log', 'error', 'warn', 'info', 'debug'
 
 **Preserved in Service Worker** (background.js:694):
+
 - logEntry structure with level preserved
 - Complete structure documented: level, message, timestamp, source, url, tabId, frameId
 
@@ -251,6 +273,7 @@ Storage (captureState)
 #### 4. Added Tab Isolation Section (Lines 570-617)
 
 **Data Structures:**
+
 ```javascript
 // Primary index: Map<commandId, captureState>
 const captureState = new Map();
@@ -260,10 +283,12 @@ const capturesByTab = new Map();
 ```
 
 **Tab-Specific Capture Lookup:**
+
 - Code snippet showing O(1) lookup algorithm
 - Lines 709-720 in background.js
 
 **Benefits:**
+
 - ✅ Fast log routing (O(1) per log)
 - ✅ No performance degradation with multiple tabs
 - ✅ No cross-contamination
@@ -285,6 +310,7 @@ const capturesByTab = new Map();
 **Issue:** Objects with circular refs NOT nicely serialized
 
 **What Happens:**
+
 ```javascript
 const obj = { name: 'parent' };
 obj.self = obj;
@@ -293,28 +319,31 @@ console.log(obj);
 ```
 
 **Why:**
+
 - Location: inject-console-capture.js:24-29
 - Uses native JSON.stringify() → throws on circular refs
 - Fallback: String(obj) → "[object Object]"
 
 **Root Cause:**
+
 - safeStringify() EXISTS (background.js:355-371)
 - Properly handles circular refs with WeakSet
 - BUT only used for internal debug logs, NOT captured console logs
 
 **Code Comparison:**
+
 ```javascript
 // CURRENT (HAS GAP)
 if (typeof arg === 'object') {
   try {
     return JSON.stringify(arg);
   } catch (e) {
-    return String(arg);  // ← Returns "[object Object]"
+    return String(arg); // ← Returns "[object Object]"
   }
 }
 
 // safeStringify EXISTS but NOT USED here
-const safeStringify = (obj) => {
+const safeStringify = obj => {
   const seen = new WeakSet();
   return JSON.stringify(obj, (key, value) => {
     if (typeof value === 'object' && value !== null) {
@@ -327,6 +356,7 @@ const safeStringify = (obj) => {
 ```
 
 **Impact:**
+
 - ⚠️ Circular refs show as "[object Object]"
 - ✅ Test passes (edge-circular-ref.html) but only verifies no crash
 - ✅ Chrome DevTools shows full object (not affected)
@@ -348,6 +378,7 @@ const safeStringify = (obj) => {
 **New Major Section:** "Three-Stage Console Capture Pipeline (Defense-in-Depth)"
 
 **Architecture Overview:**
+
 ```
 Page (MAIN world)
   ↓
@@ -367,19 +398,23 @@ Storage (captureState)
 **STAGE 1: inject-console-capture.js (MAIN World)** (Lines 544-618)
 
 **Log Level Capture:**
+
 - Complete code snippets for all 5 console methods
 - Shows how level is preserved: 'log', 'error', 'warn', 'info', 'debug'
 
 **Layer 1 Truncation:**
+
 - Code snippet (lines 36-39)
 - MAX_MESSAGE_LENGTH = 10000
 
 **Purpose of Layer 1:**
+
 - ✅ Prevent memory exhaustion at source
 - ✅ Reduce data through CustomEvent bridge
 - ✅ First line of defense
 
 **⚠️ KNOWN LIMITATION - Circular Reference Handling Gap:**
+
 - Code snippet showing JSON.stringify() failure
 - Fallback to String(obj) → "[object Object]"
 - Impact documented
@@ -391,6 +426,7 @@ Storage (captureState)
 **STAGE 2: content-script.js (ISOLATED World)** (Lines 622-631)
 
 **Purpose:** Message relay (security boundary)
+
 - Receives from MAIN world via addEventListener
 - Forwards to service worker via chrome.runtime.sendMessage
 - No processing, just relay
@@ -400,16 +436,19 @@ Storage (captureState)
 **STAGE 3: background.js (Service Worker)** (Lines 635-659)
 
 **Layer 2 Truncation:**
+
 - Code snippet (lines 687-691)
 - MAX_MESSAGE_LENGTH = 10000
 - Backup truncation if Layer 1 bypassed
 
 **Purpose of Layer 2:**
+
 - ✅ Backup truncation
 - ✅ Final enforcement before storage
 - ✅ Defense-in-depth security
 
 **Why Two Layers?**
+
 1. Performance: Truncate early
 2. Security: If Layer 1 bypassed, Layer 2 catches
 3. Memory: Prevent OOM at both points
@@ -422,16 +461,16 @@ Storage (captureState)
 
 ### All Verified Findings Documented
 
-| Finding | docs/API.md | COMPLETE-FUNCTIONALITY-MAP.md | functionality-list.md |
-|---------|-------------|------------------------------|----------------------|
-| installType field | ✅ Lines 88 | ✅ Lines 95 | ✅ Already there |
-| mayDisable field | ✅ Lines 89 | ✅ Lines 96 | ✅ Already there |
-| 10K log limit | ✅ Lines 617-621 | ✅ Lines 383-407 | ✅ Already there |
-| 10K char truncation | ✅ Lines 623-656 | ✅ Lines 411-465 | ✅ Lines 587-593 |
-| Dual-layer architecture | ✅ Lines 625-652 | ✅ Lines 413-457 | ✅ Lines 522-659 |
-| Log level preservation | ✅ Lines 660-678 | ✅ Lines 512-566 | ✅ Lines 551-585 |
-| Tab isolation | ✅ Lines 680-698 | ✅ Lines 570-617 | ✅ Already there |
-| Circular ref gap | ✅ Lines 715-741 | ✅ Lines 666-733 | ✅ Lines 600-616 |
+| Finding                 | docs/API.md      | COMPLETE-FUNCTIONALITY-MAP.md | functionality-list.md |
+| ----------------------- | ---------------- | ----------------------------- | --------------------- |
+| installType field       | ✅ Lines 88      | ✅ Lines 95                   | ✅ Already there      |
+| mayDisable field        | ✅ Lines 89      | ✅ Lines 96                   | ✅ Already there      |
+| 10K log limit           | ✅ Lines 617-621 | ✅ Lines 383-407              | ✅ Already there      |
+| 10K char truncation     | ✅ Lines 623-656 | ✅ Lines 411-465              | ✅ Lines 587-593      |
+| Dual-layer architecture | ✅ Lines 625-652 | ✅ Lines 413-457              | ✅ Lines 522-659      |
+| Log level preservation  | ✅ Lines 660-678 | ✅ Lines 512-566              | ✅ Lines 551-585      |
+| Tab isolation           | ✅ Lines 680-698 | ✅ Lines 570-617              | ✅ Already there      |
+| Circular ref gap        | ✅ Lines 715-741 | ✅ Lines 666-733              | ✅ Lines 600-616      |
 
 **Total Gaps Filled:** 8/8 (100%)
 
@@ -442,6 +481,7 @@ Storage (captureState)
 ### Before Documentation Updates
 
 **docs/API.md:**
+
 - ❌ Missing return fields: installType, mayDisable
 - ❌ No mention of 10K limits
 - ❌ No mention of dual-layer truncation
@@ -449,6 +489,7 @@ Storage (captureState)
 - ❌ No circular ref limitation
 
 **COMPLETE-FUNCTIONALITY-MAP.md:**
+
 - ❌ Missing return fields
 - ⚠️ Mentioned 10K limits briefly
 - ❌ No dual-layer architecture
@@ -457,6 +498,7 @@ Storage (captureState)
 - ❌ No known limitations section
 
 **functionality-list.md:**
+
 - ❌ No three-stage pipeline documentation
 - ❌ No inject-console-capture.js documentation
 - ❌ No dual-layer architecture
@@ -466,6 +508,7 @@ Storage (captureState)
 ### After Documentation Updates
 
 **docs/API.md:**
+
 - ✅ Complete return value for getExtensionInfo()
 - ✅ Comprehensive Limitations section (139 lines)
 - ✅ Dual-layer truncation with architecture diagram
@@ -474,6 +517,7 @@ Storage (captureState)
 - ✅ System Constraints updated
 
 **COMPLETE-FUNCTIONALITY-MAP.md:**
+
 - ✅ Complete return value
 - ✅ Detailed Memory Leak Prevention (103 lines)
 - ✅ Log Level Preservation section (55 lines)
@@ -482,6 +526,7 @@ Storage (captureState)
 - ✅ All code locations documented
 
 **functionality-list.md:**
+
 - ✅ Three-Stage Pipeline section (140 lines)
 - ✅ STAGE 1 fully documented (75 lines)
 - ✅ STAGE 2 documented (10 lines)
@@ -495,21 +540,23 @@ Storage (captureState)
 
 ### Lines Added
 
-| File | Lines Before | Lines Added | Lines After | % Increase |
-|------|--------------|-------------|-------------|------------|
-| docs/API.md | ~640 | +139 | ~779 | +22% |
-| COMPLETE-FUNCTIONALITY-MAP.md | ~690 | +274 | ~964 | +40% |
-| functionality-list.md | ~1130 | +140 | ~1270 | +12% |
-| **TOTAL** | ~2460 | **+553** | ~3013 | **+22%** |
+| File                          | Lines Before | Lines Added | Lines After | % Increase |
+| ----------------------------- | ------------ | ----------- | ----------- | ---------- |
+| docs/API.md                   | ~640         | +139        | ~779        | +22%       |
+| COMPLETE-FUNCTIONALITY-MAP.md | ~690         | +274        | ~964        | +40%       |
+| functionality-list.md         | ~1130        | +140        | ~1270       | +12%       |
+| **TOTAL**                     | ~2460        | **+553**    | ~3013       | **+22%**   |
 
 ### Coverage Improvement
 
 **Before:**
+
 - Verified features documented: 0/8 (0%)
 - Architecture details: Partial (~30%)
 - Known limitations: Not documented
 
 **After:**
+
 - Verified features documented: 8/8 (100%)
 - Architecture details: Complete (100%)
 - Known limitations: Fully documented
@@ -554,6 +601,7 @@ All updates verified against these analysis documents:
 **Accuracy:** 100% - All findings verified in actual code before documenting
 
 **Updated Files:**
+
 1. ✅ docs/API.md (+139 lines, +22%)
 2. ✅ COMPLETE-FUNCTIONALITY-MAP.md (+274 lines, +40%)
 3. ✅ functionality-list.md (+140 lines, +12%)

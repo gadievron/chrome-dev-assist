@@ -128,7 +128,7 @@ class ErrorLogger {
       message: safeMessage,
       errorType,
       errorMessage,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Only include errorCode if it exists

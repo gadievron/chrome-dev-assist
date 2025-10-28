@@ -15,6 +15,7 @@
 **Actual Status:** **NOT IMPLEMENTED**
 
 **Test Evidence:**
+
 ```javascript
 const { getPageMetadata } = require('../../claude-code/index.js');
 
@@ -26,6 +27,7 @@ const { getPageMetadata } = require('../../claude-code/index.js');
 ```
 
 **Verification:**
+
 ```bash
 $ grep "getPageMetadata" claude-code/index.js
 # NO RESULTS - Function does not exist
@@ -42,6 +44,7 @@ $ grep "getPageMetadata" claude-code/index.js
 **Actual Status:** **NOT IMPLEMENTED**
 
 **Test Evidence:**
+
 ```javascript
 await chromeDevAssist.startTest(testId, {
   fixture: 'test-page.html',
@@ -55,6 +58,7 @@ await chromeDevAssist.startTest(testId, {
 ```
 
 **Verification:**
+
 ```bash
 $ grep "startTest" claude-code/index.js
 # NO RESULTS
@@ -69,6 +73,7 @@ $ grep "startTest" claude-code/index.js
 **Actual Status:** **NOT IMPLEMENTED**
 
 **Test Evidence:**
+
 ```javascript
 await chromeDevAssist.endTest(testId);
 
@@ -88,6 +93,7 @@ await chromeDevAssist.endTest(testId);
 **Actual Status:** **NOT IMPLEMENTED**
 
 **Test Evidence:**
+
 ```javascript
 await chromeDevAssist.abortTest(testId, 'Timeout');
 
@@ -111,17 +117,18 @@ Need to verify if this exists in background.js extension command handlers but is
 
 ## MISSED CHROME API RELATIONSHIPS
 
-### chrome.scripting.* APIs
+### chrome.scripting.\* APIs
 
 **File:** `extension/background.js`
 
-| Function | Chrome API Call | Line | I Missed This |
-|----------|----------------|------|---------------|
-| registerConsoleCaptureScript() | chrome.scripting.getRegisteredContentScripts() | 47 | ❌ YES |
-| registerConsoleCaptureScript() | chrome.scripting.unregisterContentScripts({ids}) | 62 | ❌ YES |
-| registerConsoleCaptureScript() | chrome.scripting.registerContentScripts([{...}]) | 50 | ❌ YES |
+| Function                       | Chrome API Call                                  | Line | I Missed This |
+| ------------------------------ | ------------------------------------------------ | ---- | ------------- |
+| registerConsoleCaptureScript() | chrome.scripting.getRegisteredContentScripts()   | 47   | ❌ YES        |
+| registerConsoleCaptureScript() | chrome.scripting.unregisterContentScripts({ids}) | 62   | ❌ YES        |
+| registerConsoleCaptureScript() | chrome.scripting.registerContentScripts([{...}]) | 50   | ❌ YES        |
 
 **Correct Relationship:**
+
 ```
 registerConsoleCaptureScript()
   → chrome.scripting.getRegisteredContentScripts()
@@ -142,17 +149,18 @@ registerConsoleCaptureScript()
 
 ---
 
-### chrome.runtime.* Self-ID References
+### chrome.runtime.\* Self-ID References
 
 **File:** `extension/background.js`
 
-| Location | Usage | Purpose | Line |
-|----------|-------|---------|------|
-| connectToServer() | chrome.runtime.id | Send extension ID to server | 108 |
-| handleGetAllExtensionsCommand() | chrome.runtime.id | Filter out self from list | 313 |
-| handleReloadCommand() | chrome.runtime.id | Prevent self-reload | 237 |
+| Location                        | Usage             | Purpose                     | Line |
+| ------------------------------- | ----------------- | --------------------------- | ---- |
+| connectToServer()               | chrome.runtime.id | Send extension ID to server | 108  |
+| handleGetAllExtensionsCommand() | chrome.runtime.id | Filter out self from list   | 313  |
+| handleReloadCommand()           | chrome.runtime.id | Prevent self-reload         | 237  |
 
 **Relationships I Missed:**
+
 - Multiple command handlers use `chrome.runtime.id` for self-identification
 - This is a defensive check to prevent:
   1. Reloading own extension (would break WebSocket connection)
@@ -161,16 +169,17 @@ registerConsoleCaptureScript()
 
 ---
 
-### chrome.tabs.* Advanced Options
+### chrome.tabs.\* Advanced Options
 
 **File:** `extension/background.js`
 
-| Function | API Call | Options I Missed | Line |
-|----------|----------|------------------|------|
-| handleReloadTabCommand() | chrome.tabs.reload(tabId, {bypassCache}) | `bypassCache` parameter | 529 |
-| handleOpenUrlCommand() | chrome.tabs.get(tab.id) | Tab existence validation | 449 |
+| Function                 | API Call                                 | Options I Missed         | Line |
+| ------------------------ | ---------------------------------------- | ------------------------ | ---- |
+| handleReloadTabCommand() | chrome.tabs.reload(tabId, {bypassCache}) | `bypassCache` parameter  | 529  |
+| handleOpenUrlCommand()   | chrome.tabs.get(tab.id)                  | Tab existence validation | 449  |
 
 **Relationship I Missed:**
+
 ```
 handleOpenUrlCommand()
   → chrome.tabs.create({url, active})
@@ -187,21 +196,22 @@ handleOpenUrlCommand()
 
 ---
 
-### chrome.storage.* Status Persistence
+### chrome.storage.\* Status Persistence
 
 **File:** `extension/background.js`
 
-| Function | API Call | Purpose | Line |
-|----------|----------|---------|------|
-| (connection handler) | chrome.storage.local.set({status}) | Persist extension status | 898 |
+| Function             | API Call                           | Purpose                  | Line |
+| -------------------- | ---------------------------------- | ------------------------ | ---- |
+| (connection handler) | chrome.storage.local.set({status}) | Persist extension status | 898  |
 
 **File:** `extension/popup/popup.js`
 
-| Function | API Call | Purpose | Line |
-|----------|----------|---------|------|
-| DOMContentLoaded | chrome.storage.local.get('status') | Read extension status | 9 |
+| Function         | API Call                           | Purpose               | Line |
+| ---------------- | ---------------------------------- | --------------------- | ---- |
+| DOMContentLoaded | chrome.storage.local.get('status') | Read extension status | 9    |
 
 **Relationship I Missed:**
+
 ```
 extension/background.js
   → chrome.storage.local.set({status: {running: true, ...}})
@@ -223,31 +233,34 @@ extension/popup/popup.js
 **I Originally Said:** "None (exports helpers)"
 
 **Actually Depends On:**
+
 ```javascript
-const fs = require('fs');           // Line 1
-const path = require('path');        // Line 2
+const fs = require('fs'); // Line 1
+const path = require('path'); // Line 2
 ```
 
 **Functions and Their Dependencies:**
 
 ### getFixtureUrl(filename)
+
 ```javascript
 function getFixtureUrl(filename) {
   const mode = getUrlMode();
 
   if (mode.type === 'http') {
     // Read auth token
-    const tokenPath = path.join(__dirname, '../../.auth-token');  // PATH DEPENDENCY
-    const token = fs.readFileSync(tokenPath, 'utf8').trim();       // FS DEPENDENCY
+    const tokenPath = path.join(__dirname, '../../.auth-token'); // PATH DEPENDENCY
+    const token = fs.readFileSync(tokenPath, 'utf8').trim(); // FS DEPENDENCY
     return `http://localhost:${mode.port}/fixtures/${filename}?token=${token}`;
   } else {
-    const fixturePath = path.join(__dirname, '../fixtures', filename);  // PATH DEPENDENCY
+    const fixturePath = path.join(__dirname, '../fixtures', filename); // PATH DEPENDENCY
     return `file://${fixturePath}`;
   }
 }
 ```
 
 **Dependencies I Missed:**
+
 - `path.join()` - Used to construct file paths
 - `fs.readFileSync()` - Used to read `.auth-token` file
 - Environment variable `HTTP_SERVER_PORT`
@@ -275,6 +288,7 @@ reloadAndCapture(extensionId, options)
 ```
 
 **I Missed:**
+
 - `sendCommand()` calls `generateCommandId()` internally (second call)
 - `sendCommand()` uses `setTimeout()` for timeout handling
 - `sendCommand()` spawns server via child_process
@@ -307,6 +321,7 @@ handleOpenUrlCommand(commandId, params)
 ```
 
 **I Missed:**
+
 - Nested setTimeout for autoClose
 - chrome.tabs.get() validation before remove
 - Error handling with ErrorLogger (if tab removal fails)
@@ -330,6 +345,7 @@ $ grep -n "ErrorLogger" extension/background.js
 Let me verify this is the only usage or if I missed others...
 
 **Correct Usage:**
+
 ```javascript
 // handleCloseTabCommand (line 554)
 try {
@@ -351,14 +367,15 @@ try {
 **File:** `extension/background.js` (line 22)
 
 **Complete Relationship:**
+
 ```javascript
 setInterval(() => {
   const now = Date.now();
   let cleanedCount = 0;
 
   for (const [commandId, state] of captureState.entries()) {
-    if (!state.active && state.endTime && (now - state.endTime) > MAX_CAPTURE_AGE_MS) {
-      cleanupCapture(commandId);  // CALLS cleanupCapture()
+    if (!state.active && state.endTime && now - state.endTime > MAX_CAPTURE_AGE_MS) {
+      cleanupCapture(commandId); // CALLS cleanupCapture()
       cleanedCount++;
     }
   }
@@ -379,6 +396,7 @@ setInterval(() => {
 **File:** `extension/background.js` (line 669)
 
 **Complete Relationship:**
+
 ```javascript
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type !== 'console') {
@@ -396,7 +414,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (!state.active) continue;
 
     if (state.logs.length >= MAX_LOGS_PER_CAPTURE) {
-      continue;  // Drop logs if at capacity
+      continue; // Drop logs if at capacity
     }
 
     // Truncate if too long
@@ -412,15 +430,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       source: message.source,
       url: sender.tab?.url,
       tabId: sender.tab?.id,
-      frameId: sender.frameId
+      frameId: sender.frameId,
     });
   }
 
-  return true;  // Keep channel open for async response
+  return true; // Keep channel open for async response
 });
 ```
 
 **Details I Missed:**
+
 - Message validation (rejects if missing fields)
 - MAX_LOGS_PER_CAPTURE check (drops if at capacity)
 - Message truncation logic
@@ -432,6 +451,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ## SUMMARY OF MISSED RELATIONSHIPS
 
 ### Phantom Functions (Tests Without Implementation)
+
 1. getPageMetadata() - 60+ tests, NO implementation
 2. startTest() - Multiple tests, NO implementation
 3. endTest() - Multiple tests, NO implementation
@@ -441,6 +461,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 **Total Phantom APIs:** 4-5
 
 ### Missed Chrome API Calls
+
 1. chrome.scripting.getRegisteredContentScripts()
 2. chrome.scripting.unregisterContentScripts()
 3. chrome.tabs.get() (for validation)
@@ -452,6 +473,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 **Total Missed Chrome APIs:** 7+
 
 ### Missed Internal Relationships
+
 1. test-helpers.js → fs, path dependencies
 2. sendCommand() → setTimeout for timeout
 3. sendCommand() → double generateCommandId() call

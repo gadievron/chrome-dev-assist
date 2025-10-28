@@ -11,7 +11,7 @@ describe('Crash Recovery', () => {
         startupTime: Date.now() - 60000, // 1 minute ago
         lastShutdown: null, // No clean shutdown
         recoveryCount: 0,
-        crashDetected: false
+        crashDetected: false,
       };
 
       // Mock chrome.storage.session.get
@@ -19,11 +19,11 @@ describe('Crash Recovery', () => {
         storage: {
           session: {
             get: jest.fn().mockResolvedValue({
-              sessionMetadata: mockPreviousSession
+              sessionMetadata: mockPreviousSession,
             }),
-            set: jest.fn().mockResolvedValue()
-          }
-        }
+            set: jest.fn().mockResolvedValue(),
+          },
+        },
       };
 
       // Import and test detectCrash function
@@ -31,7 +31,11 @@ describe('Crash Recovery', () => {
       const crashDetected = await detectCrash();
 
       expect(crashDetected).toBe(true);
-      expect(chrome.storage.session.get).toHaveBeenCalledWith(['sessionMetadata', 'testState', 'captureState']);
+      expect(chrome.storage.session.get).toHaveBeenCalledWith([
+        'sessionMetadata',
+        'testState',
+        'captureState',
+      ]);
     });
 
     test('should NOT detect crash when clean shutdown occurred', async () => {
@@ -39,18 +43,18 @@ describe('Crash Recovery', () => {
         startupTime: Date.now() - 60000,
         lastShutdown: Date.now() - 30000, // Clean shutdown 30 seconds ago
         recoveryCount: 0,
-        crashDetected: false
+        crashDetected: false,
       };
 
       global.chrome = {
         storage: {
           session: {
             get: jest.fn().mockResolvedValue({
-              sessionMetadata: mockPreviousSession
+              sessionMetadata: mockPreviousSession,
             }),
-            set: jest.fn().mockResolvedValue()
-          }
-        }
+            set: jest.fn().mockResolvedValue(),
+          },
+        },
       };
 
       const { detectCrash } = require('../extension/background.js');
@@ -66,7 +70,7 @@ describe('Crash Recovery', () => {
         activeTestId: 'test-123',
         trackedTabs: [100, 101, 102],
         startTime: Date.now() - 30000,
-        autoCleanup: true
+        autoCleanup: true,
       };
 
       // Mock chrome APIs
@@ -75,14 +79,14 @@ describe('Crash Recovery', () => {
           session: {
             get: jest.fn().mockResolvedValue({
               testState: mockTestState,
-              captureState: []
+              captureState: [],
             }),
-            set: jest.fn().mockResolvedValue()
-          }
+            set: jest.fn().mockResolvedValue(),
+          },
         },
         tabs: {
-          get: jest.fn().mockResolvedValue({ id: 100 }) // Tabs still exist
-        }
+          get: jest.fn().mockResolvedValue({ id: 100 }), // Tabs still exist
+        },
       };
 
       const { restoreState } = require('../extension/background.js');
@@ -97,7 +101,7 @@ describe('Crash Recovery', () => {
         activeTestId: 'test-456',
         trackedTabs: [200, 201, 202], // Tab 201 will be orphaned
         startTime: Date.now() - 30000,
-        autoCleanup: true
+        autoCleanup: true,
       };
 
       let tabsGetCallCount = 0;
@@ -106,21 +110,21 @@ describe('Crash Recovery', () => {
           session: {
             get: jest.fn().mockResolvedValue({
               testState: mockTestState,
-              captureState: []
+              captureState: [],
             }),
-            set: jest.fn().mockResolvedValue()
-          }
+            set: jest.fn().mockResolvedValue(),
+          },
         },
         tabs: {
-          get: jest.fn((tabId) => {
+          get: jest.fn(tabId => {
             tabsGetCallCount++;
             // Tab 201 doesn't exist (orphaned)
             if (tabId === 201) {
               return Promise.reject(new Error('Tab not found'));
             }
             return Promise.resolve({ id: tabId });
-          })
-        }
+          }),
+        },
       };
 
       const { restoreState } = require('../extension/background.js');
@@ -133,18 +137,24 @@ describe('Crash Recovery', () => {
     test('should restore active console captures after crash', async () => {
       const now = Date.now();
       const mockCaptureState = [
-        ['cmd-123', {
-          logs: [{ level: 'log', message: 'test log' }],
-          active: true,
-          tabId: null,
-          endTime: now + 3000 // 3 seconds remaining
-        }],
-        ['cmd-456', {
-          logs: [],
-          active: true,
-          tabId: 100,
-          endTime: now - 1000 // Expired, should NOT be restored
-        }]
+        [
+          'cmd-123',
+          {
+            logs: [{ level: 'log', message: 'test log' }],
+            active: true,
+            tabId: null,
+            endTime: now + 3000, // 3 seconds remaining
+          },
+        ],
+        [
+          'cmd-456',
+          {
+            logs: [],
+            active: true,
+            tabId: 100,
+            endTime: now - 1000, // Expired, should NOT be restored
+          },
+        ],
       ];
 
       global.chrome = {
@@ -152,11 +162,11 @@ describe('Crash Recovery', () => {
           session: {
             get: jest.fn().mockResolvedValue({
               testState: {},
-              captureState: mockCaptureState
+              captureState: mockCaptureState,
             }),
-            set: jest.fn().mockResolvedValue()
-          }
-        }
+            set: jest.fn().mockResolvedValue(),
+          },
+        },
       };
 
       // Mock setTimeout to track timeout creation
@@ -181,9 +191,9 @@ describe('Crash Recovery', () => {
       global.chrome = {
         storage: {
           session: {
-            set: jest.fn().mockResolvedValue()
-          }
-        }
+            set: jest.fn().mockResolvedValue(),
+          },
+        },
       };
 
       const { persistState } = require('../extension/background.js');
@@ -193,7 +203,7 @@ describe('Crash Recovery', () => {
         expect.objectContaining({
           testState: expect.any(Object),
           captureState: expect.any(Array),
-          sessionMetadata: expect.any(Object)
+          sessionMetadata: expect.any(Object),
         })
       );
     });
@@ -201,20 +211,23 @@ describe('Crash Recovery', () => {
     test('should serialize capture state correctly', async () => {
       // Create a Map with capture state
       const captureState = new Map([
-        ['cmd-789', {
-          logs: [{ level: 'info', message: 'test' }],
-          active: true,
-          tabId: 300,
-          endTime: Date.now() + 5000
-        }]
+        [
+          'cmd-789',
+          {
+            logs: [{ level: 'info', message: 'test' }],
+            active: true,
+            tabId: 300,
+            endTime: Date.now() + 5000,
+          },
+        ],
       ]);
 
       global.chrome = {
         storage: {
           session: {
-            set: jest.fn().mockResolvedValue()
-          }
-        }
+            set: jest.fn().mockResolvedValue(),
+          },
+        },
       };
 
       const { persistState } = require('../extension/background.js');
@@ -235,29 +248,29 @@ describe('Crash Recovery', () => {
         onopen: null,
         onmessage: null,
         onerror: null,
-        onclose: null
+        onclose: null,
       };
 
       global.WebSocket = jest.fn(() => mockSocket);
       global.chrome = {
         runtime: {
-          id: 'test-extension-id'
+          id: 'test-extension-id',
         },
         alarms: {
-          create: jest.fn()
-        }
+          create: jest.fn(),
+        },
       };
 
       // Simulate crash recovery scenario
       const sessionMetadata = {
         crashDetected: true,
         recoveryCount: 2,
-        startupTime: Date.now()
+        startupTime: Date.now(),
       };
 
       const testState = {
         activeTestId: 'test-recovery',
-        trackedTabs: [400, 401]
+        trackedTabs: [400, 401],
       };
 
       const { connectToServer } = require('../extension/background.js');
@@ -266,9 +279,7 @@ describe('Crash Recovery', () => {
       // Simulate WebSocket open event
       mockSocket.onopen();
 
-      expect(mockSocket.send).toHaveBeenCalledWith(
-        expect.stringContaining('recovery')
-      );
+      expect(mockSocket.send).toHaveBeenCalledWith(expect.stringContaining('recovery'));
 
       const sentData = JSON.parse(mockSocket.send.mock.calls[0][0]);
       expect(sentData.recovery).toBeDefined();
@@ -281,9 +292,9 @@ describe('Crash Recovery', () => {
       global.chrome = {
         storage: {
           session: {
-            set: jest.fn().mockResolvedValue()
-          }
-        }
+            set: jest.fn().mockResolvedValue(),
+          },
+        },
       };
 
       const { markCleanShutdown } = require('../extension/background.js');
@@ -302,7 +313,7 @@ describe('Crash Recovery', () => {
     test('server should log recovery metadata from extension', () => {
       const mockSocket = {
         send: jest.fn(),
-        readyState: 1 // WebSocket.OPEN
+        readyState: 1, // WebSocket.OPEN
       };
 
       const mockRecoveryMessage = {
@@ -318,8 +329,8 @@ describe('Crash Recovery', () => {
           hasActiveTest: true,
           activeTestId: 'test-999',
           trackedTabs: [500, 501],
-          activeCapturesCount: 2
-        }
+          activeCapturesCount: 2,
+        },
       };
 
       // Mock console.log to capture server logs

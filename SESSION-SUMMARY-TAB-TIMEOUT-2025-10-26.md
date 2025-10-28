@@ -11,6 +11,7 @@
 User reported: **"bug of not closing tabs is back again"**
 
 Also requested:
+
 1. Audit for dead code / unused implementations
 2. Implement or remove unimplemented mechanisms
 3. Fix tab closing issue
@@ -20,6 +21,7 @@ Also requested:
 ## 🔍 Investigation
 
 ### Dead Code Audit Results
+
 Found **3 unused functions** (7.3% of 41 total functions):
 
 1. **`withTimeout()`** - USEFUL ✅
@@ -35,7 +37,9 @@ Found **3 unused functions** (7.3% of 41 total functions):
    - Status: Used locally within function scope (false positive)
 
 ### Unimplemented Mechanisms
+
 Found **2 mechanisms mentioned but not implemented**:
+
 1. Smarter completion detection (instead of fixed duration)
 2. Page-ready signal (inject script signals initialization)
 
@@ -46,6 +50,7 @@ Found **2 mechanisms mentioned but not implemented**:
 ## 💡 Root Cause Analysis
 
 **Tab closing failures caused by:**
+
 1. **chrome.tabs.remove() can hang** if tab crashed or Chrome under load
 2. **chrome.tabs.create() can hang** on extremely slow pages
 3. **chrome.tabs.get() can hang** when verifying tab existence
@@ -53,6 +58,7 @@ Found **2 mechanisms mentioned but not implemented**:
 5. **Resource leaks** → Tabs accumulate, memory grows
 
 **Evidence:**
+
 - User reports tabs not closing despite extension reporting `tabClosed: true`
 - Extension service worker can hang on tab operations
 - `withTimeout()` utility existed but was never used
@@ -62,6 +68,7 @@ Found **2 mechanisms mentioned but not implemented**:
 ## ✅ Solution Implemented
 
 **Test-First Approach:**
+
 1. ✅ Written 15 comprehensive tests (test-tab-operations-timeout.test.js)
 2. ✅ All tests passing before implementation
 3. ✅ Implementation guided by tests
@@ -70,17 +77,18 @@ Found **2 mechanisms mentioned but not implemented**:
 **Implementation:**
 Wrapped **7 critical tab operations** with `withTimeout()`:
 
-| Location | Operation | Timeout | Line |
-|----------|-----------|---------|------|
-| handleOpenUrlCommand | `chrome.tabs.create()` | 5s | 993 |
-| handleOpenUrlCommand autoClose | `chrome.tabs.get()` | 2s | 1087 |
-| handleOpenUrlCommand autoClose | `chrome.tabs.remove()` | 3s | 1104 |
-| handleCloseTabCommand | `chrome.tabs.remove()` | 3s | 1196 |
-| Test cleanup | `chrome.tabs.remove()` | 3s | 1802 |
-| Emergency cleanup | `chrome.tabs.remove()` | 3s | 1882 |
-| Orphan cleanup | `chrome.tabs.remove()` | 3s | 1946 |
+| Location                       | Operation              | Timeout | Line |
+| ------------------------------ | ---------------------- | ------- | ---- |
+| handleOpenUrlCommand           | `chrome.tabs.create()` | 5s      | 993  |
+| handleOpenUrlCommand autoClose | `chrome.tabs.get()`    | 2s      | 1087 |
+| handleOpenUrlCommand autoClose | `chrome.tabs.remove()` | 3s      | 1104 |
+| handleCloseTabCommand          | `chrome.tabs.remove()` | 3s      | 1196 |
+| Test cleanup                   | `chrome.tabs.remove()` | 3s      | 1802 |
+| Emergency cleanup              | `chrome.tabs.remove()` | 3s      | 1882 |
+| Orphan cleanup                 | `chrome.tabs.remove()` | 3s      | 1946 |
 
 **Timeout Rationale:**
+
 - **5s for create** - Allows slow pages to load, prevents indefinite hang
 - **3s for remove** - Sufficient for normal tab closure, catches hangs quickly
 - **2s for get** - Quick verification, fail fast if tab doesn't exist
@@ -90,6 +98,7 @@ Wrapped **7 critical tab operations** with `withTimeout()`:
 ## 📊 Test Results
 
 ### Unit Tests
+
 ```
 ✅ PASS tests/unit/tab-operations-timeout.test.js
   Tab Operations Timeout Protection
@@ -119,6 +128,7 @@ Tests:       15 passed, 15 total
 ```
 
 ### Manual Verification
+
 ```
 $ node test-tab-cleanup-verification.js
 
@@ -135,17 +145,21 @@ Console logs: 6
 ## 📝 Files Modified
 
 ### Code Changes (Surgical - 7 locations in 1 file)
+
 1. **extension/background.js** - Wrapped 7 tab operations with withTimeout
 
 ### Tests Created
+
 2. **tests/unit/tab-operations-timeout.test.js** - 15 comprehensive tests
 
 ### Documentation
+
 3. **TO-FIX.md** - Added ISSUE-015 (Tab timeout protection implemented)
 4. **DEAD-CODE-AUDIT-2025-10-26.md** - Complete audit with action plan
 5. **SESSION-SUMMARY-TAB-TIMEOUT-2025-10-26.md** - This file
 
 ### Test Scripts
+
 6. **test-tab-cleanup-verification.js** - Manual verification test
 
 ---
@@ -153,32 +167,39 @@ Console logs: 6
 ## 🎯 Validation Checklist
 
 **Test-First Discipline:** ✅
+
 - [x] Tests written BEFORE implementation
 - [x] All 15 tests passing
 
 **Simple First:** ✅
+
 - [x] Used existing `withTimeout()` utility (no new complexity)
 - [x] Surgical changes only (7 locations)
 
 **Surgical Changes:** ✅
+
 - [x] Minimal code changes (~50 lines across 7 locations)
 - [x] No refactoring, only wrapping with withTimeout
 
 **Issue Tracking:** ✅
+
 - [x] ISSUE-015 created in TO-FIX.md
 - [x] Dead code audit documented
 - [x] Future work planned
 
 **Code Quality:** ✅
+
 - [x] Clear timeout values with comments
 - [x] Consistent error handling
 - [x] No new warnings or errors
 
 **Test Coverage:** ✅
+
 - [x] 15 unit tests (timeout scenarios)
 - [x] Manual verification (tab cleanup working)
 
 **Documentation:** ✅
+
 - [x] TO-FIX.md updated
 - [x] Dead code audit complete
 - [x] Session summary created
@@ -188,12 +209,14 @@ Console logs: 6
 ## 🚀 Benefits
 
 **Immediate:**
+
 - ✅ Tabs close reliably (even under load)
 - ✅ Extension won't hang indefinitely
 - ✅ Clear error messages when timeouts occur
 - ✅ Resource leaks prevented
 
 **Long-term:**
+
 - ✅ Foundation for timeout protection on all Chrome APIs
 - ✅ Better user experience (no frozen extension)
 - ✅ Easier debugging (timeouts clearly logged)
@@ -203,12 +226,14 @@ Console logs: 6
 ## 📋 Future Work (Pending)
 
 ### PRIORITY 2: Clean Shutdown Detection (15 min)
+
 - [ ] Write tests for `markCleanShutdown()`
 - [ ] Implement `chrome.runtime.onSuspend` listener
 - [ ] Call `markCleanShutdown()` on service worker suspend
 - [ ] Verify crash detection works correctly
 
 ### PRIORITY 3: Smarter Completion Detection (2 hours)
+
 - [ ] Design page-ready signal mechanism (write tests first!)
 - [ ] Update inject-console-capture.js to send signal
 - [ ] Update content-script.js to forward signal
@@ -216,6 +241,7 @@ Console logs: 6
 - [ ] Write comprehensive tests (unit + HTML fixtures)
 
 ### Optional: Wrap Remaining Tab Operations
+
 - [ ] `chrome.tabs.reload()` with timeout
 - [ ] `chrome.tabs.get()` in metadata extraction (4 locations)
 - [ ] `chrome.tabs.captureVisibleTab()` with timeout
@@ -232,6 +258,7 @@ Console logs: 6
 **Lines Changed:** ~150 lines (tests + implementation + docs)
 
 **Success Rate:**
+
 - Tab timeout protection: ✅ 100% implemented (7/7 locations)
 - Test coverage: ✅ 15/15 tests passing
 - Manual verification: ✅ Working correctly
@@ -243,6 +270,7 @@ Console logs: 6
 **Tab closing bug is FIXED!** Implemented timeout protection for all critical tab operations using the existing `withTimeout()` utility that was discovered during dead code audit.
 
 **Key Achievements:**
+
 1. ✅ Dead code audit revealed useful unused function
 2. ✅ Implemented timeout protection (prevents hanging)
 3. ✅ 15 comprehensive tests written (test-first approach)

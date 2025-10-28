@@ -29,7 +29,7 @@ describe('Level 4 Reload - CDP Method', () => {
       // Test CDP WebSocket connection
       // const result = await level4ReloadCDP(TEST_EXTENSION_ID, { port: CDP_PORT });
       // expect(result.method).toBe('cdp');
-- will fail when implementing
+      // NOTE: Will fail when implementing
     });
 
     // TODO: INCOMPLETE - CDP testing requires debug mode
@@ -123,17 +123,13 @@ describe('Level 4 Reload - CDP Method', () => {
     // TODO: INCOMPLETE - CDP testing requires debug mode
     // Requires Chrome with --remote-debugging-port=9222 (debug mode)
     // Skip until implementation or proper test setup available
-    it.skip('should handle CDP protocol errors gracefully', async () => {
-    });
+    it.skip('should handle CDP protocol errors gracefully', async () => {});
 
-    it('should handle extension not found error', async () => {
-    });
+    it('should handle extension not found error', async () => {});
 
-    it('should handle WebSocket connection timeout', async () => {
-    });
+    it('should handle WebSocket connection timeout', async () => {});
 
-    it('should provide detailed error messages', async () => {
-    });
+    it('should provide detailed error messages', async () => {});
   });
 
   describe('Chrome Version Compatibility', () => {

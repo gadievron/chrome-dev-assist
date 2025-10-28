@@ -34,6 +34,7 @@ await getPageMetadata(tabId)
 ```
 
 **Grep Verification:**
+
 ```bash
 $ grep -n "getPageMetadata" claude-code/index.js
 # NO RESULTS
@@ -60,6 +61,7 @@ await chromeDevAssist.startTest(testId, options)
 ```
 
 **Grep Verification:**
+
 ```bash
 $ grep -n "startTest" claude-code/index.js
 # NO RESULTS
@@ -136,20 +138,23 @@ From grepping extension/background.js, I found these Chrome APIs I didn't fully 
 const registered = await chrome.scripting.getRegisteredContentScripts();
 
 // Line 50-59
-await chrome.scripting.registerContentScripts([{
-  id: 'console-capture',
-  matches: ['<all_urls>'],
-  js: ['inject-console-capture.js'],
-  runAt: 'document_start',
-  world: 'MAIN',
-  allFrames: true
-}]);
+await chrome.scripting.registerContentScripts([
+  {
+    id: 'console-capture',
+    matches: ['<all_urls>'],
+    js: ['inject-console-capture.js'],
+    runAt: 'document_start',
+    world: 'MAIN',
+    allFrames: true,
+  },
+]);
 
 // Line 62
 await chrome.scripting.unregisterContentScripts({ ids: ['console-capture'] });
 ```
 
 **Relationships Missed:**
+
 - `registerConsoleCaptureScript()` → `chrome.scripting.getRegisteredContentScripts()`
 - `registerConsoleCaptureScript()` → `chrome.scripting.unregisterContentScripts()`
 - `registerConsoleCaptureScript()` → `chrome.scripting.registerContentScripts()`
@@ -176,6 +181,7 @@ chrome.storage.local.set({ status: {...} })  // Persist status
 ```
 
 **Relationships Missed:**
+
 - Multiple functions use `chrome.runtime.id` to get own ID
 - `handleGetAllExtensionsCommand()` filters using `chrome.runtime.id`
 - `handleReloadCommand()` validates against `chrome.runtime.id`
@@ -194,6 +200,7 @@ await chrome.tabs.reload(tabId, { bypassCache: bypassCache });
 ```
 
 **Relationships Missed:**
+
 - `handleOpenUrlCommand()` → `chrome.tabs.get()` for tab validation
 - `handleReloadTabCommand()` uses `bypassCache` option
 
@@ -231,10 +238,12 @@ const path = require('path');
 ```
 
 **Functions:**
+
 - `getFixtureUrl(filename)` - Depends on `path.join()`, `fs.readFileSync()` for auth token
 - `getUrlMode()` - Depends on environment variables
 
 **Used By:**
+
 - ALL integration tests (26 files)
 - Manual test scripts that need fixture URLs
 
@@ -271,11 +280,13 @@ I'm systematically:
 ## ADMISSION OF ERROR
 
 **What I Claimed:**
+
 - "98 functions mapped"
 - "Complete dependency analysis"
 - "All relationships documented"
 
 **Reality:**
+
 - Missed phantom functions (tested but not implemented)
 - Incomplete Chrome API relationship mapping
 - Missed test-helper dependencies

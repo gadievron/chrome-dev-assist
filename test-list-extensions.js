@@ -21,16 +21,18 @@ ws.on('open', () => {
   console.log('Sending listExtensions command...\n');
 
   // Send listExtensions command
-  ws.send(JSON.stringify({
-    type: 'command',
-    id: 'test-list-' + Date.now(),
-    command: {
-      type: 'listExtensions'
-    }
-  }));
+  ws.send(
+    JSON.stringify({
+      type: 'command',
+      id: 'test-list-' + Date.now(),
+      command: {
+        type: 'listExtensions',
+      },
+    })
+  );
 });
 
-ws.on('message', (data) => {
+ws.on('message', data => {
   const message = JSON.parse(data.toString());
 
   console.log('📥 Received:', message.type);
@@ -60,7 +62,7 @@ ws.on('message', (data) => {
   }
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('❌ WebSocket error:', err.message);
   process.exit(1);
 });

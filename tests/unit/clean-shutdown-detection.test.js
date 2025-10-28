@@ -17,22 +17,22 @@ global.chrome = {
   storage: {
     session: {
       get: jest.fn(),
-      set: jest.fn()
-    }
+      set: jest.fn(),
+    },
   },
   runtime: {
     onSuspend: {
       addListener: jest.fn(),
-      removeListener: jest.fn()
-    }
-  }
+      removeListener: jest.fn(),
+    },
+  },
 };
 
 // Mock sessionMetadata (would be imported from background.js in real code)
 let sessionMetadata = {
   extensionId: 'test-extension',
   startTime: Date.now(),
-  lastShutdown: null
+  lastShutdown: null,
 };
 
 // Mock markCleanShutdown function
@@ -42,13 +42,12 @@ async function markCleanShutdown() {
 }
 
 describe('Clean Shutdown Detection', () => {
-
   beforeEach(() => {
     jest.clearAllMocks();
     sessionMetadata = {
       extensionId: 'test-extension',
       startTime: Date.now(),
-      lastShutdown: null
+      lastShutdown: null,
     };
     chrome.storage.session.set.mockResolvedValue(undefined);
     chrome.storage.session.get.mockResolvedValue({});
@@ -59,7 +58,6 @@ describe('Clean Shutdown Detection', () => {
   // ========================================================================
 
   describe('markCleanShutdown() function', () => {
-
     test('should set lastShutdown timestamp', async () => {
       const beforeTime = Date.now();
 
@@ -77,8 +75,8 @@ describe('Clean Shutdown Detection', () => {
       expect(chrome.storage.session.set).toHaveBeenCalledWith({
         sessionMetadata: expect.objectContaining({
           extensionId: 'test-extension',
-          lastShutdown: expect.any(Number)
-        })
+          lastShutdown: expect.any(Number),
+        }),
       });
     });
 
@@ -91,8 +89,8 @@ describe('Clean Shutdown Detection', () => {
         sessionMetadata: expect.objectContaining({
           extensionId: 'test-extension',
           customField: 'preserve-this',
-          lastShutdown: expect.any(Number)
-        })
+          lastShutdown: expect.any(Number),
+        }),
       });
     });
   });
@@ -102,7 +100,6 @@ describe('Clean Shutdown Detection', () => {
   // ========================================================================
 
   describe('chrome.runtime.onSuspend listener', () => {
-
     test('should register onSuspend listener on extension startup', () => {
       // In real implementation, this happens when background.js loads
       const mockListener = jest.fn();
@@ -157,15 +154,14 @@ describe('Clean Shutdown Detection', () => {
   // ========================================================================
 
   describe('Crash detection integration', () => {
-
     test('should detect crash when lastShutdown is missing', async () => {
       // Simulate: Extension starts after crash (no lastShutdown)
       chrome.storage.session.get.mockResolvedValue({
         sessionMetadata: {
           extensionId: 'test-extension',
           startTime: Date.now() - 60000, // Started 1 min ago
-          lastShutdown: null  // ← No clean shutdown
-        }
+          lastShutdown: null, // ← No clean shutdown
+        },
       });
 
       const stored = await chrome.storage.session.get('sessionMetadata');
@@ -180,8 +176,8 @@ describe('Clean Shutdown Detection', () => {
         sessionMetadata: {
           extensionId: 'test-extension',
           startTime: Date.now() - 60000,
-          lastShutdown: Date.now() - 30000  // ← Clean shutdown 30s ago
-        }
+          lastShutdown: Date.now() - 30000, // ← Clean shutdown 30s ago
+        },
       });
 
       const stored = await chrome.storage.session.get('sessionMetadata');
@@ -196,15 +192,16 @@ describe('Clean Shutdown Detection', () => {
       chrome.storage.session.get.mockResolvedValue({
         sessionMetadata: {
           extensionId: 'test-extension',
-          startTime: Date.now() - 120000,  // Started 2 min ago
-          lastShutdown: Date.now() - 180000  // Last clean shutdown 3 min ago
-        }
+          startTime: Date.now() - 120000, // Started 2 min ago
+          lastShutdown: Date.now() - 180000, // Last clean shutdown 3 min ago
+        },
       });
 
       const stored = await chrome.storage.session.get('sessionMetadata');
 
       // If lastShutdown is BEFORE startTime, it means this session didn't shut down cleanly
-      const lastShutdownBeforeStart = stored.sessionMetadata.lastShutdown < stored.sessionMetadata.startTime;
+      const lastShutdownBeforeStart =
+        stored.sessionMetadata.lastShutdown < stored.sessionMetadata.startTime;
 
       expect(lastShutdownBeforeStart).toBe(true);
     });
@@ -215,15 +212,15 @@ describe('Clean Shutdown Detection', () => {
       const newSessionMetadata = {
         extensionId: 'test-extension',
         startTime: Date.now(),
-        lastShutdown: null  // ← Reset for new session
+        lastShutdown: null, // ← Reset for new session
       };
 
       await chrome.storage.session.set({ sessionMetadata: newSessionMetadata });
 
       expect(chrome.storage.session.set).toHaveBeenCalledWith({
         sessionMetadata: expect.objectContaining({
-          lastShutdown: null
-        })
+          lastShutdown: null,
+        }),
       });
     });
   });
@@ -233,7 +230,6 @@ describe('Clean Shutdown Detection', () => {
   // ========================================================================
 
   describe('Edge cases and error handling', () => {
-
     test('should handle storage.set failure gracefully', async () => {
       chrome.storage.session.set.mockRejectedValue(new Error('Storage quota exceeded'));
 
@@ -267,7 +263,7 @@ describe('Clean Shutdown Detection', () => {
       sessionMetadata.testState = {
         projectName: 'test-project',
         testId: '123',
-        trackedTabs: [1, 2, 3]
+        trackedTabs: [1, 2, 3],
       };
 
       await markCleanShutdown();
@@ -277,10 +273,10 @@ describe('Clean Shutdown Detection', () => {
           testState: {
             projectName: 'test-project',
             testId: '123',
-            trackedTabs: [1, 2, 3]
+            trackedTabs: [1, 2, 3],
           },
-          lastShutdown: expect.any(Number)
-        })
+          lastShutdown: expect.any(Number),
+        }),
       });
     });
 
@@ -288,7 +284,7 @@ describe('Clean Shutdown Detection', () => {
       sessionMetadata = {
         extensionId: undefined,
         startTime: undefined,
-        lastShutdown: undefined
+        lastShutdown: undefined,
       };
 
       await markCleanShutdown();

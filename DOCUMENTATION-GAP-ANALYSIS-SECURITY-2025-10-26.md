@@ -21,16 +21,16 @@
 
 ### In docs/API.md
 
-| # | Restriction | Where Documented | Line |
-|---|------------|------------------|------|
-| 1 | 10,000 log limit | Limitations section | 617-621 |
-| 2 | 10,000 char truncation (dual-layer) | Limitations section | 623-656 |
-| 3 | Cannot reload self | System Constraints | 746 |
-| 4 | localhost-only | System Constraints | 748 |
-| 5 | Max capture duration 60s | Input Validation section | 434-438 |
-| 6 | mayDisable field returned | getExtensionInfo() | 89 |
-| 7 | installType field returned | getExtensionInfo() | 88 |
-| 8 | Circular ref limitation | Known Limitations | 715-741 |
+| #   | Restriction                         | Where Documented         | Line    |
+| --- | ----------------------------------- | ------------------------ | ------- |
+| 1   | 10,000 log limit                    | Limitations section      | 617-621 |
+| 2   | 10,000 char truncation (dual-layer) | Limitations section      | 623-656 |
+| 3   | Cannot reload self                  | System Constraints       | 746     |
+| 4   | localhost-only                      | System Constraints       | 748     |
+| 5   | Max capture duration 60s            | Input Validation section | 434-438 |
+| 6   | mayDisable field returned           | getExtensionInfo()       | 89      |
+| 7   | installType field returned          | getExtensionInfo()       | 88      |
+| 8   | Circular ref limitation             | Known Limitations        | 715-741 |
 
 **Coverage:** Good for memory limits and basic constraints
 
@@ -50,7 +50,8 @@ These directly affect what users can/cannot do and MUST be documented:
 **Impact:** Users will get cryptic errors when trying to reload enterprise extensions
 
 **Should Add to docs/API.md:**
-```markdown
+
+````markdown
 ### Enterprise Extension Restrictions
 
 Some extensions installed by IT administrators cannot be reloaded:
@@ -62,14 +63,17 @@ if (!info.mayDisable) {
   // Error: "Failed to disable extension: ..."
 }
 ```
+````
 
 **Why:**
+
 - Extensions with `installType: 'admin'` often have `mayDisable: false`
 - Chrome API respects enterprise policies
 - Attempting to reload will fail with error
 
 **Workaround:** None - enterprise policies cannot be bypassed
-```
+
+````
 
 ---
 
@@ -91,12 +95,14 @@ const result = await chromeDevAssist.getAllExtensions();
 // Will NOT include:
 // - Chrome Dev Assist itself (cannot reload self)
 // - Chrome Apps (type === 'app')
-```
+````
 
 **Why:**
+
 - Cannot reload self (see restrictions)
 - Chrome Apps use different APIs
-```
+
+````
 
 ---
 
@@ -123,16 +129,18 @@ await chromeDevAssist.openUrl('file:///etc/passwd');       // Error
 // ✅ Allowed protocols:
 await chromeDevAssist.openUrl('http://example.com');       // OK
 await chromeDevAssist.openUrl('https://example.com');      // OK
-```
+````
 
 **Why:**
+
 - **javascript:** Code injection attacks
 - **data:** XSS via data URLs
 - **vbscript:** Legacy attacks
 - **file:** Local file access (security risk)
 
 **Error:** `"Dangerous URL protocol not allowed: javascript"`
-```
+
+````
 
 ---
 
@@ -152,12 +160,13 @@ Chrome prevents extensions from opening `chrome://` URLs:
 await chromeDevAssist.openUrl('chrome://extensions');
 await chromeDevAssist.openUrl('chrome://settings');
 await chromeDevAssist.openUrl('chrome://flags');
-```
+````
 
 **Why:** Chrome security policy - prevents extension privilege escalation
 
 **Workaround:** None - Chrome browser restriction
-```
+
+````
 
 ---
 
@@ -169,35 +178,40 @@ await chromeDevAssist.openUrl('chrome://flags');
 **Current docs/API.md says:**
 ```markdown
 - **Format**: 32 lowercase letters (a-p only)
-```
+````
 
 **Gap:** Should explain WHY a-p only, with examples
 
 **Should Add:**
-```markdown
+
+````markdown
 ### Extension ID Format
 
 Chrome extension IDs use a **restricted alphabet** (a-p only):
 
 ```javascript
 // ❌ Invalid - contains q-z:
-'abcdefghijklmnopqrstuvwxyzabcdef'  // Error
+'abcdefghijklmnopqrstuvwxyzabcdef'; // Error
 
 // ✅ Valid - only a-p:
-'abcdefghijklmnopabcdefghijklmnop'  // OK
+'abcdefghijklmnopabcdefghijklmnop'; // OK
 ```
+````
 
 **Why a-p only?**
+
 - Chrome generates IDs from base16-encoded public keys
 - Base16 uses 0-9 and a-f, but Chrome uses a-p instead
 - Historical Chrome decision
 
 **Common Errors:**
+
 - Using full alphabet (a-z)
 - Including numbers (0-9)
 - Wrong length (not 32)
 - Uppercase letters
-```
+
+````
 
 ---
 
@@ -212,7 +226,7 @@ Chrome extension IDs use a **restricted alphabet** (a-p only):
 await chromeDevAssist.captureLogs(NaN);        // Error: "NaN not allowed"
 await chromeDevAssist.captureLogs(Infinity);   // Error: "must be finite"
 await chromeDevAssist.captureLogs(-1000);      // Error: "must be non-negative"
-```
+````
 
 ---
 
@@ -224,6 +238,7 @@ await chromeDevAssist.captureLogs(-1000);      // Error: "must be non-negative"
 **Gap:** Docs say "max 60 seconds" but extension has 10 minute hard limit
 
 **Should Clarify:**
+
 ```markdown
 ### Capture Duration Limits
 
@@ -238,6 +253,7 @@ await chromeDevAssist.captureLogs(-1000);      // Error: "must be non-negative"
    - Safety limit to prevent runaway captures
 
 **Why two limits?**
+
 - API limit encourages reasonable durations
 - Extension hard limit prevents memory exhaustion if bypassed
 ```
@@ -250,19 +266,21 @@ await chromeDevAssist.captureLogs(-1000);      // Error: "must be non-negative"
 **Missing From:** docs/API.md
 
 **Current docs/API.md says:**
+
 ```markdown
 - **Format**: Positive integer
 ```
 
 **Should Add Examples:**
+
 ```javascript
 // ❌ Invalid tab IDs:
-await chromeDevAssist.reloadTab(0);        // Error
-await chromeDevAssist.reloadTab(-1);       // Error
-await chromeDevAssist.closeTab('123');     // Error (string)
+await chromeDevAssist.reloadTab(0); // Error
+await chromeDevAssist.reloadTab(-1); // Error
+await chromeDevAssist.closeTab('123'); // Error (string)
 
 // ✅ Valid tab IDs:
-await chromeDevAssist.reloadTab(123);      // OK
+await chromeDevAssist.reloadTab(123); // OK
 ```
 
 ---
@@ -283,14 +301,16 @@ await chromeDevAssist.reloadTab(123);      // OK
 **Missing From:** docs/API.md
 
 **Should Add to docs/API.md:**
+
 ```markdown
 ### Why HTTP (Not HTTPS)?
 
 Test fixtures are served over **HTTP** (not HTTPS):
-
 ```
-http://localhost:9876/fixtures/test.html  ✅ Works
+
+http://localhost:9876/fixtures/test.html ✅ Works
 https://localhost:9876/fixtures/test.html ❌ Does not work
+
 ```
 
 **Why:**
@@ -310,7 +330,8 @@ https://localhost:9876/fixtures/test.html ❌ Does not work
 **Gap:** Should explain WHAT this means
 
 **Should Expand in docs/API.md:**
-```markdown
+
+````markdown
 ### Localhost-Only Access
 
 Server binds to **127.0.0.1** (localhost) for security:
@@ -325,15 +346,19 @@ curl http://192.168.1.100:9876/fixtures/test.html
 # ❌ This does NOT work (from VM):
 curl http://10.0.2.2:9876/fixtures/test.html
 ```
+````
 
 **Why:**
+
 - Security: Prevents remote network access
 - Threat model: No external attackers can connect
 
 **Workaround for Remote Access:**
+
 - Use SSH port forwarding (recommended)
 - Change `HOST = '0.0.0.0'` in `server/websocket-server.js` (NOT recommended - security risk)
-```
+
+````
 
 ---
 
@@ -366,7 +391,7 @@ Chrome Dev Assist requires powerful permissions:
 **Security note:**
 - Chrome Dev Assist only runs when you explicitly call API functions
 - Content scripts are passive until capture is started
-```
+````
 
 ---
 
@@ -475,6 +500,7 @@ Missing:             7 (20%)
 **End of Documentation Gap Analysis**
 
 **Next Steps:**
+
 1. Update docs/API.md with 12 HIGH PRIORITY gaps
 2. Add examples and error messages
 3. Cross-reference with SECURITY.md

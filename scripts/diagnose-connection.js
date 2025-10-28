@@ -59,7 +59,9 @@ async function diagnose() {
   // Check if server process is running
   const { execSync } = require('child_process');
   try {
-    const serverProcesses = execSync('ps aux | grep "websocket-server" | grep -v grep', { encoding: 'utf-8' });
+    const serverProcesses = execSync('ps aux | grep "websocket-server" | grep -v grep', {
+      encoding: 'utf-8',
+    });
     if (serverProcesses.trim()) {
       console.log('   ✅ Server process found');
       const lines = serverProcesses.trim().split('\n');
@@ -77,7 +79,9 @@ async function diagnose() {
 
   // Check if port is actually listening
   try {
-    const portCheck = execSync('lsof -i :9876 2>/dev/null || echo "No process"', { encoding: 'utf-8' });
+    const portCheck = execSync('lsof -i :9876 2>/dev/null || echo "No process"', {
+      encoding: 'utf-8',
+    });
     if (portCheck.includes('node')) {
       console.log('   ✅ Port 9876 is listening');
       const lines = portCheck.trim().split('\n').slice(1); // Skip header
@@ -103,7 +107,9 @@ async function diagnose() {
   if (allPassed) {
     console.log('✅ All checks passed! Connection is healthy.\n');
     console.log('Your extension is connected and ready to use.');
-    console.log('\nTry running: node -e "require(\'./claude-code/index.js\').getTestStatus().then(console.log)"');
+    console.log(
+      '\nTry running: node -e "require(\'./claude-code/index.js\').getTestStatus().then(console.log)"'
+    );
   } else {
     console.log('❌ Some checks failed. Please review the errors above.\n');
     process.exit(1);
@@ -111,7 +117,7 @@ async function diagnose() {
 }
 
 async function checkPort(port) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const socket = new net.Socket();
 
     socket.setTimeout(1000);

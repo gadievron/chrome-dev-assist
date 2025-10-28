@@ -22,7 +22,7 @@ ws.on('open', () => {
   // Listen for messages
   let registered = false;
 
-  ws.on('message', (data) => {
+  ws.on('message', data => {
     try {
       const msg = JSON.parse(data.toString());
       console.log('   Received message:', msg.type);
@@ -58,7 +58,7 @@ ws.on('open', () => {
   }, 5000);
 });
 
-ws.on('error', (err) => {
+ws.on('error', err => {
   console.error('   ✗ ERROR: Could not connect to server');
   console.error('  ', err.message, '\n');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
