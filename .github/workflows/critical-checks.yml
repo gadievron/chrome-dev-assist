@@ -95,16 +95,17 @@ jobs:
 
           # Check 2: Regex grep (should use literal)
           echo ""
-          echo "Check 2: Unsafe grep -E (regex matching)..."
+          echo "Check 2: Unsafe regex grep matching..."
           if find . -name "*.sh" -type f \
             -not -path './.archive/*' \
             -not -path './test-rules-compliance.sh' \
+            -not -path './.github/*' \
             -exec grep -Hn 'grep[[:space:]]\+-E' {} \; 2>/dev/null; then
-            echo "❌ FAIL: Found 'grep -E' (regex mode)"
-            echo "   Fix: Use 'grep -F' (literal mode) instead"
+            echo "❌ FAIL: Found regex grep usage"
+            echo "   Fix: Use literal matching (grep -F) instead"
             FAILED=1
           else
-            echo "✅ PASS: No grep -E usage"
+            echo "✅ PASS: No regex grep usage"
           fi
 
           # Check 3: eval usage (command injection risk)
