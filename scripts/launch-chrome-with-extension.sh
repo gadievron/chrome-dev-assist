@@ -14,15 +14,15 @@ CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 # User data directory for testing (isolated from regular Chrome profile)
 USER_DATA_DIR="/tmp/chrome-dev-assist-testing"
 
-echo "🚀 Launching Chrome with Chrome Dev Assist extension..."
-echo ""
-echo "Extension directory: $EXTENSION_DIR"
-echo "User data directory: $USER_DATA_DIR"
-echo ""
+printf "%s\n" "🚀 Launching Chrome with Chrome Dev Assist extension..."
+printf "\n"
+printf "Extension directory: %s\n" "$EXTENSION_DIR"
+printf "User data directory: %s\n" "$USER_DATA_DIR"
+printf "\n"
 
 # Clean up old user data directory
 if [ -d "$USER_DATA_DIR" ]; then
-  echo "⚠️  Cleaning up old user data directory..."
+  printf "%s\n" "⚠️  Cleaning up old user data directory..."
   rm -rf "$USER_DATA_DIR"
 fi
 
@@ -40,13 +40,13 @@ fi
 
 CHROME_PID=$!
 
-echo "✅ Chrome launched (PID: $CHROME_PID)"
-echo ""
-echo "📋 Next steps:"
-echo "  1. Wait for Chrome to open"
-echo "  2. Extension will auto-connect to WebSocket server (localhost:9876)"
-echo "  3. Run tests: npm test"
-echo ""
-echo "To kill Chrome:"
-echo "  kill $CHROME_PID"
-echo ""
+printf "✅ Chrome launched (PID: %s)\n" "$CHROME_PID"
+printf "\n"
+printf "%s\n" "📋 Next steps:"
+printf "%s\n" "  1. Wait for Chrome to open"
+printf "%s\n" "  2. Extension will auto-connect to WebSocket server (localhost:9876)"
+printf "%s\n" "  3. Run tests: npm test"
+printf "\n"
+printf "%s\n" "To kill Chrome:"
+printf "  kill %s\n" "$CHROME_PID"
+printf "\n"

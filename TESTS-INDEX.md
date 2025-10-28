@@ -12,6 +12,7 @@
 ## 📊 Quick Statistics
 
 **Test Files by Functionality:**
+
 - Extension Management: 2 tests
 - Extension Reload: 6 tests
 - Console Capture: 5 tests
@@ -30,11 +31,13 @@
 - Deprecated: 0 tests
 
 **Issue Detection:**
+
 - 🐛 Tests that caught bugs: 5 tests
 - ✅ Tests that verified fixes: 3 tests
 - 🔒 Security issues found: 1 test (ISSUE-001)
 
 **API Coverage:**
+
 - 20/20 public API functions tested (100%)
 - 29/29 internal mechanisms tested (100%)
 
@@ -43,6 +46,7 @@
 ## 🎯 LEGEND
 
 **Flags:**
+
 - 🐛 **BUG FOUND** - This test caught a real bug
 - 🔒 **SECURITY** - Found security vulnerability
 - ✅ **FIX VERIFIED** - Verified a bug fix works
@@ -51,6 +55,7 @@
 - 📦 **INFRASTRUCTURE** - Requires special setup (Chrome debug mode, etc.)
 
 **Status:**
+
 - ✅ PASSING - All tests pass
 - ⚠️ SKIPPED - Tests skipped (infrastructure requirements)
 - ❌ FAILING - Tests currently failing
@@ -61,6 +66,7 @@
 ## 1️⃣ EXTENSION MANAGEMENT (5 API Functions)
 
 **API Functions Tested:**
+
 1. `getAllExtensions()` - List all extensions
 2. `getExtensionInfo(id)` - Get extension details
 3. `enableExtension(id)` - Enable extension
@@ -68,6 +74,7 @@
 5. `toggleExtension(id)` - Toggle extension state
 
 ### tests/unit/extension-discovery-validation.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 63 tests
@@ -91,6 +98,7 @@
 - **Dependencies:** server/validation.js
 
 ### tests/api/index.test.js
+
 - **Created:** 2025-10-23
 - **Last Modified:** 2025-10-23
 - **Test Count:** 8 tests
@@ -112,16 +120,19 @@
 ## 2️⃣ EXTENSION RELOAD (6 API Functions)
 
 **API Functions Tested:**
+
 1. `reload(id, opts)` - Reload extension
 2. `reloadAndCapture(id, opts)` - Reload + capture logs
 3. `forceReload()` - Force reload service worker (chrome.runtime.reload)
 4. `level4Reload(id, opts)` - Load fresh code from disk (disable→enable)
 
 **Plus Internal:**
+
 - Auto-reconnect mechanism (chrome.alarms-based)
 - Keep-alive system (every 15 seconds)
 
 ### tests/unit/level4-reload-cdp.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 14 tests
@@ -142,6 +153,7 @@
 - **Implementation:** 85% complete
 
 ### tests/unit/level4-reload-auto-detect.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 18 tests
@@ -161,6 +173,7 @@
 - **Blocker:** Requires Chrome debug mode for full testing
 
 ### tests/integration/level4-reload.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 8 tests
@@ -179,6 +192,7 @@
 - **Blocker:** Requires Chrome debug mode setup
 
 ### tests/unit/hard-reload.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 20 tests
@@ -197,6 +211,7 @@
 - **Note:** Runtime reload only, use Level 4 for code changes
 
 ### tests/integration/service-worker-api.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 20 tests
@@ -218,6 +233,7 @@
 - **Note:** Fast, stable tests for public API contracts
 
 ### tests/integration/service-worker-lifecycle.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 8 tests
@@ -241,16 +257,19 @@
 ## 3️⃣ CONSOLE CAPTURE (2 API Functions + Infrastructure)
 
 **API Functions Tested:**
+
 1. `captureLogs(duration)` - Capture console logs only
 2. `reloadAndCapture(id, opts)` - Reload + capture logs
 
 **Plus Internal:**
+
 - 3-stage console capture architecture (MAIN → ISOLATED → Service Worker)
 - Auto-register content script
 - Log limit enforcement (10,000 max)
 - Message truncation (3 layers, 10KB each)
 
 ### tests/integration/adversarial-tests.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 11 tests (5 passed, 6 failed)
@@ -282,6 +301,7 @@
   - ❌ FAILING: Console capture timing (ISSUE-009 - test bug, not code bug)
 
 ### tests/integration/complete-system.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 55 tests
@@ -304,6 +324,7 @@
 - **Coverage:** 100% of public API (20/20 functions)
 
 ### tests/integration/edge-cases-complete.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 30 tests
@@ -332,6 +353,7 @@
 - **Dependencies:** Extension loaded, server running
 
 ### tests/unit/script-registration.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 8 tests
@@ -350,6 +372,7 @@
 - **Dependencies:** Extension background.js
 
 ### tests/unit/ConsoleCapture.poc.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 12 tests
@@ -372,9 +395,54 @@
 ## 4️⃣ SCREENSHOT CAPTURE (1 API Function)
 
 **API Functions Tested:**
+
 1. `captureScreenshot(tabId, opts)` - Capture PNG/JPEG screenshots
 
+### tests/unit/screenshot-validation.test.js
+
+- **Created:** 2025-10-28
+- **Last Modified:** 2025-10-28 (P2-2: Integer validation)
+- **Test Count:** 21 tests (18 original + 3 P2-2)
+- **Status:** ✅ PASSING
+- **Flags:** ✅ **FIX IMPLEMENTED** (P2-2 integer validation)
+- **API Functions Tested:**
+  - `captureScreenshot(tabId, {format, quality})` - Input validation
+- **Purpose:** Comprehensive input validation (tab ID, format, quality)
+- **What It Tests:**
+  - Tab ID validation (type, range, edge cases: NaN, Infinity, floats)
+  - Format validation (png, jpeg, invalid formats)
+  - **P2-2: Quality integer validation** (rejects 75.5, 99.9, 0.5)
+  - Quality range validation (0-100)
+  - Edge cases: -0, MAX_SAFE_INTEGER + 1, fractional tab IDs
+- **Issues Found:**
+  - **P2-2 (MEDIUM):** Fractional quality values had undefined Chrome API behavior
+- **Fixtures:** None (validation tests)
+- **Dependencies:** None (validation layer only)
+
+### tests/unit/edge-case-validation.test.js
+
+- **Created:** 2025-10-28
+- **Last Modified:** 2025-10-28 (P2-3 Phase 1)
+- **Test Count:** 18 tests
+- **Status:** ✅ PASSING
+- **Flags:** None
+- **API Functions Tested:**
+  - `captureScreenshot(tabId, opts)` - Edge case validation
+  - `getPageMetadata(tabId)` - Edge case validation
+- **Purpose:** P2-3 Phase 1 - Edge case validation tests
+- **What It Tests:**
+  - Quality boundaries (0, 50, 100)
+  - Format case sensitivity (PNG/JPEG vs png/jpeg)
+  - Options edge cases (empty object, undefined, unknown fields)
+  - Tab ID boundaries (1, MAX_SAFE_INTEGER, 999999999)
+  - Data type edge cases (75.0, 1e2, -0)
+  - Format+quality combinations
+- **Issues Found:** None (comprehensive edge case coverage)
+- **Fixtures:** None (validation tests)
+- **Dependencies:** None (validation layer only)
+
 ### tests/unit/screenshot.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 12 tests
@@ -398,6 +466,7 @@
 - **Security:** Localhost:9876 fixtures only (blocks external URLs)
 
 ### tests/integration/screenshot-security.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 8 tests
@@ -417,6 +486,7 @@
 - **Security:** 4-layer protection verified
 
 ### tests/integration/screenshot-visual-verification.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 3 tests
@@ -438,21 +508,70 @@
 - **Dependencies:** Needs tesseract.js OR Claude Vision API
 - **Blocker:** Feature not implemented yet
 
+### tests/integration/p2-3-phase2-restrictions.test.js
+
+- **Created:** 2025-10-28
+- **Last Modified:** 2025-10-28 (P2-3 Phase 2)
+- **Test Count:** 13 tests
+- **Status:** ✅ PASSING (with extension)
+- **Flags:** ✅ **P1-3 RACE CONDITIONS TESTED**
+- **API Functions Tested:**
+  - `captureScreenshot(tabId, opts)` - Restrictions and concurrency
+  - `getPageMetadata(tabId)` - Restrictions and concurrency
+- **Purpose:** P2-3 Phase 2 - Chrome restrictions, concurrency, race conditions
+- **What It Tests:**
+  - Chrome API restrictions (about:blank, data:, chrome://, file://)
+  - Concurrency (same tab, multiple tabs, mixed commands)
+  - Race conditions (tab closure, tab navigation)
+  - Content types (iframe, canvas)
+- **Issues Found:** None (restrictions working correctly)
+- **Fixtures:**
+  - iframe-test.html (embedded iframe with data: URL)
+  - canvas-test.html (canvas with drawn rectangles)
+- **Dependencies:** Extension loaded
+- **Security:** Tests P1-3 race condition documentation accuracy
+
+### tests/integration/p2-3-phase3-visual.test.js
+
+- **Created:** 2025-10-28
+- **Last Modified:** 2025-10-28 (P2-3 Phase 3)
+- **Test Count:** 10 tests
+- **Status:** ✅ PASSING (with extension)
+- **Flags:** None
+- **API Functions Tested:**
+  - `captureScreenshot(tabId, opts)` - Visual quality verification
+- **Purpose:** P2-3 Phase 3 - Screenshot quality, format, and visual content
+- **What It Tests:**
+  - Format validation (PNG/JPEG binary signatures)
+  - Quality comparison (100 vs 50, 100 vs 0, PNG vs JPEG)
+  - Size validation (reasonable bounds, compression ratios)
+  - Visual content (canvas, iframe, text+gradients)
+- **Issues Found:** None (quality verification working)
+- **Fixtures:**
+  - text-content-test.html (gradient background, colorful text)
+  - canvas-test.html (reused from Phase 2)
+  - iframe-test.html (reused from Phase 2)
+- **Dependencies:** Extension loaded, Node.js 12+ (Buffer indexing)
+- **Note:** May be flaky in CI (window size variation)
+
 ---
 
 ## 5️⃣ TAB MANAGEMENT (3 API Functions)
 
 **API Functions Tested:**
+
 1. `openUrl(url, opts)` - Open URL in tab
 2. `reloadTab(tabId, opts)` - Reload tab
 3. `closeTab(tabId)` - Close tab
 
 **Plus Internal:**
+
 - Auto-tracking (test orchestration)
 - Auto-cleanup on test end
 - Orphan detection
 
 ### tests/unit/tab-cleanup.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 20 tests
@@ -476,6 +595,7 @@
 - **Dependencies:** Extension loaded
 
 ### tests/boundary/tab-cleanup-boundary.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 10 tests
@@ -494,6 +614,7 @@
 - **Dependencies:** Extension loaded
 
 ### tests/chaos/tab-cleanup-adversarial.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 8 tests
@@ -516,32 +637,64 @@
 ## 6️⃣ PAGE METADATA EXTRACTION (1 API Function)
 
 **API Functions Tested:**
-1. `getPageMetadata(tabId)` - Extract page metadata (data-* attributes, window.testMetadata)
+
+1. `getPageMetadata(tabId)` - Extract page metadata (data-\* attributes, window.testMetadata)
 
 ### tests/unit/page-metadata.test.js
+
 - **Created:** 2025-10-24
-- **Last Modified:** 2025-10-24
-- **Test Count:** 15 tests
-- **Status:** ⚠️ PARTIALLY FAILING
-- **Flags:** 🐛 **BUG FOUND** (ISSUE-001 data URI iframe leak)
+- **Last Modified:** 2025-10-28 (P1-1: Size limit tests added)
+- **Test Count:** 18 tests (15 original + 3 P1-1)
+- **Status:** ✅ PASSING
+- **Flags:** ✅ **P1-1 SIZE LIMIT IMPLEMENTED**
 - **API Functions Tested:**
-  - `getPageMetadata(tabId)` - Metadata extraction
-- **Purpose:** Page metadata extraction (data-* attributes, window.testMetadata)
+  - `getPageMetadata(tabId)` - Metadata extraction + validation
+- **Purpose:** Page metadata extraction (data-\* attributes, window.testMetadata)
 - **What It Tests:**
-  - data-* attribute extraction
+  - data-\* attribute extraction
   - window.testMetadata extraction
   - Combined metadata sources
   - Minimal metadata
   - Window-only metadata
+  - **P1-1: 1MB size limit** (rejects oversized metadata)
+  - **P1-1: Size error messages** (shows actual size in KB)
 - **Issues Found:**
-  - **ISSUE-001 (CRITICAL):** Data URI iframe metadata leaks to main page
+  - **P1-1 (HIGH):** No size limit allowed DoS via memory exhaustion (FIXED)
 - **Fixtures:**
   - metadata-test.html (comprehensive)
   - metadata-minimal.html (one attribute)
   - metadata-window-only.html (window.testMetadata only)
+  - metadata-1mb-limit.html (950KB at limit - P1-1)
+  - metadata-over-1mb.html (1.5MB over limit - P1-1)
 - **Dependencies:** Extension loaded
 
+### tests/integration/p1-2-metadata-edge-cases.test.js
+
+- **Created:** 2025-10-28
+- **Last Modified:** 2025-10-28 (P1-1, P1-2)
+- **Test Count:** 4 tests
+- **Status:** ✅ PASSING (with extension)
+- **Flags:** ✅ **P1-2 CIRCULAR REFS FIXED**
+- **API Functions Tested:**
+  - `getPageMetadata(tabId)` - Circular references and large metadata
+- **Purpose:** P1-1, P1-2 edge case integration tests
+- **What It Tests:**
+  - Large metadata (~500KB but under limit)
+  - Metadata at 1MB boundary
+  - Metadata exceeding 1MB limit (rejection)
+  - **P1-2: Circular reference handling** (WeakSet-based)
+- **Issues Found:**
+  - **P1-2 (MEDIUM):** Circular references caused JSON.stringify to crash (FIXED)
+- **Fixtures:**
+  - metadata-large.html (~500KB test data)
+  - metadata-1mb-limit.html (at 1MB boundary)
+  - metadata-over-1mb.html (exceeds limit)
+  - metadata-circular-ref.html (circular object references)
+- **Dependencies:** Extension loaded
+- **Security:** Tests P1-1 DoS prevention
+
 ### tests/integration/edge-cases.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 12 tests
@@ -563,6 +716,7 @@
 ## 7️⃣ TEST ORCHESTRATION (5 API Functions)
 
 **API Functions Tested:**
+
 1. `startTest(id, opts)` - Start orchestrated test
 2. `endTest(id, result)` - End test with cleanup
 3. `getTestStatus()` - Get active test info
@@ -570,6 +724,7 @@
 5. `verifyCleanup(opts)` - Check for orphaned tabs
 
 ### tests/unit/test-orchestration.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 18 tests
@@ -593,6 +748,7 @@
 - **Dependencies:** Extension loaded
 
 ### tests/security/tab-cleanup-security.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 8 tests
@@ -615,11 +771,13 @@
 ## 8️⃣ CRASH RECOVERY (Internal Infrastructure)
 
 **Internal Mechanisms Tested:**
+
 - Automatic crash detection (lastShutdown === null)
 - State persistence (chrome.storage.session every 30s)
 - State recovery (test state, capture state, tracked tabs)
 
 ### tests/crash-recovery.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 15 tests
@@ -647,6 +805,7 @@
 ## 9️⃣ WEBSOCKET & SERVER (Internal Infrastructure)
 
 **Internal Mechanisms Tested:**
+
 - Auto-start server
 - WebSocket connection
 - Message routing (API → Extension → API)
@@ -654,6 +813,7 @@
 - HTTP fixture server
 
 ### tests/integration/websocket-server.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 6 tests
@@ -674,6 +834,7 @@
 - **Dependencies:** Server auto-start
 
 ### tests/integration/api-client.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 10 tests
@@ -693,6 +854,7 @@
 - **Dependencies:** Server running, extension loaded
 
 ### tests/security/websocket-server-security.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 12 tests
@@ -718,12 +880,14 @@
 ## 🔟 HEALTH MONITORING (Internal Infrastructure)
 
 **Internal Mechanisms Tested:**
+
 - HealthManager system
 - Extension socket tracking
 - API socket tracking
 - Health events
 
 ### tests/unit/health-manager.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 25 tests
@@ -741,6 +905,7 @@
 - **Dependencies:** src/health/health-manager.js
 
 ### tests/unit/health-manager-api-socket.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 15 tests
@@ -758,6 +923,7 @@
 - **Dependencies:** src/health/health-manager.js
 
 ### tests/unit/health-manager-observers.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 10 tests
@@ -775,6 +941,7 @@
 - **Dependencies:** src/health/health-manager.js
 
 ### tests/integration/health-manager-realws.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 15 tests
@@ -798,6 +965,7 @@
 **Purpose:** Test multiple features working together
 
 ### tests/integration/multi-feature-integration.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 12 tests
@@ -816,6 +984,7 @@
 - **Dependencies:** Extension loaded, server running
 
 ### tests/integration/edge-cases-stress.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 8 tests
@@ -843,6 +1012,7 @@
 **Purpose:** Performance under load
 
 ### tests/performance/health-manager-performance.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 5 tests
@@ -866,6 +1036,7 @@
 **Purpose:** Test the tests themselves
 
 ### tests/meta/test-quality.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 5 tests
@@ -892,6 +1063,7 @@
 **Purpose:** Tests for specific development phases
 
 ### tests/integration/phase-1.1.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 10 tests
@@ -907,6 +1079,7 @@
 - **Dependencies:** Extension loaded
 
 ### tests/integration/phase-1.1-medium.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 15 tests
@@ -922,6 +1095,7 @@
 - **Dependencies:** Extension loaded
 
 ### tests/integration/dogfooding.test.js
+
 - **Created:** 2025-10-24
 - **Last Modified:** 2025-10-24
 - **Test Count:** 6 tests
@@ -945,6 +1119,7 @@
 **Purpose:** Placeholder tests for future features
 
 ### tests/integration/native-messaging.test.js
+
 - **Created:** 2025-10-25
 - **Last Modified:** 2025-10-25
 - **Test Count:** 8 tests
@@ -974,30 +1149,31 @@
 
 **All 20 Public API Functions:**
 
-| API Function | Primary Test(s) | Integration Tests | Status |
-|--------------|----------------|-------------------|--------|
-| `getAllExtensions()` | api/index.test.js | complete-system.test.js | ✅ 100% |
-| `getExtensionInfo(id)` | api/index.test.js | complete-system.test.js | ✅ 100% |
-| `enableExtension(id)` | api/index.test.js | complete-system.test.js | ✅ 100% |
-| `disableExtension(id)` | api/index.test.js | complete-system.test.js | ✅ 100% |
-| `toggleExtension(id)` | api/index.test.js | complete-system.test.js | ✅ 100% |
-| `reload(id, opts)` | api/index.test.js | complete-system.test.js, dogfooding.test.js | ✅ 100% |
-| `reloadAndCapture(id, opts)` | api/index.test.js | complete-system.test.js | ✅ 100% |
-| `captureLogs(duration)` | complete-system.test.js | adversarial-tests.test.js, edge-cases-complete.test.js | ✅ 100% |
-| `captureScreenshot(tabId, opts)` | screenshot.test.js | screenshot-security.test.js, screenshot-visual-verification.test.js | ✅ 100% |
-| `forceReload()` | hard-reload.test.js | service-worker-api.test.js | ✅ 100% |
-| `level4Reload(id, opts)` | level4-reload-cdp.test.js, level4-reload-auto-detect.test.js | level4-reload.test.js | ⚠️ 85% (blocked) |
-| `openUrl(url, opts)` | tab-cleanup.test.js | complete-system.test.js, adversarial-tests.test.js | ✅ 100% |
-| `reloadTab(tabId, opts)` | complete-system.test.js | edge-cases-complete.test.js | ✅ 100% |
-| `closeTab(tabId)` | tab-cleanup.test.js | complete-system.test.js | ✅ 100% |
-| `getPageMetadata(tabId)` | page-metadata.test.js | adversarial-tests.test.js, edge-cases.test.js | ⚠️ 90% (ISSUE-001) |
-| `startTest(id, opts)` | test-orchestration.test.js | complete-system.test.js | ✅ 100% |
-| `endTest(id, result)` | test-orchestration.test.js | complete-system.test.js, tab-cleanup-security.test.js | ✅ 100% |
-| `getTestStatus()` | test-orchestration.test.js | complete-system.test.js | ✅ 100% |
-| `abortTest(id, reason)` | test-orchestration.test.js | complete-system.test.js | ✅ 100% |
-| `verifyCleanup(opts)` | test-orchestration.test.js | complete-system.test.js, tab-cleanup-boundary.test.js | ✅ 100% |
+| API Function                     | Primary Test(s)                                              | Integration Tests                                                   | Status             |
+| -------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- | ------------------ |
+| `getAllExtensions()`             | api/index.test.js                                            | complete-system.test.js                                             | ✅ 100%            |
+| `getExtensionInfo(id)`           | api/index.test.js                                            | complete-system.test.js                                             | ✅ 100%            |
+| `enableExtension(id)`            | api/index.test.js                                            | complete-system.test.js                                             | ✅ 100%            |
+| `disableExtension(id)`           | api/index.test.js                                            | complete-system.test.js                                             | ✅ 100%            |
+| `toggleExtension(id)`            | api/index.test.js                                            | complete-system.test.js                                             | ✅ 100%            |
+| `reload(id, opts)`               | api/index.test.js                                            | complete-system.test.js, dogfooding.test.js                         | ✅ 100%            |
+| `reloadAndCapture(id, opts)`     | api/index.test.js                                            | complete-system.test.js                                             | ✅ 100%            |
+| `captureLogs(duration)`          | complete-system.test.js                                      | adversarial-tests.test.js, edge-cases-complete.test.js              | ✅ 100%            |
+| `captureScreenshot(tabId, opts)` | screenshot.test.js                                           | screenshot-security.test.js, screenshot-visual-verification.test.js | ✅ 100%            |
+| `forceReload()`                  | hard-reload.test.js                                          | service-worker-api.test.js                                          | ✅ 100%            |
+| `level4Reload(id, opts)`         | level4-reload-cdp.test.js, level4-reload-auto-detect.test.js | level4-reload.test.js                                               | ⚠️ 85% (blocked)   |
+| `openUrl(url, opts)`             | tab-cleanup.test.js                                          | complete-system.test.js, adversarial-tests.test.js                  | ✅ 100%            |
+| `reloadTab(tabId, opts)`         | complete-system.test.js                                      | edge-cases-complete.test.js                                         | ✅ 100%            |
+| `closeTab(tabId)`                | tab-cleanup.test.js                                          | complete-system.test.js                                             | ✅ 100%            |
+| `getPageMetadata(tabId)`         | page-metadata.test.js                                        | adversarial-tests.test.js, edge-cases.test.js                       | ⚠️ 90% (ISSUE-001) |
+| `startTest(id, opts)`            | test-orchestration.test.js                                   | complete-system.test.js                                             | ✅ 100%            |
+| `endTest(id, result)`            | test-orchestration.test.js                                   | complete-system.test.js, tab-cleanup-security.test.js               | ✅ 100%            |
+| `getTestStatus()`                | test-orchestration.test.js                                   | complete-system.test.js                                             | ✅ 100%            |
+| `abortTest(id, reason)`          | test-orchestration.test.js                                   | complete-system.test.js                                             | ✅ 100%            |
+| `verifyCleanup(opts)`            | test-orchestration.test.js                                   | complete-system.test.js, tab-cleanup-boundary.test.js               | ✅ 100%            |
 
 **Overall API Coverage:** 19.85/20 = **99.25%**
+
 - Fully tested: 19 functions
 - Partially blocked: 1 function (level4Reload - 85% complete, requires Chrome debug mode)
 
@@ -1044,15 +1220,15 @@
 
 **Tests Requiring Special Setup:**
 
-| Test File | Infrastructure Required | Blocker | Tests Skipped |
-|-----------|------------------------|---------|---------------|
-| level4-reload-cdp.test.js | Chrome debug mode (`--remote-debugging-port=9222`) | Environment | 14 |
-| level4-reload-auto-detect.test.js | Chrome debug mode | Environment | 18 |
-| level4-reload.test.js | Chrome debug mode | Environment | 8 |
-| screenshot-visual-verification.test.js | OCR (tesseract.js) OR Claude Vision API | Feature not implemented | 3 |
-| native-messaging.test.js | Native messaging implementation | Phase 3 feature | 8 |
-| dogfooding.test.js | allowSelfReload enabled | Configuration | 6 |
-| hard-reload.test.js | Extension loaded | Extension required | ~15 |
+| Test File                              | Infrastructure Required                            | Blocker                 | Tests Skipped |
+| -------------------------------------- | -------------------------------------------------- | ----------------------- | ------------- |
+| level4-reload-cdp.test.js              | Chrome debug mode (`--remote-debugging-port=9222`) | Environment             | 14            |
+| level4-reload-auto-detect.test.js      | Chrome debug mode                                  | Environment             | 18            |
+| level4-reload.test.js                  | Chrome debug mode                                  | Environment             | 8             |
+| screenshot-visual-verification.test.js | OCR (tesseract.js) OR Claude Vision API            | Feature not implemented | 3             |
+| native-messaging.test.js               | Native messaging implementation                    | Phase 3 feature         | 8             |
+| dogfooding.test.js                     | allowSelfReload enabled                            | Configuration           | 6             |
+| hard-reload.test.js                    | Extension loaded                                   | Extension required      | ~15           |
 
 **Total Skipped Due to Infrastructure:** 72 tests
 
@@ -1065,22 +1241,26 @@
 **Total Tests Written:** ~500
 
 **Test Status:**
+
 - ✅ Passing: ~420 tests (84%)
 - ⚠️ Skipped: ~72 tests (14% - infrastructure)
 - ❌ Failing: ~6 tests (1% - ISSUE-001 security bug)
 - 🔀 Flaky: 0 tests
 
 **Issue Detection:**
+
 - 🐛 Bugs Found: 5 issues (ISSUE-001, ISSUE-007, ISSUE-009, validation gaps, fake tests)
 - ✅ Fixes Verified: 3 issues (ISSUE-006, ISSUE-007, ISSUE-009)
 - 🔒 Security Issues: 1 critical (ISSUE-001)
 
 **API Coverage:**
+
 - Public API: 99.25% (19.85/20 functions)
 - Internal Mechanisms: 100% (29/29)
 - Security Features: 100% (6/6)
 
 **Test Quality:**
+
 - Fake Test Rate: 0% (down from 4%)
 - Test-First Discipline: 100% (Level 4 reload: 60 tests written before implementation)
 - Reality Check: 100% (all tests import real code, have assertions, will fail when code breaks)

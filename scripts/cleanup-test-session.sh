@@ -2,120 +2,120 @@
 # Cleanup after test/debug session
 # Run this before marking task complete
 
-echo "🧹 Cleaning up test session..."
-echo ""
+printf "%s\n" "🧹 Cleaning up test session..."
+printf "\n"
 
 # Kill Chrome instances (testing profile)
-echo "🔍 Checking for Chrome (testing profile)..."
+printf "%s\n" "🔍 Checking for Chrome (testing profile)..."
 CHROME_PIDS=$(ps aux | grep "chrome.*tmp.*chrome-dev-assist-testing" | grep -v grep | awk '{print $2}')
 if [ -n "$CHROME_PIDS" ]; then
-  echo "   Found Chrome PIDs: $CHROME_PIDS"
+  printf "   Found Chrome PIDs: %s\n" "$CHROME_PIDS"
   for PID in $CHROME_PIDS; do
-    kill $PID 2>/dev/null && echo "   ✅ Killed Chrome PID: $PID" || echo "   ⚠️  Could not kill PID: $PID"
+    kill $PID 2>/dev/null && printf "   ✅ Killed Chrome PID: %s\n" "$PID" || printf "   ⚠️  Could not kill PID: %s\n" "$PID"
   done
 else
-  echo "   ✅ No Chrome test instances found"
+  printf "%s\n" "   ✅ No Chrome test instances found"
 fi
 
 # Kill WebSocket server
-echo ""
-echo "🔍 Checking for WebSocket server..."
+printf "\n"
+printf "%s\n" "🔍 Checking for WebSocket server..."
 if [ -f .server-pid ]; then
   SERVER_PID=$(cat .server-pid)
   if ps -p $SERVER_PID > /dev/null 2>&1; then
-    kill $SERVER_PID 2>/dev/null && echo "   ✅ Server killed (PID: $SERVER_PID)" || echo "   ⚠️  Could not kill server"
+    kill $SERVER_PID 2>/dev/null && printf "   ✅ Server killed (PID: %s)\n" "$SERVER_PID" || printf "%s\n" "   ⚠️  Could not kill server"
   else
-    echo "   ℹ️  Server PID $SERVER_PID not running"
+    printf "   ℹ️  Server PID %s not running\n" "$SERVER_PID"
   fi
   rm .server-pid
-  echo "   ✅ Removed .server-pid file"
+  printf "%s\n" "   ✅ Removed .server-pid file"
 else
   # Try to find server by process name
   SERVER_PIDS=$(ps aux | grep "node.*websocket-server" | grep -v grep | awk '{print $2}')
   if [ -n "$SERVER_PIDS" ]; then
-    echo "   Found server PIDs: $SERVER_PIDS"
+    printf "   Found server PIDs: %s\n" "$SERVER_PIDS"
     for PID in $SERVER_PIDS; do
-      kill $PID 2>/dev/null && echo "   ✅ Killed server PID: $PID" || echo "   ⚠️  Could not kill PID: $PID"
+      kill $PID 2>/dev/null && printf "   ✅ Killed server PID: %s\n" "$PID" || printf "   ⚠️  Could not kill PID: %s\n" "$PID"
     done
   else
-    echo "   ✅ No server found"
+    printf "%s\n" "   ✅ No server found"
   fi
 fi
 
 # Kill any background test processes
-echo ""
-echo "🔍 Checking for background test processes..."
+printf "\n"
+printf "%s\n" "🔍 Checking for background test processes..."
 TEST_PIDS=$(ps aux | grep "npm.*test" | grep -v grep | awk '{print $2}')
 if [ -n "$TEST_PIDS" ]; then
-  echo "   Found test PIDs: $TEST_PIDS"
+  printf "   Found test PIDs: %s\n" "$TEST_PIDS"
   for PID in $TEST_PIDS; do
-    kill $PID 2>/dev/null && echo "   ✅ Killed test PID: $PID" || echo "   ⚠️  Could not kill PID: $PID"
+    kill $PID 2>/dev/null && printf "   ✅ Killed test PID: %s\n" "$PID" || printf "   ⚠️  Could not kill PID: %s\n" "$PID"
   done
 else
-  echo "   ✅ No background tests found"
+  printf "%s\n" "   ✅ No background tests found"
 fi
 
 # Remove temporary files
-echo ""
-echo "🔍 Checking for temporary files..."
+printf "\n"
+printf "%s\n" "🔍 Checking for temporary files..."
 TEMP_FILES=$(find . -maxdepth 1 -name "test-*.js" -o -name "reload-*.sh" 2>/dev/null)
 if [ -n "$TEMP_FILES" ]; then
-  echo "   Found temp files:"
-  echo "$TEMP_FILES" | sed 's/^/     /'
-  rm -f test-*.js reload-*.sh 2>/dev/null && echo "   ✅ Temp files removed" || echo "   ⚠️  Could not remove some files"
+  printf "%s\n" "   Found temp files:"
+  printf "%s\n" "$TEMP_FILES" | sed 's/^/     /'
+  rm -f test-*.js reload-*.sh 2>/dev/null && printf "%s\n" "   ✅ Temp files removed" || printf "%s\n" "   ⚠️  Could not remove some files"
 else
-  echo "   ✅ No temp files found"
+  printf "%s\n" "   ✅ No temp files found"
 fi
 
 # Remove debug logging (check for 🔍 DEBUG markers)
-echo ""
-echo "🔍 Checking for debug logging in code..."
+printf "\n"
+printf "%s\n" "🔍 Checking for debug logging in code..."
 DEBUG_FILES=$(grep -r "🔍 DEBUG" extension/ server/ 2>/dev/null | cut -d: -f1 | sort -u)
 if [ -n "$DEBUG_FILES" ]; then
-  echo "   ⚠️  Found debug logging in:"
-  echo "$DEBUG_FILES" | sed 's/^/     /'
-  echo "   ⚠️  MANUAL ACTION REQUIRED: Remove debug logging before commit"
+  printf "%s\n" "   ⚠️  Found debug logging in:"
+  printf "%s\n" "$DEBUG_FILES" | sed 's/^/     /'
+  printf "%s\n" "   ⚠️  MANUAL ACTION REQUIRED: Remove debug logging before commit"
 else
-  echo "   ✅ No debug logging found"
+  printf "%s\n" "   ✅ No debug logging found"
 fi
 
 # Verify cleanup
-echo ""
-echo "═══════════════════════════════════════"
-echo "🔍 VERIFICATION"
-echo "═══════════════════════════════════════"
+printf "\n"
+printf "%s\n" "═══════════════════════════════════════"
+printf "%s\n" "🔍 VERIFICATION"
+printf "%s\n" "═══════════════════════════════════════"
 
-echo ""
-echo "Chrome test instances:"
+printf "\n"
+printf "%s\n" "Chrome test instances:"
 REMAINING_CHROME=$(ps aux | grep "chrome.*tmp.*chrome-dev-assist" | grep -v grep)
 if [ -n "$REMAINING_CHROME" ]; then
-  echo "   ⚠️  Still running:"
-  echo "$REMAINING_CHROME" | sed 's/^/     /'
+  printf "%s\n" "   ⚠️  Still running:"
+  printf "%s\n" "$REMAINING_CHROME" | sed 's/^/     /'
 else
-  echo "   ✅ None found"
+  printf "%s\n" "   ✅ None found"
 fi
 
-echo ""
-echo "Node/Server processes:"
-REMAINING_NODE=$(ps aux | grep -E "node.*(server|test)" | grep -v grep)
+printf "\n"
+printf "%s\n" "Node/Server processes:"
+REMAINING_NODE=$(ps aux | grep -F "node" | grep -F "server" | grep -v grep)
 if [ -n "$REMAINING_NODE" ]; then
-  echo "   ⚠️  Still running:"
-  echo "$REMAINING_NODE" | sed 's/^/     /'
+  printf "%s\n" "   ⚠️  Still running:"
+  printf "%s\n" "$REMAINING_NODE" | sed 's/^/     /'
 else
-  echo "   ✅ None found"
+  printf "%s\n" "   ✅ None found"
 fi
 
-echo ""
-echo "Temporary files:"
+printf "\n"
+printf "%s\n" "Temporary files:"
 REMAINING_TEMP=$(find . -maxdepth 1 -name "test-*.js" -o -name "reload-*.sh" 2>/dev/null)
 if [ -n "$REMAINING_TEMP" ]; then
-  echo "   ⚠️  Still present:"
-  echo "$REMAINING_TEMP" | sed 's/^/     /'
+  printf "%s\n" "   ⚠️  Still present:"
+  printf "%s\n" "$REMAINING_TEMP" | sed 's/^/     /'
 else
-  echo "   ✅ None found"
+  printf "%s\n" "   ✅ None found"
 fi
 
-echo ""
-echo "═══════════════════════════════════════"
-echo "✅ Cleanup complete!"
-echo "═══════════════════════════════════════"
+printf "\n"
+printf "%s\n" "═══════════════════════════════════════"
+printf "%s\n" "✅ Cleanup complete!"
+printf "%s\n" "═══════════════════════════════════════"

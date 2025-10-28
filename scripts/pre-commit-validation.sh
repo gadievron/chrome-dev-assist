@@ -23,77 +23,77 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$PROJECT_DIR"
 
-echo ""
-echo "🔒 Pre-Commit Validation"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
+printf "\n"
+printf "%s\n" "🔒 Pre-Commit Validation"
+printf "%s\n" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+printf "\n"
 
 # Check 1: Extension syntax validation
-echo "1️⃣  Validating Chrome extension syntax..."
-echo ""
+printf "%s\n" "1️⃣  Validating Chrome extension syntax..."
+printf "\n"
 
 if node scripts/validate-extension-syntax.js; then
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
+  printf "%s\n" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  printf "\n"
 else
-  echo ""
-  echo "❌ VALIDATION FAILED: Extension syntax errors found"
-  echo ""
-  echo "Fix the errors above before committing."
-  echo ""
+  printf "\n"
+  printf "%s\n" "❌ VALIDATION FAILED: Extension syntax errors found"
+  printf "\n"
+  printf "%s\n" "Fix the errors above before committing."
+  printf "\n"
   exit 1
 fi
 
 # Check 2: Unit tests
-echo "2️⃣  Running unit tests..."
-echo ""
+printf "%s\n" "2️⃣  Running unit tests..."
+printf "\n"
 
-if npm test -- --testPathPattern=unit 2>&1 | grep -E "Tests:|PASS|FAIL" || true; then
-  echo ""
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
+if npm test -- --testPathPattern=unit 2>&1 | grep -F "Tests:" || grep -F "PASS" || grep -F "FAIL" || true; then
+  printf "\n"
+  printf "%s\n" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  printf "\n"
 else
-  echo ""
-  echo "❌ VALIDATION FAILED: Unit tests failed"
-  echo ""
+  printf "\n"
+  printf "%s\n" "❌ VALIDATION FAILED: Unit tests failed"
+  printf "\n"
   exit 1
 fi
 
 # Check 3: Extension health (optional - can be skipped)
 if [[ "$*" == *"--skip-health"* ]]; then
-  echo "⏭️  Skipping extension health check (--skip-health flag)"
-  echo ""
+  printf "%s\n" "⏭️  Skipping extension health check (--skip-health flag)"
+  printf "\n"
 else
-  echo "3️⃣  Checking extension health (optional)..."
-  echo ""
-  echo "   This checks if extension is loaded and working."
-  echo "   Skip with: --skip-health flag"
-  echo ""
+  printf "%s\n" "3️⃣  Checking extension health (optional)..."
+  printf "\n"
+  printf "%s\n" "   This checks if extension is loaded and working."
+  printf "%s\n" "   Skip with: --skip-health flag"
+  printf "\n"
 
   if node scripts/check-extension-health.js 2>&1; then
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
+    printf "%s\n" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    printf "\n"
   else
-    echo ""
-    echo "⚠️  Extension health check failed"
-    echo ""
-    echo "This is optional, but recommended before committing extension changes."
-    echo ""
-    echo "Continue anyway? (y/N): "
+    printf "\n"
+    printf "%s\n" "⚠️  Extension health check failed"
+    printf "\n"
+    printf "%s\n" "This is optional, but recommended before committing extension changes."
+    printf "\n"
+    printf "%s\n" "Continue anyway? (y/N): "
     read -r response
     if [[ ! "$response" =~ ^[Yy]$ ]]; then
-      echo ""
-      echo "Commit cancelled. Fix extension health or use --skip-health flag."
-      echo ""
+      printf "\n"
+      printf "%s\n" "Commit cancelled. Fix extension health or use --skip-health flag."
+      printf "\n"
       exit 1
     fi
-    echo ""
+    printf "\n"
   fi
 fi
 
-echo "✅ ALL VALIDATIONS PASSED"
-echo ""
-echo "Safe to commit! 🚀"
-echo ""
+printf "%s\n" "✅ ALL VALIDATIONS PASSED"
+printf "\n"
+printf "%s\n" "Safe to commit! 🚀"
+printf "\n"
 
 exit 0

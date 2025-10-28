@@ -1,7 +1,7 @@
 # Chrome Dev Assist - API Documentation
 
-**Version**: 1.0.0 (ACTUAL - Verified 2025-10-27)
-**Last Updated**: 2025-10-27
+**Version**: 1.0.0 (ACTUAL - Verified 2025-10-28)
+**Last Updated**: 2025-10-28 (P1-P2 Implementation Complete)
 **Status:** ✅ ACCURATE - All documented functions exist in code
 
 ⚠️ **IMPORTANT:** This document has been updated to reflect ONLY the functions that actually exist in the code. Previous versions documented planned v1.1.0 and v1.2.0 features that were never implemented. See `PLANNED-FEATURES.md` for future roadmap.
@@ -23,10 +23,7 @@ const chromeDevAssist = require('./claude-code/index.js');
 await chromeDevAssist.reload('your-extension-id-here');
 
 // Reload + capture console logs (5 seconds)
-const result = await chromeDevAssist.reloadAndCapture(
-  'your-extension-id-here',
-  { duration: 5000 }
-);
+const result = await chromeDevAssist.reloadAndCapture('your-extension-id-here', { duration: 5000 });
 console.log(result.consoleLogs);
 
 // Capture logs only (no reload)
@@ -47,6 +44,7 @@ This extension requires **broad permissions** to enable test automation:
 - **`management`** - Can control ALL extensions
 
 **If this extension were compromised, an attacker could:**
+
 - Read all web page content (including sensitive data)
 - Steal cookies, session tokens, and credentials
 - Inject malicious code into any website
@@ -54,6 +52,7 @@ This extension requires **broad permissions** to enable test automation:
 - Capture screenshots of everything you view
 
 **REQUIRED Security Practices:**
+
 1. ✅ **Install ONLY in dedicated test browser profile** - Never in personal browser
 2. ✅ **Uninstall immediately after testing** - Don't leave permanently installed
 3. ✅ **Use isolated test environment** - No real credentials or personal data
@@ -65,6 +64,7 @@ This extension requires **broad permissions** to enable test automation:
 **CRITICAL**: `captureScreenshot()` captures **ALL visible content** without discrimination:
 
 **What gets captured:**
+
 - ❌ **Passwords** (even if displayed as dots/asterisks - OCR can reveal)
 - ❌ **Credit card numbers** and CVV codes
 - ❌ **Social Security Numbers** and tax documents
@@ -75,6 +75,7 @@ This extension requires **broad permissions** to enable test automation:
 - ❌ **Proprietary business data**
 
 **Security Requirements:**
+
 1. ✅ **Synthetic data ONLY** - Never use real user data in tests
 2. ✅ **Isolated test environment** - Dedicated browser profile with fake accounts
 3. ✅ **Immediate deletion** - Clear screenshots after each test run
@@ -84,12 +85,14 @@ This extension requires **broad permissions** to enable test automation:
 7. ✅ **Data retention policy** - Automatic deletion after N days
 
 **Compliance Considerations:**
+
 - **GDPR** - Screenshots may constitute personal data processing
 - **HIPAA** - Medical screenshots are protected health information
 - **PCI DSS** - Credit card screenshots violate card data storage rules
 - **SOC 2** - Screenshots require security controls and audit trails
 
 **For production testing:**
+
 - Use **masked data** in test environments
 - Implement **screenshot review process** before storage
 - Apply **automatic PII detection** and redaction
@@ -104,22 +107,26 @@ This extension requires **broad permissions** to enable test automation:
 The Chrome Dev Assist extension includes **automatic self-healing** to recover from persistent connection failures.
 
 **How It Works:**
+
 - When WebSocket connection to server is lost, extension attempts to reconnect every 1 second
 - If reconnection fails for **60 seconds**, extension automatically reloads itself
 - On successful reconnection, self-heal timer is cancelled
 - Maximum **3 reload attempts** before giving up (prevents infinite loops if server is permanently down)
 
 **Why This Matters:**
+
 - Extension won't get stuck in a bad state
 - Automatically recovers from transient failures
 - Balances false positives (temporary network issues) vs recovery time
 
 **User-Facing Behavior:**
+
 - **Normal operation:** No visible effect
 - **Temporary server restart:** Reconnects within seconds, no reload
 - **Persistent connection loss:** Extension reloads after 60s, reconnects automatically
 
 **Logs to Monitor:**
+
 ```javascript
 [ChromeDevAssist] Self-heal timer started (60s until reload)
 [ChromeDevAssist] Self-heal timer cancelled (reconnection successful)
@@ -127,10 +134,12 @@ The Chrome Dev Assist extension includes **automatic self-healing** to recover f
 ```
 
 **Configuration:**
+
 - `SELF_HEAL_TIMEOUT_MS`: 60 seconds (validated minimum: 5 seconds)
 - `MAX_SELF_HEAL_ATTEMPTS`: 3 attempts before giving up
 
 **Implementation Details:**
+
 - See `.BUG-FIXES-PERSONA-REVIEW-2025-10-27.md` for multi-persona review findings
 - See `.SESSION-SUMMARY-SELF-HEALING-2025-10-27.md` for complete implementation documentation
 
@@ -141,9 +150,11 @@ The Chrome Dev Assist extension includes **automatic self-healing** to recover f
 ### Extension Management (2 functions)
 
 #### `getAllExtensions()`
+
 Get list of all installed Chrome extensions
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   extensions: [
@@ -160,6 +171,7 @@ Get list of all installed Chrome extensions
 ```
 
 **Example**:
+
 ```javascript
 const result = await chromeDevAssist.getAllExtensions();
 console.log(`Found ${result.count} extensions`);
@@ -171,12 +183,15 @@ result.extensions.forEach(ext => {
 ---
 
 #### `getExtensionInfo(extensionId)`
+
 Get detailed information about specific extension
 
 **Parameters**:
+
 - `extensionId` (string, required): Chrome extension ID (32 characters)
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   id: 'abc...',
@@ -192,6 +207,7 @@ Get detailed information about specific extension
 ```
 
 **Example**:
+
 ```javascript
 const info = await chromeDevAssist.getExtensionInfo('abcdefghijklmnopqrstuvwxyzabcdef');
 console.log(`Extension: ${info.name} v${info.version}`);
@@ -204,12 +220,15 @@ console.log(`Permissions: ${info.permissions.join(', ')}`);
 ### Extension Reload & Console Capture (3 functions)
 
 #### `reload(extensionId)`
+
 Reload extension (disable + enable)
 
 **Parameters**:
+
 - `extensionId` (string, required): Chrome extension ID (32 characters)
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   extensionId: 'abc...',
@@ -219,6 +238,7 @@ Reload extension (disable + enable)
 ```
 
 **Example**:
+
 ```javascript
 const result = await chromeDevAssist.reload('abcdefghijklmnopqrstuvwxyzabcdef');
 console.log(`Reloaded: ${result.extensionName}`);
@@ -227,14 +247,17 @@ console.log(`Reloaded: ${result.extensionName}`);
 ---
 
 #### `reloadAndCapture(extensionId, options)`
+
 Reload extension AND capture console logs
 
 **Parameters**:
+
 - `extensionId` (string, required): Chrome extension ID
 - `options` (Object, optional):
   - `duration` (number): Capture duration ms (default: 5000, max: 60000)
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   extensionId: 'abc...',
@@ -255,11 +278,11 @@ Reload extension AND capture console logs
 ```
 
 **Example**:
+
 ```javascript
-const result = await chromeDevAssist.reloadAndCapture(
-  'abcdefghijklmnopqrstuvwxyzabcdef',
-  { duration: 3000 }
-);
+const result = await chromeDevAssist.reloadAndCapture('abcdefghijklmnopqrstuvwxyzabcdef', {
+  duration: 3000,
+});
 
 // Check for errors
 const errors = result.consoleLogs.filter(log => log.level === 'error');
@@ -276,12 +299,15 @@ if (errors.length > 0) {
 ---
 
 #### `captureLogs(duration)`
+
 Capture console logs WITHOUT reloading
 
 **Parameters**:
+
 - `duration` (number, optional): Capture duration ms (default: 5000, max: 60000)
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   consoleLogs: [
@@ -301,6 +327,7 @@ Capture console logs WITHOUT reloading
 ```
 
 **Example**:
+
 ```javascript
 const result = await chromeDevAssist.captureLogs(5000);
 console.log(`Captured ${result.consoleLogs.length} logs in ${result.duration}ms`);
@@ -318,9 +345,11 @@ console.log(`Errors: ${errors.length}`);
 ### Tab Management (3 functions)
 
 #### `openUrl(url, options)`
+
 Open URL in new tab
 
 **Parameters**:
+
 - `url` (string, required): URL to open (must be valid HTTP/HTTPS URL)
 - `options` (Object, optional):
   - `active` (boolean): Focus the tab (default: true)
@@ -329,6 +358,7 @@ Open URL in new tab
   - `autoClose` (boolean): Auto-close tab after capture (default: false)
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   tabId: 123,
@@ -339,6 +369,7 @@ Open URL in new tab
 ```
 
 **Example**:
+
 ```javascript
 // Simple tab open
 const tab = await chromeDevAssist.openUrl('http://localhost:9876/test.html');
@@ -347,7 +378,7 @@ console.log(`Tab ${tab.tabId} opened`);
 // With console capture
 const result = await chromeDevAssist.openUrl('http://localhost:9876/test.html', {
   captureConsole: true,
-  duration: 3000
+  duration: 3000,
 });
 result.consoleLogs.forEach(log => {
   console.log(`[${log.level}] ${log.message}`);
@@ -357,7 +388,7 @@ result.consoleLogs.forEach(log => {
 const testResult = await chromeDevAssist.openUrl('http://localhost:9876/test.html', {
   captureConsole: true,
   duration: 2000,
-  autoClose: true
+  autoClose: true,
 });
 console.log(`Tab ${testResult.tabId} auto-closed: ${testResult.tabClosed}`);
 ```
@@ -365,9 +396,11 @@ console.log(`Tab ${testResult.tabId} auto-closed: ${testResult.tabClosed}`);
 ---
 
 #### `reloadTab(tabId, options)`
+
 Reload a tab
 
 **Parameters**:
+
 - `tabId` (number, required): Tab ID to reload
 - `options` (Object, optional):
   - `bypassCache` (boolean): Hard reload / Cmd+Shift+R (default: false)
@@ -375,6 +408,7 @@ Reload a tab
   - `duration` (number): Console capture duration ms (default: 5000)
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   tabId: 123,
@@ -383,6 +417,7 @@ Reload a tab
 ```
 
 **Example**:
+
 ```javascript
 // Simple reload
 await chromeDevAssist.reloadTab(123);
@@ -391,7 +426,7 @@ await chromeDevAssist.reloadTab(123);
 const result = await chromeDevAssist.reloadTab(123, {
   bypassCache: true,
   captureConsole: true,
-  duration: 3000
+  duration: 3000,
 });
 console.log(`Captured ${result.consoleLogs.length} logs`);
 ```
@@ -399,19 +434,23 @@ console.log(`Captured ${result.consoleLogs.length} logs`);
 ---
 
 #### `closeTab(tabId)`
+
 Close a tab
 
 **Parameters**:
+
 - `tabId` (number, required): Tab ID to close
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
-  closed: true
+  closed: true;
 }
 ```
 
 **Example**:
+
 ```javascript
 await chromeDevAssist.closeTab(123);
 console.log('Tab closed');
@@ -422,14 +461,17 @@ console.log('Tab closed');
 ### DOM Inspection & Screenshot (2 functions) ✨ NEW
 
 #### `getPageMetadata(tabId)`
+
 Extract DOM metadata from a tab
 
-Extracts metadata including data-* attributes from body element, window.testMetadata object, and basic document properties (title, readyState, URL).
+Extracts metadata including data-\* attributes from body element, window.testMetadata object, and basic document properties (title, readyState, URL).
 
 **Parameters**:
+
 - `tabId` (number, required): Tab ID to extract metadata from
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   tabId: 123,
@@ -457,6 +499,7 @@ Extracts metadata including data-* attributes from body element, window.testMeta
 ```
 
 **Example**:
+
 ```javascript
 // Extract metadata from a test page
 const result = await chromeDevAssist.getPageMetadata(tabId);
@@ -477,35 +520,85 @@ if (result.metadata.readyState === 'complete') {
 ```
 
 **Input Validation**:
+
 - `tabId` must be a positive integer
 - `tabId` must be within safe integer range (`Number.MAX_SAFE_INTEGER`)
 - Throws detailed error messages for invalid inputs
 
+**Security & Limits (P1-1)**:
+
+- **Maximum metadata size**: 1MB (1,048,576 bytes)
+- **DoS Prevention**: Rejects oversized metadata to prevent memory exhaustion
+- Error message includes actual size: `"Metadata too large: 1025KB exceeds 1MB limit"`
+- Size measured in UTF-8 bytes (not character count)
+
+**Circular Reference Handling (P1-2)**:
+
+- Automatically handles circular references in `window.testMetadata`
+- Uses WeakSet-based cycle detection (O(1) lookup)
+- Circular refs replaced with `"[Circular]"` string markers
+- Example: `{ a: obj, b: obj }` where `obj.self = obj` → `{ a: { self: "[Circular]" }, b: "[Circular]" }`
+- Graceful error fallback if serialization fails
+
+**Race Conditions (P1-3)**:
+This function is subject to Time-Of-Check-Time-Of-Use (TOCTOU) races:
+
+1. **Tab Closure Race**:
+   - Tab may close between validation and extraction
+   - Error: `"No tab with id: X"`
+   - Recovery: Client should retry (transient error)
+
+2. **Tab Navigation Race**:
+   - Tab may navigate during extraction
+   - Result: Metadata from NEW page (not original)
+   - Recovery: Client must verify `result.url` matches expectation
+
+3. **Extension Reload Race**:
+   - Extension may reload during execution
+   - Error: `"Extension context invalidated"`
+   - Recovery: Client should reconnect and retry
+
+**Recovery Strategy**:
+
+- Commands are idempotent (safe to retry)
+- Retry on transient errors (timeout, tab closed, context invalidated)
+- Verify result.url to detect navigation races
+- Fail on permanent errors (invalid tab ID, access denied)
+
 **Edge Cases**:
+
 - Returns basic document properties (title, readyState, url) even if no test metadata present
-- Handles pages with no data-* attributes gracefully
+- Handles pages with no data-\* attributes gracefully
 - Handles pages with no window.testMetadata gracefully
-- Automatically converts data-* attribute names to camelCase (data-test-id → testId)
+- Automatically converts data-\* attribute names to camelCase (data-test-id → testId)
+- Handles circular references in testMetadata gracefully (P1-2)
+- Rejects metadata exceeding 1MB limit (P1-1)
 
 **Test Coverage**:
+
 - 12 validation tests (all passing)
-- 10 integration tests (require extension loaded)
+- 10+ integration tests including P1-1, P1-2 edge cases
+- Circular reference tests: `tests/integration/p1-2-metadata-edge-cases.test.js`
+- Size limit tests: fixtures at 1MB limit and over 1MB
 - See `tests/unit/page-metadata.test.js` for complete test suite
 
 ---
 
 #### `captureScreenshot(tabId, options)`
+
 Capture screenshot of visible area in a tab
 
 ⚠️ **SECURITY WARNING**: Screenshots capture ALL visible content including passwords, PII, and sensitive data. Only use in isolated test environments with synthetic data. See [Security Warnings](#️-security-warnings) section for details.
 
 **Parameters**:
+
 - `tabId` (number, required): Tab ID to capture
 - `options` (Object, optional):
   - `format` (string): Image format - 'png' or 'jpeg' (default: 'png')
   - `quality` (number): JPEG quality 0-100 (default: 90, ignored for PNG)
 
 **Returns**: `Promise<Object>`
+
 ```javascript
 {
   tabId: 123,
@@ -517,6 +610,7 @@ Capture screenshot of visible area in a tab
 ```
 
 **Example**:
+
 ```javascript
 // Capture PNG screenshot (default)
 const screenshot = await chromeDevAssist.captureScreenshot(tabId);
@@ -530,7 +624,7 @@ fs.writeFileSync('screenshot.png', Buffer.from(base64Data, 'base64'));
 // Capture JPEG with custom quality
 const jpegScreenshot = await chromeDevAssist.captureScreenshot(tabId, {
   format: 'jpeg',
-  quality: 80
+  quality: 80,
 });
 console.log(`JPEG screenshot (quality ${jpegScreenshot.quality})`);
 
@@ -543,27 +637,67 @@ console.log('After:', after.timestamp);
 ```
 
 **Input Validation**:
-- `tabId` must be a number
-- `tabId` must be positive
-- `format` must be 'png' or 'jpeg'
-- `quality` must be 0-100 (for JPEG only)
+
+- `tabId` must be a positive integer
+- `tabId` must be within safe integer range (`Number.MAX_SAFE_INTEGER`)
+- `format` must be 'png' or 'jpeg' (case-sensitive lowercase)
+- `quality` must be an integer between 0-100 (for JPEG only) **(P2-2)**
+
+**Quality Validation (P2-2)**:
+
+- **Integer enforcement**: Quality must be a whole number (no fractional values)
+- ✅ Valid: `75`, `90`, `100`, `75.0` (coerced to 75)
+- ❌ Invalid: `75.5`, `99.9`, `0.5` → Throws `"Quality must be an integer between 0 and 100"`
+- **Rationale**: Prevents undefined Chrome API behavior with fractional quality values
+- Only validates user-provided values (not the default 90)
 
 **Format Details**:
+
 - **PNG**: Lossless, larger file size, no quality parameter
 - **JPEG**: Lossy compression, smaller file size, quality parameter controls compression level
   - Quality 0 = maximum compression (smallest file, lowest quality)
   - Quality 100 = minimum compression (largest file, highest quality)
   - Default 90 = good balance between quality and size
 
+**Race Conditions (P1-3)**:
+Same TOCTOU vulnerabilities as `getPageMetadata`:
+
+1. **Tab Closure Race**:
+   - Tab may close during screenshot capture
+   - Error: `"No tab with id: X"`
+   - Recovery: Client should retry
+
+2. **Tab Navigation Race**:
+   - Tab may navigate to different page during capture
+   - Result: Screenshot of NEW page (not original)
+   - **Note**: Cannot verify URL after screenshot (screenshot doesn't include URL)
+   - Recovery: Client should verify tab.url BEFORE calling captureScreenshot
+
+3. **Extension Reload Race**:
+   - Extension may reload during capture
+   - Error: `"Extension context invalidated"`
+   - Recovery: Client should reconnect and retry
+
+**Screenshot-Specific Considerations**:
+
+- Visual changes during capture are possible (animations, dynamic content)
+- Screenshot timestamp may not match exact page state
+- Client should verify tab state BEFORE capture (not after)
+
 **Performance**:
+
 - Typical capture time: < 500ms
 - Captures visible area only (not full page scroll)
 - Maximum size depends on tab viewport size
 
 **Test Coverage**:
-- 18 validation tests (all passing)
-- Additional integration tests (require extension loaded)
-- See `tests/unit/screenshot-validation.test.js` and `tests/unit/screenshot.test.js`
+
+- 21 validation tests including P2-2 integer validation (all passing)
+- 10 visual verification tests (Phase 3: PNG/JPEG signature, quality comparison)
+- 13 integration tests (Phase 2: concurrency, restrictions, content types)
+- See `tests/unit/screenshot-validation.test.js`, `tests/unit/edge-case-validation.test.js`
+- Integration: `tests/integration/p2-3-phase2-restrictions.test.js`
+- Visual: `tests/integration/p2-3-phase3-visual.test.js`
 
 ---
 
@@ -600,11 +734,13 @@ if (!info.mayDisable) {
 ```
 
 **Why:**
+
 - Extensions with `installType: 'admin'` often have `mayDisable: false`
 - Chrome enforces enterprise policies (ExtensionInstallForcelist)
 - Attempting to reload will fail
 
 **Check before reloading:**
+
 ```javascript
 const info = await chromeDevAssist.getExtensionInfo(extensionId);
 
@@ -624,6 +760,7 @@ if (info.mayDisable === false) {
 The `getAllExtensions()` function automatically filters out:
 
 **1. Chrome Dev Assist itself:**
+
 ```javascript
 const result = await chromeDevAssist.getAllExtensions();
 // Will NOT include Chrome Dev Assist in the list
@@ -631,12 +768,14 @@ const result = await chromeDevAssist.getAllExtensions();
 ```
 
 **2. Chrome Apps (type === 'app'):**
+
 ```javascript
 // Only returns extensions, NOT Chrome Apps
 // Chrome Apps use different APIs and cannot be managed the same way
 ```
 
 **Example:**
+
 ```javascript
 const result = await chromeDevAssist.getAllExtensions();
 // Returns only:
@@ -659,9 +798,7 @@ async function testExtension() {
     console.log(`Found ${extensions.count} extensions`);
 
     // 2. Find your extension
-    const myExt = extensions.extensions.find(ext =>
-      ext.name === 'My Extension'
-    );
+    const myExt = extensions.extensions.find(ext => ext.name === 'My Extension');
 
     if (!myExt) {
       throw new Error('Extension not found');
@@ -671,7 +808,7 @@ async function testExtension() {
 
     // 3. Reload and capture logs
     const result = await chromeDevAssist.reloadAndCapture(myExt.id, {
-      duration: 5000
+      duration: 5000,
     });
 
     console.log(`Reload success: ${result.reloadSuccess}`);
@@ -694,11 +831,10 @@ async function testExtension() {
     const tab = await chromeDevAssist.openUrl('http://localhost:9876/test.html', {
       captureConsole: true,
       duration: 3000,
-      autoClose: true
+      autoClose: true,
     });
 
     console.log(`Test page logs: ${tab.consoleLogs.length}`);
-
   } catch (error) {
     console.error('Test failed:', error.message);
     process.exit(1);
@@ -754,33 +890,35 @@ try {
 
 ```javascript
 // ✅ Valid - only uses a-p:
-'gnojocphflllgichkehjhkojkihcihfn'
-'abcdefghijklmnopabcdefghijklmnop'
+'gnojocphflllgichkehjhkojkihcihfn';
+'abcdefghijklmnopabcdefghijklmnop';
 
 // ❌ Invalid - contains letters outside a-p range:
-'abcdefghijklmnopqrstuvwxyzabcdef'  // Contains q-z
+'abcdefghijklmnopqrstuvwxyzabcdef'; // Contains q-z
 // Error: "Invalid extension ID format (must be 32 lowercase letters a-p)"
 
 // ❌ Invalid - wrong length:
-'short'  // Only 5 characters
+'short'; // Only 5 characters
 // Error: "extensionId must be 32 characters"
 
 // ❌ Invalid - contains numbers:
-'abc123def456ghi789jkl012mno345pq'
+'abc123def456ghi789jkl012mno345pq';
 // Error: "Invalid extension ID format (must be 32 lowercase letters a-p)"
 
 // ❌ Invalid - uppercase:
-'GNOJOCPHFLLLGICHKEHJHKOJKIHCIHFN'
+'GNOJOCPHFLLLGICHKEHJHKOJKIHCIHFN';
 // Error: "Invalid extension ID format (must be 32 lowercase letters a-p)"
 ```
 
 **Why a-p only?**
+
 - Chrome generates extension IDs from base-32 encoded public keys
 - Base-32 uses a 32-character alphabet
 - Chrome chose a-p (16 letters) for the alphabet instead of a-z
 - Historical Chrome design decision
 
 **Common Mistakes:**
+
 - Using full alphabet (a-z) ❌
 - Including numbers (0-9) ❌
 - Wrong length (not 32 characters) ❌
@@ -791,6 +929,7 @@ try {
 ### URL Validation
 
 **Allowed Protocols:**
+
 ```javascript
 // ✅ These work:
 await chromeDevAssist.openUrl('http://example.com');
@@ -799,6 +938,7 @@ await chromeDevAssist.openUrl('http://localhost:9876/test.html');
 ```
 
 **Blocked Protocols (Security):**
+
 ```javascript
 // ❌ Dangerous protocols - explicitly blocked:
 await chromeDevAssist.openUrl('javascript:alert(1)');
@@ -815,12 +955,14 @@ await chromeDevAssist.openUrl('file:///etc/passwd');
 ```
 
 **Why Blocked:**
+
 - `javascript:` - Code injection attacks
 - `data:` - XSS via data URLs
 - `vbscript:` - Legacy scripting attacks
 - `file:` - Local file system access (security risk)
 
 **Chrome Internal Pages:**
+
 ```javascript
 // ❌ Chrome prevents extensions from opening chrome:// URLs:
 await chromeDevAssist.openUrl('chrome://extensions');
@@ -867,9 +1009,9 @@ await chromeDevAssist.reloadTab(null);
 
 ```javascript
 // ✅ Valid:
-await chromeDevAssist.captureLogs(5000);   // 5 seconds
-await chromeDevAssist.captureLogs(30000);  // 30 seconds
-await chromeDevAssist.captureLogs(60000);  // 60 seconds (max)
+await chromeDevAssist.captureLogs(5000); // 5 seconds
+await chromeDevAssist.captureLogs(30000); // 30 seconds
+await chromeDevAssist.captureLogs(60000); // 60 seconds (max)
 
 // ❌ Invalid - too short:
 await chromeDevAssist.captureLogs(0);
@@ -880,7 +1022,7 @@ await chromeDevAssist.captureLogs(-1000);
 // Error: "Duration must be between 1 and 60000 ms"
 
 // ❌ Invalid - too long:
-await chromeDevAssist.captureLogs(120000);  // 2 minutes
+await chromeDevAssist.captureLogs(120000); // 2 minutes
 // Error: "Duration must be between 1 and 60000 ms"
 
 // ❌ Invalid - NaN:
@@ -907,6 +1049,7 @@ await chromeDevAssist.captureLogs('5000');
    - Purpose: Safety limit to prevent memory exhaustion if API layer bypassed
 
 **Why two limits?**
+
 - API limit encourages reasonable durations
 - Extension hard limit prevents runaway captures
 - Defense-in-depth architecture
@@ -926,11 +1069,13 @@ WebSocket-based architecture for reliable communication:
 ```
 
 **Components:**
+
 1. **WebSocket Server** - Auto-starts, routes messages (localhost:9876)
 2. **Chrome Extension** - Auto-connects, handles commands
 3. **Node.js API** - Simple interface (`reload`, `reloadAndCapture`, etc.)
 
 **Communication Flow:**
+
 1. Your code calls `chromeDevAssist.reload(extensionId)`
 2. API sends command to WebSocket server
 3. Server routes command to Chrome extension
@@ -976,20 +1121,24 @@ Chrome Dev Assist requires powerful Chrome permissions to function. Understandin
 ### "management" Permission
 
 **What it allows:**
+
 - List all installed extensions
 - Get detailed extension information
 - Enable/disable extensions
 - Listen for extension install/uninstall events
 
 **User sees in Chrome:**
+
 > "Manage your apps, extensions, and themes"
 
 **Required for:**
+
 - `reload()` - Must disable then re-enable extension
 - `getAllExtensions()` - Must query installed extensions
 - `getExtensionInfo()` - Must read extension metadata
 
 **Why necessary:**
+
 - Cannot reload extensions without management permission
 - Cannot query extension state without this permission
 - Core functionality of Chrome Dev Assist
@@ -1001,25 +1150,30 @@ Chrome Dev Assist requires powerful Chrome permissions to function. Understandin
 ### "<all_urls>" Host Permission
 
 **What it allows:**
+
 - Inject content scripts into any website
 - Run scripts in the MAIN world context
 - Capture console logs from all pages
 - Access page content
 
 **User sees in Chrome:**
+
 > "Read and change all your data on all websites"
 
 **Required for:**
+
 - Console log capture from any website
 - Injecting console interception scripts
 - Capturing logs from extension background pages
 
 **Why necessary:**
+
 - Console logs can only be captured by injecting scripts into pages
 - Cannot pre-determine which URLs need monitoring
 - Must have permission for all URLs to capture from any page
 
 **How it's used:**
+
 ```javascript
 // Content script injected at document_start
 // Intercepts console.log(), console.error(), etc.
@@ -1028,6 +1182,7 @@ Chrome Dev Assist requires powerful Chrome permissions to function. Understandin
 ```
 
 **Security note:**
+
 - Chrome Dev Assist is **passive until you call an API function**
 - Content scripts don't automatically capture - only when capture is requested
 - No data is sent to external servers (localhost-only)
@@ -1040,20 +1195,24 @@ Chrome Dev Assist requires powerful Chrome permissions to function. Understandin
 ### Why These Permissions?
 
 **Cannot function without them:**
+
 - Management permission: Required by Chrome API to control extensions
 - Host permission: Required to inject console capture scripts
 
 **Alternatives considered:**
+
 - ❌ Limited URL patterns - Cannot predict which URLs user will test
 - ❌ ActiveTab permission - Doesn't work for background page captures
 - ❌ Manual approval per domain - Too cumbersome for development tool
 
 **Chrome's permission system:**
+
 - User must explicitly approve when installing extension
 - Permissions are shown during installation
 - Can be revoked at any time via `chrome://extensions`
 
 **Trust model:**
+
 - Chrome Dev Assist is a **local development tool**
 - All communication stays on your machine (localhost-only)
 - No telemetry, no external network requests
@@ -1066,6 +1225,7 @@ Chrome Dev Assist requires powerful Chrome permissions to function. Understandin
 ### "Extension not connected"
 
 **Fix:**
+
 1. Open `chrome://extensions`
 2. Verify Chrome Dev Assist is loaded and enabled
 3. Click "service worker" link → check console for connection messages
@@ -1076,6 +1236,7 @@ Chrome Dev Assist requires powerful Chrome permissions to function. Understandin
 ### "Command timeout"
 
 **Fix:**
+
 1. Check extension loaded: `chrome://extensions`
 2. Check extension console for errors
 3. Reload extension manually and retry
@@ -1086,6 +1247,7 @@ Chrome Dev Assist requires powerful Chrome permissions to function. Understandin
 ### "Port 9876 already in use"
 
 **Fix:**
+
 ```bash
 # Kill old server
 pkill -f websocket-server
@@ -1100,11 +1262,13 @@ kill <PID>
 ### No logs captured
 
 **Causes:**
+
 - No browser activity during capture window
 - Capture duration too short
 - Logs occurred before capture started
 
 **Fix:**
+
 - Increase duration: `{duration: 10000}`
 - Open webpages during capture
 - Logs must occur DURING capture window
@@ -1126,10 +1290,7 @@ Shows connection details, message routing, command flow.
 ### Test Multiple Extensions
 
 ```javascript
-const extensions = [
-  'abcdefghijklmnopqrstuvwxyzabcdef',
-  'bcdefghijklmnopqrstuvwxyzabcdefa'
-];
+const extensions = ['abcdefghijklmnopqrstuvwxyzabcdef', 'bcdefghijklmnopqrstuvwxyzabcdefa'];
 
 for (const extId of extensions) {
   const result = await chromeDevAssist.reloadAndCapture(extId);
@@ -1153,10 +1314,9 @@ for (const extId of extensions) {
 const chromeDevAssist = require('./claude-code/index.js');
 
 async function testExtension() {
-  const result = await chromeDevAssist.reloadAndCapture(
-    process.env.EXTENSION_ID,
-    { duration: 3000 }
-  );
+  const result = await chromeDevAssist.reloadAndCapture(process.env.EXTENSION_ID, {
+    duration: 3000,
+  });
 
   const errors = result.consoleLogs.filter(log => log.level === 'error');
 
@@ -1179,6 +1339,7 @@ testExtension();
 ### Console Capture Limits (Defense-in-Depth)
 
 **10,000 Log Limit Per Capture**
+
 - Maximum logs captured per command: 10,000 logs
 - When limit reached: Warning log added, further logs dropped
 - Location: `extension/background.js:728-744`
@@ -1199,6 +1360,7 @@ Messages are truncated at TWO enforcement points:
    - Purpose: Catches messages that bypass injection, final enforcement before storage
 
 **Architecture:**
+
 ```
 Page (MAIN world)
   ↓
@@ -1216,6 +1378,7 @@ Storage
 ```
 
 **Truncated messages:**
+
 - Original: `"A".repeat(15000)` (15,000 characters)
 - Captured: `"AAAA...AAA... [truncated]"` (10,000 characters + marker)
 
@@ -1224,15 +1387,17 @@ Storage
 **Log Level Preservation**
 
 All 5 console output levels are captured and preserved:
+
 ```javascript
-console.log('message')   // → level: 'log'
-console.warn('warning')  // → level: 'warn'
-console.error('error')   // → level: 'error'
-console.info('info')     // → level: 'info'
-console.debug('debug')   // → level: 'debug'
+console.log('message'); // → level: 'log'
+console.warn('warning'); // → level: 'warn'
+console.error('error'); // → level: 'error'
+console.info('info'); // → level: 'info'
+console.debug('debug'); // → level: 'debug'
 ```
 
 Each log entry includes:
+
 - `level` - Console method used
 - `message` - Captured message (truncated if needed)
 - `timestamp` - When log occurred
@@ -1251,12 +1416,14 @@ Console logs are isolated per tab using O(1) lookups:
 ```
 
 **Benefits:**
+
 - Fast log routing (O(1) per log)
 - No performance degradation with multiple tabs
 - No cross-contamination between tabs
 - Efficient memory cleanup per tab
 
 **Example:**
+
 - Tab A logs: Captured only for Tab A commands
 - Tab B logs: Captured only for Tab B commands
 - No mixing, no race conditions
@@ -1264,6 +1431,7 @@ Console logs are isolated per tab using O(1) lookups:
 ### Current Capabilities (v1.0.0)
 
 **Implemented:**
+
 - ✅ Extension reload
 - ✅ Console log capture (10K log limit, 10K char truncation)
 - ✅ Tab management
@@ -1272,6 +1440,7 @@ Console logs are isolated per tab using O(1) lookups:
 - ✅ Tab isolation (dual-index)
 
 **Not Implemented:**
+
 - ❌ Screenshots (planned v1.3.0)
 - ❌ Test orchestration (planned v1.1.0)
 - ❌ Service worker control (planned v1.2.0)
@@ -1284,7 +1453,7 @@ Objects with circular references are NOT nicely serialized in captured console l
 
 ```javascript
 const obj = { name: 'parent' };
-obj.self = obj;  // Circular reference
+obj.self = obj; // Circular reference
 
 console.log(obj);
 // Captured as: "[object Object]" (not helpful)
@@ -1292,12 +1461,14 @@ console.log(obj);
 ```
 
 **Why:**
+
 - Captured console logs use native `JSON.stringify()`
 - Circular references cause `JSON.stringify()` to throw
 - Fallback is `String(obj)` which returns `"[object Object]"`
 - The codebase has `safeStringify()` function but it's only used for internal debug logs
 
 **Workaround:**
+
 - Use `JSON.stringify()` yourself before logging
 - Or log individual properties separately
 - Chrome DevTools console shows the full object (not affected by this limitation)
@@ -1341,12 +1512,14 @@ curl http://10.0.2.2:9876/health
 ```
 
 **What this means:**
+
 - Server ONLY listens on 127.0.0.1 (loopback interface)
 - Traffic never leaves your machine
 - Other computers on your network cannot connect
 - VMs and containers cannot connect (unless using port forwarding)
 
 **Why localhost-only?**
+
 - **Security:** Prevents external attackers from controlling your browser
 - **Threat model:** No remote network access = much smaller attack surface
 - **Privacy:** All console logs stay on your machine
@@ -1404,6 +1577,7 @@ wss://localhost:9876
 **Is this secure?**
 
 ✅ **YES** - for localhost:
+
 - Loopback traffic (127.0.0.1) never reaches network interfaces
 - Operating system routes it internally (kernel-level)
 - Cannot be intercepted by network-level attacks (MITM, packet sniffing)
@@ -1412,6 +1586,7 @@ wss://localhost:9876
 **When would HTTPS be needed?**
 
 Only if the server bound to 0.0.0.0 (all interfaces) and allowed external network access:
+
 - Then traffic could travel over actual networks
 - Then HTTPS would provide encryption in transit
 - But this violates our threat model (localhost-only tool)
@@ -1445,6 +1620,7 @@ See architecture decision record: `docs/decisions/002-http-vs-https-for-localhos
 ## API Version History
 
 ### v1.0.0 (2025-10-24 - CURRENT)
+
 - ✅ Extension management functions (getAllExtensions, getExtensionInfo)
 - ✅ Extension reload functions (reload, reloadAndCapture)
 - ✅ Console capture (captureLogs)
@@ -1454,7 +1630,9 @@ See architecture decision record: `docs/decisions/002-http-vs-https-for-localhos
 - ✅ Auto-reconnect
 
 ### Planned Future Versions (NOT YET IMPLEMENTED)
+
 See `PLANNED-FEATURES.md` for roadmap:
+
 - v1.1.0 - Test Orchestration API (startTest, endTest, etc.)
 - v1.2.0 - Service Worker API, External Logging API
 - v1.3.0 - Screenshot capture, Page metadata extraction
@@ -1465,6 +1643,7 @@ See `PLANNED-FEATURES.md` for roadmap:
 During a comprehensive audit, **16 phantom APIs** were discovered - functions with extensive test coverage but NO implementation:
 
 **The 16 Phantom APIs:**
+
 1. startTest(testId, options)
 2. endTest(testId)
 3. abortTest(testId, reason)
@@ -1491,6 +1670,7 @@ During a comprehensive audit, **16 phantom APIs** were discovered - functions wi
 ## Complete Implementation Status
 
 **Implemented Functions:** 8 (documented above)
+
 - getAllExtensions()
 - getExtensionInfo(extensionId)
 - reload(extensionId)
@@ -1501,6 +1681,7 @@ During a comprehensive audit, **16 phantom APIs** were discovered - functions wi
 - closeTab(tabId)
 
 **Total Codebase:**
+
 - 98 implemented items (72 functions + 4 listeners + 22 constants) across 11 production files
 - 16 phantom APIs (tested but not implemented)
 - 24 placeholder tests (expect(true).toBe(true) pattern)

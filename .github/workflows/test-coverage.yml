@@ -2,9 +2,9 @@ name: "Test Coverage"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 # REQUIRED: OIDC permissions for Codecov v5 (no token needed!)
 permissions:

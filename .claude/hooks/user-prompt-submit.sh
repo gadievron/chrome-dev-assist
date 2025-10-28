@@ -17,7 +17,7 @@ fi
 
 # Validate tier1 directory exists
 if [[ ! -d "$TIER1_DIR" ]]; then
-  echo "⚠️  Warning: $TIER1_DIR directory not found" >&2
+  printf "⚠️  Warning: %s directory not found\n" "$TIER1_DIR" >&2
   exit 0
 fi
 
@@ -38,34 +38,34 @@ load_tier1_file() {
 
   # Resolve symlinks and verify path is within tier1 directory
   local realpath_result
-  realpath_result=$(realpath "$filepath" 2>/dev/null || echo "")
+  realpath_result=$(realpath "$filepath" 2>/dev/null || printf "")
 
   if [[ -z "$realpath_result" ]]; then
-    echo "⚠️  Warning: Could not resolve path for $filename" >&2
+    printf "⚠️  Warning: Could not resolve path for %s\n" "$filename" >&2
     return 0
   fi
 
   local tier1_realpath
-  tier1_realpath=$(realpath "$TIER1_DIR" 2>/dev/null || echo "")
+  tier1_realpath=$(realpath "$TIER1_DIR" 2>/dev/null || printf "")
 
   if [[ -z "$tier1_realpath" ]]; then
-    echo "⚠️  Warning: Could not resolve tier1 directory path" >&2
+    printf "%s\n" "⚠️  Warning: Could not resolve tier1 directory path" >&2
     return 0
   fi
 
   # Security check: ensure file is within tier1 directory
   if [[ "$realpath_result" != "$tier1_realpath"/* ]]; then
-    echo "🚨 Security: Blocked attempt to read file outside tier1 directory" >&2
+    printf "%s\n" "🚨 Security: Blocked attempt to read file outside tier1 directory" >&2
     return 1
   fi
 
   # Load file
-  echo "📖 Auto-loaded $filename (trigger: $trigger_keywords)"
+  printf "📖 Auto-loaded %s (trigger: %s)\n" "$filename" "$trigger_keywords"
   cat -- "$realpath_result"
-  echo ""
+  printf "\n"
 
   # Log to audit trail
-  echo "[$TIMESTAMP] Auto-loaded: $filename (trigger: $trigger_keywords)" >> .claude-state/auto-load.log
+  printf "[%s] Auto-loaded: %s (trigger: %s)\n" "$TIMESTAMP" "$filename" "$trigger_keywords" >> .claude-state/auto-load.log
 
   # Update metrics
   if [[ -f .claude-state/metrics.json ]]; then
@@ -93,34 +93,34 @@ load_tier2_file() {
 
   # Resolve symlinks and verify path is within tier2 directory
   local realpath_result
-  realpath_result=$(realpath "$filepath" 2>/dev/null || echo "")
+  realpath_result=$(realpath "$filepath" 2>/dev/null || printf "")
 
   if [[ -z "$realpath_result" ]]; then
-    echo "⚠️  Warning: Could not resolve path for $filename" >&2
+    printf "⚠️  Warning: Could not resolve path for %s\n" "$filename" >&2
     return 0
   fi
 
   local tier2_realpath
-  tier2_realpath=$(realpath "$TIER2_DIR" 2>/dev/null || echo "")
+  tier2_realpath=$(realpath "$TIER2_DIR" 2>/dev/null || printf "")
 
   if [[ -z "$tier2_realpath" ]]; then
-    echo "⚠️  Warning: Could not resolve tier2 directory path" >&2
+    printf "%s\n" "⚠️  Warning: Could not resolve tier2 directory path" >&2
     return 0
   fi
 
   # Security check: ensure file is within tier2 directory
   if [[ "$realpath_result" != "$tier2_realpath"/* ]]; then
-    echo "🚨 Security: Blocked attempt to read file outside tier2 directory" >&2
+    printf "%s\n" "🚨 Security: Blocked attempt to read file outside tier2 directory" >&2
     return 1
   fi
 
   # Load file
-  echo "📖 Auto-loaded tier2/$filename (trigger: $trigger_keywords)"
+  printf "📖 Auto-loaded tier2/%s (trigger: %s)\n" "$filename" "$trigger_keywords"
   cat -- "$realpath_result"
-  echo ""
+  printf "\n"
 
   # Log to audit trail
-  echo "[$TIMESTAMP] Auto-loaded: tier2/$filename (trigger: $trigger_keywords)" >> .claude-state/auto-load.log
+  printf "[%s] Auto-loaded: tier2/%s (trigger: %s)\n" "$TIMESTAMP" "$filename" "$trigger_keywords" >> .claude-state/auto-load.log
 
   # Update metrics
   if [[ -f .claude-state/metrics.json ]]; then

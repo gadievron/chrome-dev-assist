@@ -8,16 +8,16 @@ set -euo pipefail
 PROJECT_NAME=$(cat .project-name 2>/dev/null || basename "$PWD")
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✓ Session started: $TIMESTAMP"
-echo "✓ Project: $PROJECT_NAME"
-echo "✓ Hooks active: Auto-loading enabled"
-echo "✓ Rules system: v2.0 (Pragmatic)"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "Working directory: $PWD"
-echo "Auto-load disabled? $([ -f .claude/no-auto-load ] && echo 'YES' || echo 'NO')"
-echo ""
+printf "%s\n" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+printf "✓ Session started: %s\n" "$TIMESTAMP"
+printf "✓ Project: %s\n" "$PROJECT_NAME"
+printf "%s\n" "✓ Hooks active: Auto-loading enabled"
+printf "%s\n" "✓ Rules system: v2.0 (Pragmatic)"
+printf "%s\n" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+printf "\n"
+printf "Working directory: %s\n" "$PWD"
+printf "Auto-load disabled? %s\n" "$([ -f .claude/no-auto-load ] && printf 'YES' || printf 'NO')"
+printf "\n"
 
 # Initialize metrics if doesn't exist
 mkdir -p .claude-state
