@@ -15,6 +15,10 @@ Programmatically reload Chrome extensions and capture console logs from your Nod
 - ✅ **Self-Healing** - Automatically reloads itself after 60s of persistent connection loss (with safeguards)
 - ✅ **Simple API** - Ten functions (3 core MVP + 7 utilities): `reload()`, `reloadAndCapture()`, `captureLogs()`, `getAllExtensions()`, `getExtensionInfo()`, `openUrl()`, `reloadTab()`, `closeTab()`, `getPageMetadata()`, `captureScreenshot()`
 - ✅ **Type Validated** - Extension ID validation with clear error messages
+- ✅ **DoS Protection** - 1MB size limit on page metadata to prevent memory exhaustion attacks
+- ✅ **Circular Reference Handling** - Safe JSON serialization with WeakSet-based cycle detection
+- ✅ **Race Condition Protection** - TOCTOU vulnerability documentation with client recovery strategies
+- ✅ **Strict Input Validation** - Integer enforcement for screenshot quality, prevents undefined Chrome API behavior
 
 ---
 
@@ -54,6 +58,37 @@ This extension requires **broad permissions** to function:
 3. ✅ **Clear test data immediately** after capture
 4. ✅ **Do not commit screenshots** to version control
 5. ✅ Use **synthetic test data only** - never real user data
+
+### Security Protections (P1-P2)
+
+Chrome Dev Assist includes **built-in security protections**:
+
+- **1MB Metadata Size Limit** (P1-1) - Prevents DoS attacks via memory exhaustion
+- **Circular Reference Detection** (P1-2) - Safe JSON serialization prevents infinite loops
+- **Race Condition Documentation** (P1-3) - TOCTOU vulnerabilities documented with client recovery strategies
+- **Integer Validation** (P2-2) - Screenshot quality parameter must be whole number
+
+**Race Conditions (TOCTOU):**
+
+`getPageMetadata()` and `captureScreenshot()` are vulnerable to Time-Of-Check-Time-Of-Use races:
+
+- **Tab closure race:** Tab may close between API call and execution
+- **Tab navigation race:** Tab may navigate to different URL during execution
+- **Extension reload race:** Extension may reload during command execution
+
+**Client Recovery Strategy:**
+
+```javascript
+try {
+  const metadata = await getPageMetadata(tabId);
+} catch (error) {
+  if (error.message.includes('No tab with id')) {
+    // Tab closed - normal race condition, retry or skip
+  }
+}
+```
+
+See `docs/API.md` for complete race condition documentation.
 
 ---
 

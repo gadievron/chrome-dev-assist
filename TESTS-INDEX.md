@@ -2,9 +2,9 @@
 
 **Complete catalog organized by functionality with API mapping and issue tracking**
 
-**Last Updated:** 2025-10-25
-**Total Test Files:** 40
-**Total HTML Fixtures:** 30
+**Last Updated:** 2025-10-28 (P1-P2 Complete)
+**Total Test Files:** 44 (+4 from P1-P2 implementation)
+**Total HTML Fixtures:** 37 (+7 from P1-P2: 4 metadata, 3 screenshot)
 **Organization:** By Functionality → By Date
 
 ---
@@ -16,9 +16,9 @@
 - Extension Management: 2 tests
 - Extension Reload: 6 tests
 - Console Capture: 5 tests
-- Screenshot Capture: 3 tests
+- Screenshot Capture: 6 tests (+3 from P2-3)
 - Tab Management: 3 tests
-- Page Metadata: 2 tests
+- Page Metadata: 3 tests (+1 from P1-2)
 - Test Orchestration: 2 tests
 - Crash Recovery: 1 test
 - WebSocket/Server: 3 tests

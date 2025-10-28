@@ -7,8 +7,8 @@ set -euo pipefail
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Rule Execution Compliance Test Suite"
-echo "Project: $(basename "$PWD")"
-echo "Date: $(date '+%Y-%m-%d %H:%M:%S')"
+printf "Project: %s\n" "$(basename "$PWD")"
+printf "Date: %s\n" "$(date '+%Y-%m-%d %H:%M:%S')"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -18,22 +18,22 @@ WARN_COUNT=0
 
 # Helper functions
 pass() {
-    echo "✓ PASS - $1"
+    printf "✓ PASS - %s\n" "$1"
     ((PASS_COUNT++))
 }
 
 fail() {
-    echo "✗ FAIL - $1"
+    printf "✗ FAIL - %s\n" "$1"
     ((FAIL_COUNT++))
 }
 
 warn() {
-    echo "⚠ WARN - $1"
+    printf "⚠ WARN - %s\n" "$1"
     ((WARN_COUNT++))
 }
 
 info() {
-    echo "  ℹ $1"
+    printf "  ℹ %s\n" "$1"
 }
 
 # Test 1: Check for .claude-state directory
@@ -237,15 +237,15 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "Test Results Summary"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "✓ Passed: $PASS_COUNT"
-echo "✗ Failed: $FAIL_COUNT"
-echo "⚠ Warnings: $WARN_COUNT"
+printf "✓ Passed: %s\n" "$PASS_COUNT"
+printf "✗ Failed: %s\n" "$FAIL_COUNT"
+printf "⚠ Warnings: %s\n" "$WARN_COUNT"
 echo ""
 
 TOTAL_TESTS=$((PASS_COUNT + FAIL_COUNT))
 if [ $TOTAL_TESTS -gt 0 ]; then
     PASS_RATE=$((PASS_COUNT * 100 / TOTAL_TESTS))
-    echo "Pass Rate: $PASS_RATE% ($PASS_COUNT / $TOTAL_TESTS)"
+    printf "Pass Rate: %s%% (%s / %s)\n" "$PASS_RATE" "$PASS_COUNT" "$TOTAL_TESTS" ($PASS_COUNT / $TOTAL_TESTS)"
 else
     echo "Pass Rate: N/A"
 fi
