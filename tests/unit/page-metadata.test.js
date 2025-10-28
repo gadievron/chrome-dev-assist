@@ -10,10 +10,18 @@
  * 4. ✅ Covers real user scenarios
  */
 
-const path = require('path');
-
 // Import REAL implementation
 const { getPageMetadata } = require('../../claude-code/index.js');
+
+// Manual test constants (for test.skip tests - replace with actual tab IDs when running manually)
+const MANUAL_TAB_ID = 0; // Replace with actual tab ID
+const MANUAL_TAB_ID_MINIMAL = 0; // Tab with minimal-metadata-test.html
+const MANUAL_TAB_ID_LARGE = 0; // Tab with large metadata (~500KB)
+const MANUAL_TAB_ID_1MB_LIMIT = 0; // Tab with metadata at 1MB limit
+const MANUAL_TAB_ID_OVER_1MB = 0; // Tab with metadata over 1MB
+const MANUAL_TAB_ID_CIRCULAR = 0; // Tab with circular reference metadata
+const MANUAL_TAB_ID_EMPTY = 0; // Tab with empty/minimal page
+const CHROME_TAB_ID = 0; // Tab with chrome:// URL
 
 describe('DOM Inspection API: getPageMetadata()', () => {
   /**
@@ -53,8 +61,9 @@ describe('DOM Inspection API: getPageMetadata()', () => {
     });
 
     test('should reject tabId exceeding safe integer', async () => {
-      await expect(getPageMetadata(Number.MAX_SAFE_INTEGER + 1))
-        .rejects.toThrow('tabId exceeds safe integer range');
+      await expect(getPageMetadata(Number.MAX_SAFE_INTEGER + 1)).rejects.toThrow(
+        'tabId exceeds safe integer range'
+      );
     });
 
     test('should reject NaN tabId', async () => {
@@ -134,16 +143,18 @@ describe('DOM Inspection API: getPageMetadata()', () => {
       // Use a tab ID that's very unlikely to exist
       const nonExistentTabId = 999999;
 
-      await expect(getPageMetadata(nonExistentTabId))
-        .rejects.toThrow(/No tab with id|Extension not connected|tab.*not found/i);
+      await expect(getPageMetadata(nonExistentTabId)).rejects.toThrow(
+        /No tab with id|Extension not connected|tab.*not found/i
+      );
     });
 
     test('should provide clear error for connection failures', async () => {
       // Test when extension is not connected
       // This will fail with "Extension not connected" or "ECONNREFUSED"
 
-      await expect(getPageMetadata(1))
-        .rejects.toThrow(/Extension not connected|ECONNREFUSED|not running/i);
+      await expect(getPageMetadata(1)).rejects.toThrow(
+        /Extension not connected|ECONNREFUSED|not running/i
+      );
     });
   });
 
@@ -164,6 +175,46 @@ describe('DOM Inspection API: getPageMetadata()', () => {
       expect(serialized.length).toBeLessThan(1024 * 1024); // 1MB
     });
 
+    /**
+     * NEW TEST: P1-1 Size Limit Validation
+     * Tests the 1MB metadata size limit to prevent DoS attacks
+     */
+    test.skip('should accept metadata at 1MB limit (boundary test)', async () => {
+      // Test with metadata that's exactly at or just under 1MB
+      // This requires a special fixture with ~1MB of metadata
+      // Fixture: tests/fixtures/metadata-1mb-limit.html
+
+      const result = await getPageMetadata(MANUAL_TAB_ID_1MB_LIMIT);
+
+      expect(result).toBeDefined();
+      expect(result.metadata).toBeDefined();
+
+      // Verify size is close to but under 1MB
+      const serialized = JSON.stringify(result.metadata);
+      const sizeBytes = new TextEncoder().encode(serialized).length;
+      expect(sizeBytes).toBeLessThanOrEqual(1024 * 1024); // <= 1MB
+      expect(sizeBytes).toBeGreaterThan(900 * 1024); // > 900KB (close to limit)
+    });
+
+    test.skip('should reject metadata exceeding 1MB limit', async () => {
+      // Test with metadata that's over 1MB
+      // This requires a fixture with >1MB of metadata
+      // Fixture: tests/fixtures/metadata-over-1mb.html
+
+      await expect(getPageMetadata(MANUAL_TAB_ID_OVER_1MB)).rejects.toThrow(
+        /metadata.*exceeds.*size limit|too large/i
+      );
+
+      // Error message should indicate actual size
+      try {
+        await getPageMetadata(MANUAL_TAB_ID_OVER_1MB);
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error.message).toMatch(/\d+KB/); // Should show size in KB
+        expect(error.message).toMatch(/1MB/); // Should show limit
+      }
+    });
+
     test.skip('should handle page with circular references in metadata', async () => {
       // Test page with circular refs in window.testMetadata
       // Should use safe serialization
@@ -177,8 +228,9 @@ describe('DOM Inspection API: getPageMetadata()', () => {
 
     test.skip('should handle chrome:// URLs gracefully', async () => {
       // Chrome internal pages are not accessible
-      await expect(getPageMetadata(CHROME_TAB_ID))
-        .rejects.toThrow(/Cannot access|Permission denied|restricted/i);
+      await expect(getPageMetadata(CHROME_TAB_ID)).rejects.toThrow(
+        /Cannot access|Permission denied|restricted/i
+      );
     });
 
     test.skip('should handle pages with no metadata', async () => {

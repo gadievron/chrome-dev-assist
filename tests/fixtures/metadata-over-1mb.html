@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Fixture: Metadata Over 1MB Limit</title>
+</head>
+<body data-test-id="metadata-over-1mb" data-test-name="Over 1MB Limit Test">
+  <h1>Metadata Size Limit Test: Over Limit (>1MB)</h1>
+  <p>This page contains metadata exceeding the 1MB limit.</p>
+
+  <script>
+    // Create metadata that exceeds 1MB when serialized
+    // Target: ~1.5MB to clearly exceed the limit
+
+    const targetSize = 1500 * 1024; // 1.5MB of raw data
+    const chunkSize = 10000; // Create chunks for readability
+    const numChunks = Math.floor(targetSize / chunkSize);
+
+    const largeData = [];
+    for (let i = 0; i < numChunks; i++) {
+      largeData.push({
+        id: i,
+        chunk: 'x'.repeat(chunkSize),
+        metadata: {
+          index: i,
+          type: 'test-chunk',
+          purpose: 'size-limit-violation'
+        }
+      });
+    }
+
+    window.testMetadata = {
+      testId: 'metadata-over-1mb',
+      testPurpose: 'Validate 1MB size limit rejection',
+      testType: 'edge-case',
+      testCategory: 'size-validation',
+      dataSize: targetSize,
+      chunks: numChunks,
+      largeData: largeData,
+      description: 'This metadata should be REJECTED (exceeds 1MB limit)',
+      timestamp: new Date().toISOString(),
+      warning: 'Expected to fail with "Metadata too large" error'
+    };
+
+    console.log('Test metadata created:', {
+      chunks: numChunks,
+      targetSize: targetSize,
+      estimatedTotalSize: JSON.stringify(window.testMetadata).length,
+      expectedResult: 'REJECTION'
+    });
+  </script>
+</body>
+</html>

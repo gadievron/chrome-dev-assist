@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Fixture: Text Content</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    h1 {
+      font-size: 48px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    .test-content {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+    .colorful-text {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .red { color: #ff6b6b; }
+    .green { color: #51cf66; }
+    .blue { color: #339af0; }
+    .yellow { color: #ffd43b; }
+  </style>
+</head>
+<body data-test-id="text-content-test" data-test-name="Text Content Test">
+  <h1>Visual Test Content</h1>
+
+  <div class="test-content">
+    <p class="colorful-text">
+      <span class="red">Red</span>
+      <span class="green">Green</span>
+      <span class="blue">Blue</span>
+      <span class="yellow">Yellow</span>
+    </p>
+    <p>This page contains colorful text for visual verification.</p>
+    <p>Screenshot should capture all colors and text clearly.</p>
+  </div>
+
+  <div class="test-content">
+    <h2>Test Pattern:</h2>
+    <p>■ ■ ■ ■ ■</p>
+    <p>■ ■ ■ ■ ■</p>
+    <p>■ ■ ■ ■ ■</p>
+  </div>
+
+  <script>
+    window.testMetadata = {
+      testId: 'text-content-test',
+      hasColorfulText: true,
+      purpose: 'Test screenshot visual quality with text content'
+    };
+  </script>
+</body>
+</html>

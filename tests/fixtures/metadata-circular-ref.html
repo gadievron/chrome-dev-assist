@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Fixture: Circular Reference Metadata</title>
+</head>
+<body data-test-id="metadata-circular-ref" data-test-name="Circular Reference Test">
+  <h1>Metadata Test: Circular References</h1>
+  <p>This page contains window.testMetadata with circular references.</p>
+
+  <script>
+    // Create metadata with circular reference
+    const obj = {
+      id: 'circular-test',
+      name: 'parent',
+      data: 'test data',
+      nested: {
+        level1: {
+          level2: {
+            value: 'deep value'
+          }
+        }
+      }
+    };
+
+    // Create circular reference
+    obj.self = obj;
+    obj.nested.parent = obj;
+    obj.nested.level1.root = obj;
+
+    window.testMetadata = obj;
+
+    console.log('Test metadata with circular references created');
+    console.log('Circular refs:', 'obj.self', 'obj.nested.parent', 'obj.nested.level1.root');
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Fixture: Large Metadata</title>
+</head>
+<body data-test-id="metadata-large" data-test-name="Large Metadata Test">
+  <h1>Metadata Test: Large Object</h1>
+  <p>This page contains window.testMetadata with a large amount of data (but under 1MB limit).</p>
+
+  <script>
+    // Create large metadata (~500KB, well under 1MB limit)
+    const targetSize = 500 * 1024; // 500KB
+    const chunkSize = 1000;
+    const numChunks = Math.floor(targetSize / chunkSize);
+
+    const largeArray = [];
+    for (let i = 0; i < numChunks; i++) {
+      largeArray.push({
+        id: i,
+        data: 'x'.repeat(chunkSize),
+        index: i,
+        type: 'test-chunk'
+      });
+    }
+
+    window.testMetadata = {
+      testId: 'metadata-large',
+      testPurpose: 'Test large metadata extraction',
+      testType: 'edge-case',
+      testCategory: 'size-validation',
+      dataSize: targetSize,
+      chunks: numChunks,
+      largeArray: largeArray,
+      description: 'This metadata should be accepted (under 1MB limit)',
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('Large test metadata created:', {
+      chunks: numChunks,
+      estimatedSize: JSON.stringify(window.testMetadata).length,
+      status: 'Should pass (under 1MB)'
+    });
+  </script>
+</body>
+</html>

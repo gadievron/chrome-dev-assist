@@ -29,8 +29,8 @@ async function reloadAndCapture(extensionId, options = {}) {
     params: {
       extensionId,
       captureConsole: true,
-      duration: options.duration || DEFAULT_DURATION
-    }
+      duration: options.duration || DEFAULT_DURATION,
+    },
   };
 
   return await sendCommand(command);
@@ -49,8 +49,8 @@ async function reload(extensionId) {
     type: 'reload',
     params: {
       extensionId,
-      captureConsole: false
-    }
+      captureConsole: false,
+    },
   };
 
   return await sendCommand(command);
@@ -70,8 +70,8 @@ async function captureLogs(duration = DEFAULT_DURATION) {
     id: generateCommandId(),
     type: 'capture',
     params: {
-      duration
-    }
+      duration,
+    },
   };
 
   return await sendCommand(command);
@@ -85,7 +85,7 @@ async function getAllExtensions() {
   const command = {
     id: generateCommandId(),
     type: 'getAllExtensions',
-    params: {}
+    params: {},
   };
 
   return await sendCommand(command);
@@ -102,7 +102,7 @@ async function getExtensionInfo(extensionId) {
   const command = {
     id: generateCommandId(),
     type: 'getExtensionInfo',
-    params: { extensionId }
+    params: { extensionId },
   };
 
   return await sendCommand(command);
@@ -142,8 +142,8 @@ async function openUrl(url, options = {}) {
       active: options.active !== undefined ? options.active : true,
       captureConsole: options.captureConsole || false,
       duration: options.duration || DEFAULT_DURATION,
-      autoClose: options.autoClose || false  // NEW: Automatic tab cleanup for testing
-    }
+      autoClose: options.autoClose || false, // NEW: Automatic tab cleanup for testing
+    },
   };
 
   return await sendCommand(command);
@@ -174,8 +174,8 @@ async function reloadTab(tabId, options = {}) {
       tabId,
       bypassCache: options.bypassCache || false,
       captureConsole: options.captureConsole || false,
-      duration: options.duration || DEFAULT_DURATION
-    }
+      duration: options.duration || DEFAULT_DURATION,
+    },
   };
 
   return await sendCommand(command);
@@ -198,7 +198,7 @@ async function closeTab(tabId) {
   const command = {
     id: generateCommandId(),
     type: 'closeTab',
-    params: { tabId }
+    params: { tabId },
   };
 
   return await sendCommand(command);
@@ -249,7 +249,7 @@ async function getPageMetadata(tabId) {
   const command = {
     id: generateCommandId(),
     type: 'getPageMetadata',
-    params: { tabId }
+    params: { tabId },
   };
 
   return await sendCommand(command);
@@ -311,14 +311,19 @@ async function captureScreenshot(tabId, options = {}) {
     throw new Error('Quality must be between 0 and 100');
   }
 
+  // P2-2: Validation: quality must be an integer (prevents undefined Chrome API behavior)
+  if (format === 'jpeg' && options.quality !== undefined && !Number.isInteger(options.quality)) {
+    throw new Error('Quality must be an integer between 0 and 100');
+  }
+
   const command = {
     id: generateCommandId(),
     type: 'captureScreenshot',
     params: {
       tabId,
       format,
-      quality: format === 'jpeg' ? quality : undefined
-    }
+      quality: format === 'jpeg' ? quality : undefined,
+    },
   };
 
   return await sendCommand(command);
@@ -339,14 +344,16 @@ async function sendCommand(command) {
 
       ws.on('open', () => {
         // Send command to server
-        ws.send(JSON.stringify({
-          type: 'command',
-          id: command.id,
-          command: {
-            type: command.type,
-            params: command.params
-          }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'command',
+            id: command.id,
+            command: {
+              type: command.type,
+              params: command.params,
+            },
+          })
+        );
 
         // Set timeout for response
         timeout = setTimeout(() => {
@@ -355,7 +362,7 @@ async function sendCommand(command) {
         }, DEFAULT_TIMEOUT);
       });
 
-      ws.on('message', (data) => {
+      ws.on('message', data => {
         clearTimeout(timeout);
         const response = JSON.parse(data.toString());
 
@@ -368,7 +375,7 @@ async function sendCommand(command) {
         }
       });
 
-      ws.on('error', async (err) => {
+      ws.on('error', async err => {
         clearTimeout(timeout);
 
         // Auto-start server on connection refused (Persona Requirement #4)
@@ -404,7 +411,7 @@ async function startServer() {
     // Spawn server as detached background process
     const serverProcess = spawn('node', [serverPath], {
       detached: true,
-      stdio: 'ignore'
+      stdio: 'ignore',
     });
 
     serverProcess.unref();
@@ -468,5 +475,5 @@ module.exports = {
   reloadTab,
   closeTab,
   getPageMetadata,
-  captureScreenshot
+  captureScreenshot,
 };

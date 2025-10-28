@@ -392,7 +392,7 @@ async function handleCaptureCommand(commandId, params) {
  * Handle getAllExtensions command
  * Returns list of all installed extensions (excluding self and apps)
  */
-async function handleGetAllExtensionsCommand(commandId, params) {
+async function handleGetAllExtensionsCommand(_commandId, _params) {
   console.log('[ChromeDevAssist] Getting all extensions');
 
   const extensions = await chrome.management.getAll();
@@ -530,8 +530,6 @@ async function handleOpenUrlCommand(commandId, params) {
   if (duration > MAX_DURATION) {
     throw new Error(`Invalid duration: exceeds maximum allowed (${MAX_DURATION}ms)`);
   }
-
-  const safeDuration = duration;
 
   console.log(
     '[ChromeDevAssist] Opening URL:',
@@ -688,6 +686,37 @@ async function handleGetPageMetadataCommand(commandId, params) {
     throw new Error('tabId is required');
   }
 
+  /**
+   * P1-3: RACE CONDITION HANDLING
+   *
+   * This function is subject to Time-Of-Check-Time-Of-Use (TOCTOU) races:
+   *
+   * Race 1: Tab Closure
+   *   - Tab may close between validation and extraction
+   *   - Error: "No tab with id: X"
+   *   - Recovery: Client should retry (transient error)
+   *
+   * Race 2: Tab Navigation
+   *   - Tab may navigate to different page during extraction
+   *   - Result: Metadata from NEW page (not original)
+   *   - Recovery: Client must verify result.url matches expectation
+   *
+   * Race 3: Extension Reload
+   *   - Extension may reload during command execution
+   *   - Error: "Extension context invalidated"
+   *   - Recovery: Client should reconnect and retry
+   *
+   * Error handling:
+   *   - All errors caught and returned via WebSocket
+   *   - Commands are idempotent (safe to retry)
+   *   - WebSocket timeout (30s) prevents hanging commands
+   *
+   * Client retry strategy:
+   *   - Retry on transient errors (timeout, tab closed, context invalidated)
+   *   - Verify result.url matches expected URL (detect navigation)
+   *   - Fail on permanent errors (invalid tab ID, access denied)
+   */
+
   console.log('[ChromeDevAssist] Extracting page metadata from tab:', tabId);
 
   // Get tab info for URL
@@ -697,6 +726,20 @@ async function handleGetPageMetadataCommand(commandId, params) {
   const results = await chrome.scripting.executeScript({
     target: { tabId: tabId },
     func: () => {
+      // P1-2: Safe JSON serialization for circular references
+      function safeStringify(obj) {
+        const seen = new WeakSet();
+        return JSON.stringify(obj, (key, value) => {
+          if (typeof value === 'object' && value !== null) {
+            if (seen.has(value)) {
+              return '[Circular]';
+            }
+            seen.add(value);
+          }
+          return value;
+        });
+      }
+
       // Extract data-* attributes from body element
       const bodyAttributes = {};
       if (document.body) {
@@ -712,8 +755,17 @@ async function handleGetPageMetadataCommand(commandId, params) {
       }
 
       // Extract window.testMetadata if present
-      const customMetadata =
-        typeof window.testMetadata === 'object' ? window.testMetadata : undefined;
+      let customMetadata = undefined;
+      if (typeof window.testMetadata === 'object' && window.testMetadata !== null) {
+        // P1-2: Use safeStringify to handle circular references
+        try {
+          const serialized = safeStringify(window.testMetadata);
+          customMetadata = JSON.parse(serialized); // Parse back to object (circular refs now as "[Circular]")
+        } catch (e) {
+          // If even safeStringify fails, fall back to string representation
+          customMetadata = { error: 'Failed to serialize', message: e.message };
+        }
+      }
 
       // Combine all metadata
       const metadata = {
@@ -735,6 +787,21 @@ async function handleGetPageMetadataCommand(commandId, params) {
   // Get first result (we only execute in main frame)
   const metadata = results && results[0] && results[0].result ? results[0].result : {};
 
+  // P1-1: Size limit validation to prevent DoS via memory exhaustion
+  // Maximum metadata size: 1MB (prevents attacker from exhausting memory)
+  const MAX_METADATA_SIZE = 1024 * 1024; // 1MB
+
+  const metadataStr = JSON.stringify(metadata);
+  const sizeBytes = new TextEncoder().encode(metadataStr).length;
+
+  if (sizeBytes > MAX_METADATA_SIZE) {
+    const sizeKB = Math.round(sizeBytes / 1024);
+    throw new Error(
+      `Metadata too large: ${sizeKB}KB exceeds 1MB limit. ` +
+        'Reduce page complexity or use smaller testMetadata object.'
+    );
+  }
+
   return {
     tabId: tabId,
     url: tab.url,
@@ -755,6 +822,35 @@ async function handleCaptureScreenshotCommand(commandId, params) {
   if (tabId === undefined) {
     throw new Error('tabId is required');
   }
+
+  /**
+   * P1-3: RACE CONDITION HANDLING
+   *
+   * Same TOCTOU vulnerabilities as getPageMetadata:
+   *
+   * Race 1: Tab Closure
+   *   - Tab may close during screenshot capture
+   *   - Error: "No tab with id: X"
+   *   - Recovery: Client should retry
+   *
+   * Race 2: Tab Navigation
+   *   - Tab may navigate to different page during capture
+   *   - Result: Screenshot of NEW page (not original)
+   *   - Note: Cannot verify URL after screenshot (screenshot doesn't include URL)
+   *   - Recovery: Client should verify tab.url BEFORE calling captureScreenshot
+   *
+   * Race 3: Extension Reload
+   *   - Extension may reload during capture
+   *   - Error: "Extension context invalidated"
+   *   - Recovery: Client should reconnect and retry
+   *
+   * Screenshot-specific considerations:
+   *   - Visual changes during capture are possible (animations, dynamic content)
+   *   - Screenshot timestamp may not match exact page state
+   *   - Client should verify tab state before capture (not after)
+   *
+   * Recovery strategy same as getPageMetadata (retry on transient errors)
+   */
 
   console.log(
     '[ChromeDevAssist] Capturing screenshot of tab:',
