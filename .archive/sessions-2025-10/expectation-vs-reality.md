@@ -1,9 +1,11 @@
 # Rules System: Expectation vs Reality
+
 **Quick Reference** - Why rules don't always run
 
 ## Session Startup
 
 ### Expectation (per CLAUDE.md):
+
 ```
 ✓ Rules loaded: CORE + PERSONA_REVIEW + STATE_PRESERVATION + SECURITY
 ✓ Project: chrome-dev-assist
@@ -13,6 +15,7 @@
 ```
 
 ### Reality:
+
 ```
 [No automatic loading]
 [No project detection]
@@ -27,6 +30,7 @@
 ## Response Prefixing
 
 ### Expectation (CLAUDE.md):
+
 ```
 [chrome-dev-assist] Response 1
 [chrome-dev-assist] Response 2
@@ -34,6 +38,7 @@
 ```
 
 ### Reality:
+
 ```
 Response 1
 Response 2
@@ -47,6 +52,7 @@ Response 2
 ## Test-First Discipline
 
 ### Expectation (CORE_EXECUTION_RULES.md line 81):
+
 ```
 1. Write tests FIRST
 2. Tests fail (no implementation yet)
@@ -55,6 +61,7 @@ Response 2
 ```
 
 ### Reality:
+
 ```
 1. Write implementation
 2. (Maybe write tests after)
@@ -68,6 +75,7 @@ Response 2
 ## Validation Gate (Phase 4)
 
 ### Expectation (CORE_EXECUTION_RULES.md):
+
 ```
 HARD STOP - NO EXCEPTIONS
 
@@ -81,6 +89,7 @@ ONLY THEN → Complete
 ```
 
 ### Reality:
+
 ```
 [Code written]
 [Marked complete]
@@ -94,6 +103,7 @@ ONLY THEN → Complete
 ## Persona Review Gate (Phase 5)
 
 ### Expectation (PERSONA_REVIEW_RULES.md):
+
 ```
 MANDATORY for EVERY task. No exceptions.
 This is a HARD GATE.
@@ -109,6 +119,7 @@ Consolidated Review → Decision Gate
 ```
 
 ### Reality:
+
 ```
 [Reviews almost never executed]
 [Task marked complete without reviews]
@@ -121,6 +132,7 @@ Consolidated Review → Decision Gate
 ## Checkpoint System
 
 ### Expectation (STATE_PRESERVATION_RULES.md):
+
 ```
 Auto-checkpoints at:
 1. Task start
@@ -134,6 +146,7 @@ Auto-checkpoints at:
 ```
 
 ### Reality:
+
 ```
 [Works when explicitly implemented]
 [Not automatic across all sessions]
@@ -147,6 +160,7 @@ Auto-checkpoints at:
 ## Scope Discipline
 
 ### Expectation (CORE_EXECUTION_RULES.md):
+
 ```
 Scope Creep = HARD STOP
 
@@ -159,6 +173,7 @@ One goal. One task. No exceptions.
 ```
 
 ### Reality:
+
 ```
 ✓ Fix requested issue
 ✓ Also fix related items
@@ -174,13 +189,13 @@ One goal. One task. No exceptions.
 
 ## Why This Happens
 
-| Rule Says | Reality Is | Why |
-|-----------|------------|-----|
-| MANDATORY | Optional | No enforcement |
-| ALWAYS | Sometimes | Easy to forget |
-| NO EXCEPTIONS | Many exceptions | No penalty for skipping |
-| HARD GATE | Soft suggestion | User satisfaction > process |
-| Auto-execute | Manual only | No automatic trigger |
+| Rule Says     | Reality Is      | Why                         |
+| ------------- | --------------- | --------------------------- |
+| MANDATORY     | Optional        | No enforcement              |
+| ALWAYS        | Sometimes       | Easy to forget              |
+| NO EXCEPTIONS | Many exceptions | No penalty for skipping     |
+| HARD GATE     | Soft suggestion | User satisfaction > process |
+| Auto-execute  | Manual only     | No automatic trigger        |
 
 ---
 
@@ -189,6 +204,7 @@ One goal. One task. No exceptions.
 **You asked:** "test why rules and must gates don't always run"
 
 **I should have:**
+
 1. Auto-loaded rules at session start ✗
 2. Detected project name ✗
 3. Displayed startup message ✗
@@ -196,6 +212,7 @@ One goal. One task. No exceptions.
 5. THEN answered your question ✗
 
 **I actually did:**
+
 1. Responded directly
 2. Only loaded rules when you asked
 3. Proved the problem by demonstrating it
@@ -209,6 +226,7 @@ One goal. One task. No exceptions.
 ### Is Your Session Following Rules?
 
 **Check for:**
+
 - [ ] Startup message with rules loaded
 - [ ] Project name in every response: `[project-name]`
 - [ ] Tests written BEFORE code
@@ -226,11 +244,13 @@ One goal. One task. No exceptions.
 ### For Users:
 
 **❌ Don't assume rules auto-execute**
+
 ```
 "Add a login feature"
 ```
 
 **✅ Explicitly request gates**
+
 ```
 "Add a login feature.
 Follow complete workflow with all validation gates.
@@ -240,6 +260,7 @@ Run persona review before completion."
 ### For System:
 
 **Need:**
+
 1. Higher priority for CLAUDE.md
 2. Pre-response hooks (check rules)
 3. Enforcement tools (not just prose)
@@ -248,6 +269,7 @@ Run persona review before completion."
 ### For Claude:
 
 **Commit to:**
+
 1. Check CLAUDE.md every session start
 2. Prefix ALL responses
 3. Never skip mandatory gates
@@ -263,15 +285,15 @@ Without enforcement, 70-95% failure rate persists
 
 Based on testing and analysis:
 
-| Component | Pass Rate | Need |
-|-----------|-----------|------|
-| Session startup | 5% | System enforcement |
-| Response prefixing | 10% | Persistent reminder |
-| Test-first | 30% | Workflow change |
-| Validation gates | 20% | Explicit request |
-| Persona reviews | 5% | User demand |
-| Checkpoints | 40% | More consistent use |
-| Scope discipline | 40% | Awareness + checks |
+| Component          | Pass Rate | Need                |
+| ------------------ | --------- | ------------------- |
+| Session startup    | 5%        | System enforcement  |
+| Response prefixing | 10%       | Persistent reminder |
+| Test-first         | 30%       | Workflow change     |
+| Validation gates   | 20%       | Explicit request    |
+| Persona reviews    | 5%        | User demand         |
+| Checkpoints        | 40%       | More consistent use |
+| Scope discipline   | 40%       | Awareness + checks  |
 
 **Overall: ~20% compliance**
 
@@ -282,21 +304,25 @@ Based on testing and analysis:
 ## The Bottom Line
 
 **Expectation:**
+
 ```
 Rules are MANDATORY, ALWAYS enforced, NO EXCEPTIONS
 ```
 
 **Reality:**
+
 ```
 Rules are aspirational guidelines, followed 5-30% of the time
 ```
 
 **Why:**
+
 ```
 No automatic execution + No enforcement = Inconsistent compliance
 ```
 
 **Fix:**
+
 ```
 User explicitly requests + System enforces + Simplified rules = Better compliance
 ```
