@@ -49,9 +49,32 @@
 
 ---
 
-## ✨ What's New (2025-10-27)
+## ✨ What's New
 
-### Self-Healing Mechanism
+### P1-P2 Implementation (2025-10-28)
+
+**Security & Robustness Improvements** - Four critical enhancements to prevent DoS attacks, handle edge cases, and document race conditions.
+
+**Quick Facts:**
+
+- 🛡️ **1MB Metadata Limit (P1-1)** - Prevents memory exhaustion DoS attacks
+- 🔄 **Circular Reference Handling (P1-2)** - Safe JSON serialization with WeakSet cycle detection
+- ⚠️ **TOCTOU Documentation (P1-3)** - Race condition scenarios documented with recovery strategies
+- 🔢 **Integer Validation (P2-2)** - Screenshot quality must be whole number (prevents undefined Chrome behavior)
+- 🧪 **62 New Tests (P1-P2)** - Comprehensive validation, integration, and visual verification tests
+
+**What's Protected:**
+
+- **getPageMetadata()**: Now rejects >1MB metadata, handles circular refs, documents 3 TOCTOU races
+- **captureScreenshot()**: Now rejects fractional quality values (e.g., 75.5), documents same 3 TOCTOU races
+
+**Documentation:**
+
+- Implementation: `extension/background.js:730-741, 790-803`, `claude-code/index.js:314-317`
+- Tests: 4 new test files (screenshot-validation, edge-case-validation, p2-3-phase2, p2-3-phase3)
+- Docs: `docs/API.md`, `README.md` (Security Protections), `CHANGELOG.md`
+
+### Self-Healing Mechanism (2025-10-27)
 
 Chrome Dev Assist extension now includes **automatic self-healing** to recover from connection failures.
 

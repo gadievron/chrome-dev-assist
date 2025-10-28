@@ -193,6 +193,176 @@ These are **not threats** in our test infrastructure context:
 
 ---
 
+## API Security (P1-P2 Implementation)
+
+### DoS Protection: 1MB Metadata Size Limit (P1-1)
+
+**Threat**: Memory exhaustion DoS attack via oversized page metadata
+
+**Implementation**:
+
+```javascript
+const MAX_METADATA_SIZE = 1024 * 1024; // 1MB
+const metadataStr = JSON.stringify(metadata);
+const sizeBytes = new TextEncoder().encode(metadataStr).length;
+
+if (sizeBytes > MAX_METADATA_SIZE) {
+  const sizeKB = Math.ceil(sizeBytes / 1024);
+  throw new Error(
+    `Metadata too large: ${sizeKB}KB exceeds 1MB limit. ` +
+      'Reduce page complexity or use smaller testMetadata object.'
+  );
+}
+```
+
+**Why 1MB?**
+
+- Reasonable limit for test metadata (supports large test fixtures)
+- Prevents memory exhaustion from malicious/compromised pages
+- UTF-8 byte counting ensures accurate size measurement (not `string.length`)
+
+**Attack Scenario Prevented**:
+
+1. Malicious page creates 100MB metadata object
+2. Extension serializes it → Chrome tab crashes
+3. Repeated attacks → System memory exhaustion
+
+### Circular Reference Handling (P1-2)
+
+**Threat**: Infinite loop via circular references in page metadata
+
+**Implementation**:
+
+```javascript
+function safeStringify(obj) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return '[Circular]';
+      }
+      seen.add(value);
+    }
+    return value;
+  });
+}
+```
+
+**Why WeakSet?**
+
+- O(1) circular reference detection (vs O(n²) with Array)
+- Automatic garbage collection (no memory leak)
+- Handles arrays correctly (arrays are objects)
+
+**Attack Scenario Prevented**:
+
+1. Page creates circular object: `obj.self = obj`
+2. Without protection: `JSON.stringify()` → infinite loop → tab freeze
+3. With protection: Circular ref replaced with `[Circular]` marker
+
+### Race Condition Documentation (P1-3)
+
+**Vulnerability Class**: Time-Of-Check-Time-Of-Use (TOCTOU)
+
+**Affected APIs**: `getPageMetadata()`, `captureScreenshot()`
+
+**3 Race Scenarios**:
+
+1. **Tab Closure Race**
+
+   ```javascript
+   // Client checks tab exists
+   const tabs = await chrome.tabs.query({ active: true });
+   const tabId = tabs[0].id;
+
+   // ⚠️ RACE: Tab may close here
+
+   // API call fails: "No tab with id: 123"
+   await getPageMetadata(tabId);
+   ```
+
+2. **Tab Navigation Race**
+
+   ```javascript
+   // Client sends command to capture page at URL1
+   await captureScreenshot(tabId);
+
+   // ⚠️ RACE: User navigates to URL2 during capture
+
+   // Screenshot captures URL2 (not URL1 as expected)
+   ```
+
+3. **Extension Reload Race**
+
+   ```javascript
+   // Client sends command
+   const promise = getPageMetadata(tabId);
+
+   // ⚠️ RACE: Extension reloads during execution
+
+   // Promise rejects: "Extension disconnected"
+   await promise;
+   ```
+
+**Client Recovery Strategy**:
+
+```javascript
+async function safeGetMetadata(tabId, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await getPageMetadata(tabId);
+    } catch (error) {
+      if (error.message.includes('No tab with id')) {
+        // Tab closed - normal race, skip retry
+        throw error;
+      }
+      if (error.message.includes('Extension disconnected')) {
+        // Extension reloaded - retry after delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
+      }
+      throw error; // Unknown error, don't retry
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+```
+
+**Why Not Fixed at API Level?**
+
+- Cannot prevent user actions (tab closure, navigation)
+- Cannot prevent Chrome from reloading extension
+- Client must handle race conditions as normal errors
+- Documentation ensures clients implement proper retry logic
+
+### Input Validation: Integer Quality Parameter (P2-2)
+
+**Threat**: Undefined Chrome API behavior with fractional quality values
+
+**Implementation**:
+
+```javascript
+// P2-2: Validation: quality must be an integer
+if (format === 'jpeg' && options.quality !== undefined && !Number.isInteger(options.quality)) {
+  throw new Error('Quality must be an integer between 0 and 100');
+}
+```
+
+**Why Integer Enforcement?**
+
+- Chrome DevTools Protocol expects integer quality (0-100)
+- Fractional values (e.g., 75.5) cause undefined behavior
+- JavaScript quirks: `75.0` is integer, `75.5` is not
+
+**Edge Cases Handled**:
+
+- `75.0` → Accepted (JavaScript treats as 75)
+- `75.5` → Rejected (fractional)
+- `1e2` → Accepted (100 in scientific notation)
+- `-0` → Rejected (not positive)
+
+---
+
 ## Future: Production User Authentication
 
 ### When We Need Real Auth
@@ -388,6 +558,38 @@ These apply to **both** test infrastructure and production:
 ---
 
 ## Changelog
+
+### 2025-10-28: P1-P2 API Security Enhancements
+
+**Added comprehensive input validation and DoS protection:**
+
+- **P1-1: 1MB Metadata Size Limit** - Prevents memory exhaustion DoS attacks via oversized metadata
+  - UTF-8 byte counting with `TextEncoder` for accuracy
+  - Clear error messages showing actual size vs limit
+  - Implementation: `extension/background.js:790-803`
+
+- **P1-2: Circular Reference Handling** - Safe JSON serialization prevents infinite loops
+  - WeakSet-based cycle detection (O(1) lookup)
+  - Replaces circular references with `[Circular]` marker
+  - Handles nested objects, arrays, complex graphs
+  - Implementation: `extension/background.js:730-741`
+
+- **P1-3: TOCTOU Race Documentation** - Time-Of-Check-Time-Of-Use vulnerabilities documented
+  - Tab closure race (tab closes during execution)
+  - Tab navigation race (tab URL changes during execution)
+  - Extension reload race (extension reloads during execution)
+  - Client recovery strategies documented in `docs/API.md`
+
+- **P2-2: Integer Validation** - Screenshot quality parameter must be whole number
+  - Prevents undefined Chrome API behavior with fractional values
+  - Handles JavaScript edge cases (75.0 accepted, 75.5 rejected)
+  - Implementation: `claude-code/index.js:314-317`
+
+**Test Coverage:**
+
+- 62 new tests across 4 test files
+- P1-1/P1-2: 22 tests (integration + boundaries)
+- P2-2/P2-3: 40 tests (validation + visual + integration)
 
 ### 2025-10-24: Initial Security Model
 

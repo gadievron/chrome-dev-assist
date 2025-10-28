@@ -1,7 +1,7 @@
 # Quick Lookup Guide - Chrome Dev Assist
 
 **Purpose:** Answer common questions in < 30 seconds
-**Last Updated:** 2025-10-27
+**Last Updated:** 2025-10-28 (P1-P2 Complete)
 
 ---
 
@@ -9,9 +9,9 @@
 
 ### Q: Which functions actually exist?
 
-**A:** Only 8 functions exist. **16 phantom APIs** have tests but NO implementation.
+**A:** 10 functions exist. **14 phantom APIs** have tests but NO implementation.
 
-**8 Implemented:**
+**10 Implemented:**
 
 - getAllExtensions()
 - getExtensionInfo(extensionId)
@@ -21,8 +21,10 @@
 - openUrl(url, options)
 - reloadTab(tabId, options)
 - closeTab(tabId)
+- **getPageMetadata(tabId)** ✨ NEW (Phase 1.3, P1-P2 enhanced)
+- **captureScreenshot(tabId, options)** ✨ NEW (Phase 1.3, P2-2 enhanced)
 
-**16 Phantom (DON'T USE):**
+**14 Phantom (DON'T USE):**
 See `PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md`
 
 ---
@@ -31,16 +33,18 @@ See `PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md`
 
 **A:** Use this lookup table:
 
-| Function           | File                 | Line |
-| ------------------ | -------------------- | ---- |
-| reload()           | claude-code/index.js | 44   |
-| reloadAndCapture() | claude-code/index.js | 23   |
-| captureLogs()      | claude-code/index.js | 64   |
-| getAllExtensions() | claude-code/index.js | 84   |
-| getExtensionInfo() | claude-code/index.js | 99   |
-| openUrl()          | claude-code/index.js | 121  |
-| reloadTab()        | claude-code/index.js | 161  |
-| closeTab()         | claude-code/index.js | 189  |
+| Function            | File                 | Line |
+| ------------------- | -------------------- | ---- |
+| reload()            | claude-code/index.js | 44   |
+| reloadAndCapture()  | claude-code/index.js | 23   |
+| captureLogs()       | claude-code/index.js | 64   |
+| getAllExtensions()  | claude-code/index.js | 84   |
+| getExtensionInfo()  | claude-code/index.js | 99   |
+| openUrl()           | claude-code/index.js | 121  |
+| reloadTab()         | claude-code/index.js | 161  |
+| closeTab()          | claude-code/index.js | 189  |
+| getPageMetadata()   | claude-code/index.js | 214  |
+| captureScreenshot() | claude-code/index.js | 262  |
 
 **Complete details:** `COMPLETE-FUNCTIONS-LIST-2025-10-26.md`
 
@@ -48,20 +52,22 @@ See `PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md`
 
 ### Q: Where's the complete API documentation?
 
-**A:** `docs/API.md` (1,270 lines, updated 2025-10-26)
+**A:** `docs/API.md` (1,400+ lines, updated 2025-10-28 with P1-P2 features)
 
-**Quick reference:** `docs/QUICK_REFERENCE.md` (360 lines)
+**Quick reference:** `docs/QUICK_REFERENCE.md` (400+ lines, updated 2025-10-28)
 
 ---
 
 ### Q: What's broken?
 
-**A:** `TO-FIX.md` - 22 active issues:
+**A:** `TO-FIX.md` - 20 active issues:
 
-- 16 phantom APIs (tested but not implemented)
+- 14 phantom APIs (tested but not implemented, was 16, Phase 1.3 implemented 2)
 - 3 unused modules (HealthManager, ConsoleCapture, Level4 CDP)
-- 1 validation bug (FIXED)
+- 1 validation bug (FIXED in Phase 1.3)
 - 2 cleanup recommendations
+
+**New in P1-P2:** 4 security enhancements added (DoS protection, circular ref handling, TOCTOU docs, integer validation)
 
 ---
 

@@ -1,7 +1,7 @@
 # TO-FIX - Active Issues
 
-**Last Updated:** 2025-10-27 (Post Phase 1.3 + P0 Bug Fix)
-**Status:** 17 active issues (14 phantom APIs, 1 validation bug, 2 cleanup recommendations)
+**Last Updated:** 2025-10-28 (Post CI/CD Setup & Shell Security Fixes)
+**Status:** 19 active issues (14 phantom APIs, 1 validation bug, 2 CI/CD issues, 2 cleanup recommendations)
 
 **Resolved (Oct 27):**
 
@@ -239,7 +239,81 @@ $ grep -n "abortTest" claude-code/index.js
 
 ---
 
-### 3. Validation Bug - Incorrect Regex (MEDIUM PRIORITY)
+## CI/CD ISSUES
+
+### 2. Token Budget Validation - CLAUDE.md Too Large (HIGH PRIORITY)
+
+**Issue:** CLAUDE.md exceeds CI/CD token budget limit
+
+**File:** CLAUDE.md
+**Current Size:** 602 lines
+**Maximum Allowed:** 250 lines
+**Overage:** 352 lines (241% over limit)
+
+**Impact:** HIGH - Blocks all CI/CD workflows from passing
+
+**CI/CD Check:**
+
+```yaml
+# .github/workflows/critical-checks.yml
+if [ $CLAUDE_LINES -gt 250 ]; then
+  echo "❌ FAIL: CLAUDE.md is $CLAUDE_LINES lines (max: 250)"
+  FAILED=1
+fi
+```
+
+**Root Cause:** CLAUDE.md contains comprehensive project documentation that exceeds community best practice of 100-200 lines
+
+**Recommendation:**
+
+1. **Split CLAUDE.md into multiple files**:
+   - Keep CLAUDE.md focused (100-200 lines): Quick start, essential commands, file structure
+   - Move to separate docs:
+     - `docs/DEVELOPMENT-GUIDE.md` - Development workflow, testing guide
+     - `docs/ARCHITECTURE-OVERVIEW.md` - Architecture details, components
+     - `docs/PHANTOM-APIS.md` - Phantom API details
+     - `docs/KNOWN-ISSUES.md` - Known limitations, warnings
+2. **Update references** in CLAUDE.md to point to detailed docs
+3. **Verify CI/CD passes** after changes
+
+**Priority:** HIGH - Blocking CI/CD
+
+**Discovered:** 2025-10-28 during CI/CD validation
+**Related Workflow:** `.github/workflows/critical-checks.yml:156-214`
+
+---
+
+### 3. ShellCheck Linting Failures (MEDIUM PRIORITY)
+
+**Issue:** Shell scripts contain linting issues detected by ShellCheck
+
+**CI/CD Check:** `.github/workflows/critical-checks.yml` - ShellCheck step
+**Status:** ❌ FAILING
+
+**Impact:** MEDIUM - Blocks Critical Checks workflow
+
+**Root Cause:** Shell scripts not following ShellCheck best practices
+
+**Recommendation:**
+
+1. Run ShellCheck locally: `shellcheck scripts/*.sh .claude/hooks/*.sh`
+2. Fix reported issues (quotes, variable usage, command suggestions)
+3. Verify CI/CD passes
+
+**Priority:** MEDIUM - Blocks one CI/CD workflow
+
+**Discovered:** 2025-10-28 during CI/CD validation
+**Related Workflow:** `.github/workflows/critical-checks.yml:22-28`
+
+**Note:** To see specific errors, run:
+
+```bash
+gh run view <run-id> --log-failed | grep "ShellCheck"
+```
+
+---
+
+### 4. Validation Bug - Incorrect Regex (MEDIUM PRIORITY)
 
 **File:** server/validation.js
 **Function:** validateExtensionId()
@@ -478,13 +552,14 @@ const extensionIdRegex = /^[a-p]{32}$/;
 | ----------------------------------- | ----------------- | ----------- | ------------------- |
 | Phantom APIs                        | 14 (was 16)       | HIGH/MEDIUM | 0 (not implemented) |
 | ~~P0 Validation Bug~~               | ~~1~~ ✅ RESOLVED | ~~HIGH~~    | ~~Fixed~~           |
+| CI/CD Issues                        | 2 NEW             | HIGH/MEDIUM | N/A                 |
 | Validation Bug (Extension ID Regex) | 1                 | MEDIUM      | 1 line fix          |
 | ~~Unused Modules~~                  | ~~3~~ ✅ RESOLVED | ~~LOW~~     | ~~741 lines~~       |
 | Documentation Gaps                  | 2                 | MEDIUM      | N/A                 |
 | Duplicate Files                     | 11                | MEDIUM      | ~500 lines          |
 | Obsolete Files                      | 5                 | LOW         | ~200 lines          |
 | Prototype Files                     | 3                 | LOW         | ~150 lines          |
-| **TOTAL**                           | **36** → **17**   |             | **~850 lines**      |
+| **TOTAL**                           | **36** → **19**   |             | **~850 lines**      |
 
 **Phase 1.3 + P0 Bug Fix Resolutions (Oct 27):**
 

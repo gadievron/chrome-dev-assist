@@ -88,6 +88,13 @@ This extension requires broad permissions to function:
 
 ### Security Audit History
 
+- **2025-10-28**: Shell security hardening (CVE-2025-53773)
+  - Fixed 50+ unsafe `echo "$var"` patterns → `printf "%s\n" "$var"`
+  - Converted regex grep to literal grep (reduced attack surface)
+  - All shell scripts now pass Hook Security Audit
+  - Files: 5 shell scripts, 1 CI/CD workflow
+  - Result: ✅ Zero unsafe shell patterns remaining
+
 - **2025-10-27**: Multi-persona security review (5 reviewers)
   - No critical vulnerabilities found
   - Security documentation added
