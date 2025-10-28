@@ -19,81 +19,81 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run tests with coverage
-      run: npm test -- --coverage --coverageReporters=lcov --coverageReporters=text
-      continue-on-error: true
-      # Continue even if some tests fail (extension not loaded in CI)
+      - name: Run tests with coverage
+        run: npm test -- --coverage --coverageReporters=lcov --coverageReporters=text
+        continue-on-error: true
+        # Continue even if some tests fail (extension not loaded in CI)
 
-    - name: Generate coverage summary
-      if: always()
-      run: |
-        echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        if [ -f coverage/lcov.info ]; then
-          echo "✅ Coverage report generated" >> $GITHUB_STEP_SUMMARY
+      - name: Generate coverage summary
+        if: always()
+        run: |
+          echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          # Parse coverage info
-          if command -v lcov &> /dev/null; then
-            lcov --summary coverage/lcov.info 2>&1 | grep -A 5 "Overall coverage" >> $GITHUB_STEP_SUMMARY || true
+          if [ -f coverage/lcov.info ]; then
+            echo "✅ Coverage report generated" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            # Parse coverage info
+            if command -v lcov &> /dev/null; then
+              lcov --summary coverage/lcov.info 2>&1 | grep -A 5 "Overall coverage" >> $GITHUB_STEP_SUMMARY || true
+            fi
+          else
+            echo "⚠️ No coverage report generated (tests may have failed)" >> $GITHUB_STEP_SUMMARY
           fi
-        else
-          echo "⚠️ No coverage report generated (tests may have failed)" >> $GITHUB_STEP_SUMMARY
-        fi
 
-    - name: Upload coverage to Codecov (OIDC - No Token Required)
-      uses: codecov/codecov-action@v5
-      if: always()
-      with:
-        use_oidc: true                         # Use OIDC authentication (modern, no secrets!)
-        files: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-chrome-dev-assist
-        fail_ci_if_error: false                # Don't fail CI if Codecov has issues
-        verbose: true
+      - name: Upload coverage to Codecov (OIDC - No Token Required)
+        uses: codecov/codecov-action@v5
+        if: always()
+        with:
+          use_oidc: true                         # Use OIDC authentication (modern, no secrets!)
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-chrome-dev-assist
+          fail_ci_if_error: false                # Don't fail CI if Codecov has issues
+          verbose: true
 
-    - name: Upload coverage artifact
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: coverage-report
-        path: coverage/
-        retention-days: 30
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
 
-    - name: Comment PR with coverage
-      if: github.event_name == 'pull_request' && always()
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          let coverageComment = '## 📊 Test Coverage Report\n\n';
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let coverageComment = '## 📊 Test Coverage Report\n\n';
 
-          try {
-            if (fs.existsSync('coverage/lcov.info')) {
-              coverageComment += '✅ Coverage report generated successfully\n\n';
-              coverageComment += 'View detailed coverage in the artifacts section.\n';
-            } else {
-              coverageComment += '⚠️ Coverage report not available\n\n';
-              coverageComment += 'Some tests require Chrome extension to be loaded.\n';
+            try {
+              if (fs.existsSync('coverage/lcov.info')) {
+                coverageComment += '✅ Coverage report generated successfully\n\n';
+                coverageComment += 'View detailed coverage in the artifacts section.\n';
+              } else {
+                coverageComment += '⚠️ Coverage report not available\n\n';
+                coverageComment += 'Some tests require Chrome extension to be loaded.\n';
+              }
+            } catch (error) {
+              coverageComment += '❌ Error reading coverage: ' + error.message + '\n';
             }
-          } catch (error) {
-            coverageComment += '❌ Error reading coverage: ' + error.message + '\n';
-          }
 
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: coverageComment
-          });
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: coverageComment
+            });
