@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# REQUIRED: OIDC permissions for Codecov v5 (no token needed!)
+permissions:
+  id-token: write      # Required for OIDC authentication
+  contents: read       # Required to checkout code
+  pull-requests: write # Required to comment on PRs
+
 jobs:
   test-coverage:
     name: Run Tests & Report Coverage
@@ -46,15 +52,15 @@ jobs:
           echo "⚠️ No coverage report generated (tests may have failed)" >> $GITHUB_STEP_SUMMARY
         fi
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+    - name: Upload coverage to Codecov (OIDC - No Token Required)
+      uses: codecov/codecov-action@v5
       if: always()
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        use_oidc: true                         # Use OIDC authentication (modern, no secrets!)
         files: ./coverage/lcov.info
         flags: unittests
         name: codecov-chrome-dev-assist
-        fail_ci_if_error: false
+        fail_ci_if_error: false                # Don't fail CI if Codecov has issues
         verbose: true
 
     - name: Upload coverage artifact
