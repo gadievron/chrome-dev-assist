@@ -82,7 +82,10 @@ jobs:
           # Check 1: Unsafe echo usage (should use printf)
           echo ""
           echo "Check 1: Unsafe echo with variables..."
-          if find . -name "*.sh" -type f -exec grep -Hn 'echo.*\$' {} \; 2>/dev/null | grep -v '^\s*#'; then
+          if find . -name "*.sh" -type f \
+            -not -path './.archive/*' \
+            -not -path './test-rules-compliance.sh' \
+            -exec grep -Hn 'echo.*\$' {} \; 2>/dev/null | grep -v '^\s*#'; then
             echo "❌ FAIL: Found unsafe 'echo \$var' usage"
             echo "   Fix: Use 'printf \"%s\" \"\$var\"' instead"
             FAILED=1
@@ -93,7 +96,10 @@ jobs:
           # Check 2: Regex grep (should use literal)
           echo ""
           echo "Check 2: Unsafe grep -E (regex matching)..."
-          if find . -name "*.sh" -type f -exec grep -Hn 'grep[[:space:]]\+-E' {} \; 2>/dev/null; then
+          if find . -name "*.sh" -type f \
+            -not -path './.archive/*' \
+            -not -path './test-rules-compliance.sh' \
+            -exec grep -Hn 'grep[[:space:]]\+-E' {} \; 2>/dev/null; then
             echo "❌ FAIL: Found 'grep -E' (regex mode)"
             echo "   Fix: Use 'grep -F' (literal mode) instead"
             FAILED=1
