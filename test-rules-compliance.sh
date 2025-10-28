@@ -245,7 +245,7 @@ echo ""
 TOTAL_TESTS=$((PASS_COUNT + FAIL_COUNT))
 if [ $TOTAL_TESTS -gt 0 ]; then
     PASS_RATE=$((PASS_COUNT * 100 / TOTAL_TESTS))
-    printf "Pass Rate: %s%% (%s / %s)\n" "$PASS_RATE" "$PASS_COUNT" "$TOTAL_TESTS" ($PASS_COUNT / $TOTAL_TESTS)"
+    printf "Pass Rate: %s%% (%s / %s)\n" "$PASS_RATE" "$PASS_COUNT" "$TOTAL_TESTS"
 else
     echo "Pass Rate: N/A"
 fi
