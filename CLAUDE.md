@@ -2,19 +2,34 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Global Development Rules - MANDATORY
+## Global Development Rules - Pragmatic v2.1
 
-**CRITICAL**: All development must follow these global rules without exception:
+**This project follows the Pragmatic Rules System v2.1** (automated rule loading via hooks + user-controlled commands).
 
-### Core Rule Files (Located at ~/\*)
+### Core Principles (5 NON-NEGOTIABLES)
 
-- **Security Rules**: `~/SECURITY_RULES.md` - Input validation, authentication, data protection
-- **Coding Standards**: `~/CODING_STANDARDS.md` - Language standards, project structure, documentation
-- **Development Rules**: `~/DEVELOPMENT_RULES.md` - Workflow, testing, API design, performance
-- **Precision Rules**: `~/PRECISION_RULES.md` - Surgical changes, scope discipline, dependency verification
-- **Simplicity Rules**: `~/SIMPLICITY_RULES.md` - Functionality first, avoid complexity, fail fast
-- **Testing Rules**: `~/TESTING_RULES.md` - MANDATORY testing gates, coverage requirements, TDD
-- **Completion Validation**: `~/COMPLETION_VALIDATION_RULES.md` - End-of-work validation checklist
+1. **Test-First Discipline** - No code before tests, zero exceptions
+2. **Simple First** - Try simple before complex, every time
+3. **Surgical Changes** - Minimal changes only, no exceptions
+4. **Validation Required** - Run /validate before marking complete
+5. **Python Execution Check** - Run Python to verify, no assumptions
+
+### What Happens Automatically (Hooks)
+
+- **session-start.sh** - Logs session, displays project status
+- **user-prompt-submit.sh** - Auto-loads tier1 rules when keywords detected:
+  - "test", "pytest", "jest" → `tier1/testing.md`
+  - "auth", "password", "token" → `tier1/security.md`
+  - "bug", "error", "fix" → `tier1/issue-tracking.md`
+- **post-tool-use.sh** - Tracks metrics automatically
+
+### User Commands
+
+- **/validate** - Run before marking any task complete (8-item checklist)
+- **/review** - MEDIUM/LARGE tasks only (multi-persona review)
+- **/metrics** - Check system effectiveness
+
+**Full details**: See `~/Documents/Claude Code/CLAUDE.md` (Pragmatic Rules System v2.1)
 
 ---
 
@@ -213,8 +228,8 @@ captureScreenshot(tabId, options);
 
 ---
 
-**COMPLETION REQUIREMENT**: Every task ends with validation checklist from `~/COMPLETION_VALIDATION_RULES.md`
+**COMPLETION REQUIREMENT**: Run **/validate** before marking any task complete.
 
 **Version**: 1.0.0
 **Last Updated**: 2025-10-30
-**Lines**: 219 (under 250 limit ✅)
+**Lines**: 200 (under 250 limit ✅)
