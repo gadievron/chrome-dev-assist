@@ -1,15 +1,17 @@
 # TO-FIX - Active Issues
 
-**Last Updated:** 2025-10-28 (Post CI/CD Setup & Shell Security Fixes)
-**Status:** 19 active issues (14 phantom APIs, 1 validation bug, 2 CI/CD issues, 2 cleanup recommendations)
+**Last Updated:** 2025-10-30 (Post CI/CD Fixes)
+**Status:** 17 active issues (14 phantom APIs, 1 validation bug, 0 CI/CD issues, 2 cleanup recommendations)
 
-**Resolved (Oct 27):**
+**Resolved (Oct 27-30):**
 
-- ✅ getPageMetadata phantom → Implemented (Phase 1.3)
-- ✅ captureScreenshot phantom → Implemented (Phase 1.3)
-- ✅ ConsoleCapture "unused" → Verified ACTIVE (7 usages)
-- ✅ HealthManager "unused" → Verified ACTIVE (4 usages)
-- ✅ P0 Validation Bug → Fixed (captureScreenshot validation, commit 197fd79)
+- ✅ getPageMetadata phantom → Implemented (Phase 1.3, Oct 27)
+- ✅ captureScreenshot phantom → Implemented (Phase 1.3, Oct 27)
+- ✅ ConsoleCapture "unused" → Verified ACTIVE (7 usages, Oct 27)
+- ✅ HealthManager "unused" → Verified ACTIVE (4 usages, Oct 27)
+- ✅ P0 Validation Bug → Fixed (captureScreenshot validation, commit 197fd79, Oct 27)
+- ✅ CI/CD Issue #2 → Fixed (CLAUDE.md split 602→220 lines, commit 54393e9, Oct 30)
+- ✅ CI/CD Issue #3 → Verified passing (ShellCheck passes, Oct 30)
 
 **CRITICAL CORRECTION:** Initially reported 4-5 phantom APIs. Systematic analysis (Oct 26) found **16 phantom APIs**. Phase 1.3 (Oct 27) implemented 2, leaving **14 phantom APIs**.
 
@@ -241,75 +243,77 @@ $ grep -n "abortTest" claude-code/index.js
 
 ## CI/CD ISSUES
 
-### 2. Token Budget Validation - CLAUDE.md Too Large (HIGH PRIORITY)
+### 2. Token Budget Validation - CLAUDE.md Too Large ✅ RESOLVED
 
-**Issue:** CLAUDE.md exceeds CI/CD token budget limit
+**Status:** ✅ **FIXED** (2025-10-30)
+**Commit:** 54393e9
 
-**File:** CLAUDE.md
-**Current Size:** 602 lines
-**Maximum Allowed:** 250 lines
-**Overage:** 352 lines (241% over limit)
+**Issue:** CLAUDE.md exceeded CI/CD token budget limit (602 lines, max 250)
 
-**Impact:** HIGH - Blocks all CI/CD workflows from passing
+**Solution Implemented:**
 
-**CI/CD Check:**
+1. **Split CLAUDE.md** (602 → 220 lines, 64% reduction):
+   - Essential quick reference retained in CLAUDE.md
+   - Comprehensive content moved to focused docs:
+     - `docs/DEVELOPMENT-GUIDE.md` (293 lines) - Workflow, debugging, emergency procedures
+     - `docs/ARCHITECTURE-OVERVIEW.md` (444 lines) - Complete architecture, components, data flow
+     - `docs/KNOWN-ISSUES.md` (478 lines) - Phantom APIs, limitations, test status
 
-```yaml
-# .github/workflows/critical-checks.yml
-if [ $CLAUDE_LINES -gt 250 ]; then
-  echo "❌ FAIL: CLAUDE.md is $CLAUDE_LINES lines (max: 250)"
-  FAILED=1
-fi
-```
+2. **Updated all references** in CLAUDE.md to point to new documentation
 
-**Root Cause:** CLAUDE.md contains comprehensive project documentation that exceeds community best practice of 100-200 lines
+3. **Verified CI/CD passes**:
+   - ✅ Token Budget Validation: PASSED (220 lines < 250 limit)
+   - ✅ ShellCheck: PASSED
+   - ✅ Hook Security Audit: PASSED
+   - ✅ Gitleaks: PASSED
 
-**Recommendation:**
+**Result:**
 
-1. **Split CLAUDE.md into multiple files**:
-   - Keep CLAUDE.md focused (100-200 lines): Quick start, essential commands, file structure
-   - Move to separate docs:
-     - `docs/DEVELOPMENT-GUIDE.md` - Development workflow, testing guide
-     - `docs/ARCHITECTURE-OVERVIEW.md` - Architecture details, components
-     - `docs/PHANTOM-APIS.md` - Phantom API details
-     - `docs/KNOWN-ISSUES.md` - Known limitations, warnings
-2. **Update references** in CLAUDE.md to point to detailed docs
-3. **Verify CI/CD passes** after changes
+- ✅ CI/CD Issue #2 resolved
+- ✅ Better documentation organization
+- ✅ Zero information loss (all content preserved)
+- ✅ Follows Claude Code best practices
 
-**Priority:** HIGH - Blocking CI/CD
-
-**Discovered:** 2025-10-28 during CI/CD validation
-**Related Workflow:** `.github/workflows/critical-checks.yml:156-214`
+**Resolution Date:** 2025-10-30
+**CI/CD Run:** 18953671584 (Token Budget PASSED)
 
 ---
 
-### 3. ShellCheck Linting Failures (MEDIUM PRIORITY)
+### 3. ShellCheck Linting Failures ✅ RESOLVED
 
-**Issue:** Shell scripts contain linting issues detected by ShellCheck
+**Status:** ✅ **PASSING** (verified 2025-10-30)
 
-**CI/CD Check:** `.github/workflows/critical-checks.yml` - ShellCheck step
-**Status:** ❌ FAILING
+**Issue:** Shell scripts were reported as potentially having linting issues
 
-**Impact:** MEDIUM - Blocks Critical Checks workflow
+**Investigation Result:**
 
-**Root Cause:** Shell scripts not following ShellCheck best practices
+- Checked CI/CD run 18953671584 (2025-10-30)
+- ✅ ShellCheck step: **SUCCESS** (all shell scripts pass linting)
+- No linting errors found in any shell scripts
 
-**Recommendation:**
+**Likely Resolution:**
 
-1. Run ShellCheck locally: `shellcheck scripts/*.sh .claude/hooks/*.sh`
-2. Fix reported issues (quotes, variable usage, command suggestions)
-3. Verify CI/CD passes
+- Shell security fixes (2025-10-28) addressed ShellCheck issues:
+  - 50+ `echo "$var"` → `printf "%s\n" "$var"` conversions
+  - `grep -E` → `grep -F` conversions
+  - CVE-2025-53773 pattern elimination
+- These changes likely resolved any ShellCheck warnings
 
-**Priority:** MEDIUM - Blocks one CI/CD workflow
+**Current Status:**
 
-**Discovered:** 2025-10-28 during CI/CD validation
-**Related Workflow:** `.github/workflows/critical-checks.yml:22-28`
+- ✅ All shell scripts pass ShellCheck linting
+- ✅ CI/CD workflow no longer blocked
+- ✅ No action required
 
-**Note:** To see specific errors, run:
+**Verification:**
 
 ```bash
-gh run view <run-id> --log-failed | grep "ShellCheck"
+# CI/CD run 18953671584 shows:
+# ✓ ShellCheck - Lint shell scripts (SUCCESS)
 ```
+
+**Resolution Date:** 2025-10-30 (verified passing)
+**CI/CD Run:** 18953671584
 
 ---
 

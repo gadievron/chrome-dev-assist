@@ -9,6 +9,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation - CLAUDE.md Split (2025-10-30)
+
+**CI/CD Issue #2 Fixed: Token Budget Compliance**
+
+Split comprehensive CLAUDE.md into focused documentation files to comply with Claude Code best practices and fix CI/CD blocker.
+
+**Changes:**
+
+- **CLAUDE.md**: 602 → 220 lines (64% reduction)
+  - Retained: Essential quick reference, critical warnings, quick start
+  - Condensed: Documentation index, development workflow summary
+
+- **New Files Created:**
+  - `docs/DEVELOPMENT-GUIDE.md` (293 lines) - Complete development workflow, debugging, emergency procedures
+  - `docs/ARCHITECTURE-OVERVIEW.md` (444 lines) - Detailed architecture, components, data flow diagrams, module details
+  - `docs/KNOWN-ISSUES.md` (478 lines) - Phantom APIs, test status, limitations, P0 bug history, CI/CD issues
+
+**Benefits:**
+
+- ✅ Fixes CI/CD Issue #2 (Token Budget Validation now passes)
+- ✅ Better documentation organization (focused, topic-specific files)
+- ✅ Easier navigation and information discovery
+- ✅ Follows Claude Code community best practices (100-200 lines optimal)
+- ✅ Zero information loss (all original content preserved)
+
+**CI/CD Status:**
+
+- ✅ Token Budget Validation: PASSED (220 lines < 250 limit)
+- ✅ ShellCheck: PASSED
+- ✅ Hook Security Audit: PASSED
+- ✅ Gitleaks: PASSED
+
+**Commit:** 54393e9
+**Related Issues:** TO-FIX.md Issue #2
+
+---
+
 ### Security - Shell Security Fixes (2025-10-28)
 
 **CVE-2025-53773 Pattern Elimination**
@@ -114,7 +151,7 @@ Fixed all unsafe shell script patterns to prevent command injection vulnerabilit
 ### Changed
 
 - **docs/API.md** - Updated with P1-P2 features, race condition documentation, test coverage counts
-- **TESTS-INDEX.md** - Added 4 new test files, updated statistics (44 test files, 37 fixtures)
+- **TESTS-INDEX.md** - Added 4 new test files, updated statistics (70 test files, 24 fixtures)
 - **README.md** - Added P1-P2 features to Features section, added Security Protections subsection
 
 ### Fixed
