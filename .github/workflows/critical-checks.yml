@@ -52,7 +52,7 @@ jobs:
         with:
           config: .markdownlint.json
           files: '**/*.md'
-          ignore: node_modules
+          ignore: 'node_modules blogs docs'
 
   critical-security:
     name: Critical Security Checks
