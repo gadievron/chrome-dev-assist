@@ -10,11 +10,12 @@
 
 It started with a simple request from a user:
 
-> "can you look back to previous tasks and see what you actually did and what you actually tested? break it down into smaller tasks"
+> "can you look back to previous tasks and see what you actually did and what you actually tested? break
+> it down into smaller tasks"
 
 What should have been a straightforward analysis turned into a computational nightmare. Here's what the user observed:
 
-```
+```text
 ∴ Thinking…
 ∴ Thinking…
 ∴ Thinking…
@@ -40,7 +41,8 @@ This wasn't a one-time glitch. It was a systematic failure mode triggered by spe
 
 ## The Investigation: Finding the Recursive Triggers
 
-As I analyzed the bug, I discovered three specific rule patterns that created infinite loops when Claude tried to perform meta-analysis (analyzing its own previous work):
+As I analyzed the bug, I discovered three specific rule patterns that created infinite loops when Claude
+tried to perform meta-analysis (analyzing its own previous work):
 
 ### Root Cause #1: "Check scope continuously"
 
@@ -62,9 +64,10 @@ As I analyzed the bug, I discovered three specific rule patterns that created in
 
 **Why this causes infinite loops:**
 
-When Claude is asked to "look back at previous tasks," it enters an analysis mode. But the rule says "Check scope continuously." Here's the recursive trap:
+When Claude is asked to "look back at previous tasks," it enters an analysis mode. But the rule says
+"Check scope continuously." Here's the recursive trap:
 
-```
+```text
 1. User asks: "What did you do?"
 2. Claude thinks: "I need to analyze my previous work"
 3. Rule triggers: "Check scope continuously"
@@ -75,7 +78,8 @@ When Claude is asked to "look back at previous tasks," it enters an analysis mod
 8. [INFINITE LOOP]
 ```
 
-The word **"continuously"** is the killer. It doesn't specify WHEN to check scope—it implies ALWAYS, which means "right now... and now... and now..."
+The word **"continuously"** is the killer. It doesn't specify WHEN to check scope—it implies ALWAYS,
+which means "right now... and now... and now..."
 
 ### Root Cause #2: "Assume code works (verify)"
 
@@ -97,9 +101,10 @@ The word **"continuously"** is the killer. It doesn't specify WHEN to check scop
 
 **Why this causes infinite loops:**
 
-The phrase "Assume code works (verify)" contains a meta-instruction to verify assumptions. But when analyzing previous work, this creates a recursive verification spiral:
+The phrase "Assume code works (verify)" contains a meta-instruction to verify assumptions. But when
+analyzing previous work, this creates a recursive verification spiral:
 
-```
+```text
 1. User asks: "What did you actually test?"
 2. Claude reads previous work: "I tested function X"
 3. Rule triggers: "Assume code works (verify)"
@@ -110,7 +115,8 @@ The phrase "Assume code works (verify)" contains a meta-instruction to verify as
 8. [INFINITE LOOP]
 ```
 
-The problem is **self-referential verification**. When you tell an AI to "verify," and it's already in analysis mode, it starts verifying its verification, then verifying that verification, ad infinitum.
+The problem is **self-referential verification**. When you tell an AI to "verify," and it's already in
+analysis mode, it starts verifying its verification, then verifying that verification, ad infinitum.
 
 ### Root Cause #3: Meta-Questions in `/remember`
 
@@ -134,7 +140,8 @@ The problem is **self-referential verification**. When you tell an AI to "verify
 
 **Why these cause infinite loops:**
 
-These meta-questions are **self-referential queries** that trigger recursive introspection. When combined with an analysis task, they create a thinking loop:
+These meta-questions are **self-referential queries** that trigger recursive introspection. When
+combined with an analysis task, they create a thinking loop:
 
 ```
 1. User asks: "Can you look back to previous tasks?"

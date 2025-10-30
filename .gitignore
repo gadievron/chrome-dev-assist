@@ -8,3 +8,7 @@ npm-debug.log*
 # Issues dashboard data
 .issues/snapshots/
 .issues/latest.*
+
+# Session retrospectives
+.SESSION-RETROSPECTIVE-*.md
+.GIT-RETROSPECTIVE-*.md

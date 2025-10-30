@@ -34,10 +34,10 @@ else
     echo "❌ Outputs differ!"
     echo ""
     echo "Original output:"
-    echo "$ORIGINAL"
+    printf "%s\n" "$ORIGINAL"
     echo ""
     echo "Split output:"
-    echo "$SPLIT"
+    printf "%s\n" "$SPLIT"
     ALL_PASSED=false
 fi
 
@@ -68,11 +68,11 @@ else
 fi
 
 if [ "$ORIGINAL_RESULT" = "$REFACTORED_RESULT" ]; then
-    echo "✅ Logic is equivalent (both: $ORIGINAL_RESULT)"
+    printf "✅ Logic is equivalent (both: %s)\n" "$ORIGINAL_RESULT"
 else
     echo "❌ Logic differs!"
-    echo "   Original: $ORIGINAL_RESULT"
-    echo "   Refactored: $REFACTORED_RESULT"
+    printf "   Original: %s\n" "$ORIGINAL_RESULT"
+    printf "   Refactored: %s\n" "$REFACTORED_RESULT"
     ALL_PASSED=false
 fi
 
@@ -102,11 +102,11 @@ else
 fi
 
 if [ "$ORIGINAL_RESULT" = "$REFACTORED_RESULT" ]; then
-    echo "✅ Logic is equivalent (both: $ORIGINAL_RESULT)"
+    printf "✅ Logic is equivalent (both: %s)\n" "$ORIGINAL_RESULT"
 else
     echo "❌ Logic differs!"
-    echo "   Original: $ORIGINAL_RESULT"
-    echo "   Refactored: $REFACTORED_RESULT"
+    printf "   Original: %s\n" "$ORIGINAL_RESULT"
+    printf "   Refactored: %s\n" "$REFACTORED_RESULT"
     ALL_PASSED=false
 fi
 
