@@ -2,19 +2,22 @@
 # Exclude non-critical documentation directories
 
 # Node modules (build artifacts)
-node_modules/
+node_modules
 
 # Blog posts (documentation, not project-critical)
-blogs/
+blogs
 
 # Documentation (can be fixed in dedicated cleanup task)
-docs/
+docs
+
+# Test documentation (session summaries, investigations)
+tests
 
 # Archive directories
-.archive/
+.archive
 
 # Backup directories
-.backups/
+.backups
 
 # Validation tests
-.validation-tests/
+.validation-tests
