@@ -142,36 +142,30 @@ captureScreenshot(tabId, options);
 
 ## Documentation Index
 
-**Essential**:
+**📚 Structured Documentation (.docs/)**
+
+**NEW:** Complete 14-file documentation system - See [.docs/README.md](.docs/README.md) for navigation
+
+**Quick Access:**
+
+- [.docs/PRD.md](.docs/PRD.md) - Product requirements
+- [.docs/ARCHITECTURE.md](.docs/ARCHITECTURE.md) - System architecture
+- [.docs/API_MAP.md](.docs/API_MAP.md) - Complete API reference
+- [.docs/TEST_INDEX.md](.docs/TEST_INDEX.md) - Test coverage
+- [.docs/KNOWLEDGE_TREE.md](.docs/KNOWLEDGE_TREE.md) - Document relationships
+
+**Essential Guides:**
 
 - [README.md](README.md) - Project overview | [TESTING-GUIDE.md](TESTING-GUIDE.md) - Testing docs
 - [docs/API.md](docs/API.md) - API reference | [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) - Quick lookup
+- [docs/DEVELOPMENT-GUIDE.md](docs/DEVELOPMENT-GUIDE.md) - Development workflow
+- [docs/SECURITY.md](docs/SECURITY.md) - Security architecture
 
-**Development**:
+**Issues & Tracking:**
 
-- [docs/DEVELOPMENT-GUIDE.md](docs/DEVELOPMENT-GUIDE.md) - Workflow, debugging, emergency procedures
-- [docs/CI-CD.md](docs/CI-CD.md) - CI/CD workflows
-
-**Architecture**:
-
-- [docs/ARCHITECTURE-OVERVIEW.md](docs/ARCHITECTURE-OVERVIEW.md) - Complete architecture
-- [docs/WEBSOCKET-PROTOCOL.md](docs/WEBSOCKET-PROTOCOL.md) - Message protocol
-
-**Security**:
-
-- [docs/SECURITY.md](docs/SECURITY.md) - 4-layer defense architecture
-- [docs/decisions/](docs/decisions/) - Security design decisions
-
-**Issues**:
-
-- [TO-FIX.md](TO-FIX.md) - Active issues (19 tracked)
+- [TO-FIX.md](TO-FIX.md) - Active issues (18 tracked)
 - [docs/KNOWN-ISSUES.md](docs/KNOWN-ISSUES.md) - Phantom APIs, limitations
 - [PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md](PHANTOM-APIS-COMPLETE-LIST-2025-10-26.md) - Detailed analysis
-
-**Audit**:
-
-- [CODE-TO-FUNCTIONALITY-AUDIT-2025-10-26.md](CODE-TO-FUNCTIONALITY-AUDIT-2025-10-26.md) - Complete verification
-- [TESTS-INDEX.md](TESTS-INDEX.md) - Test inventory
 
 ---
 
