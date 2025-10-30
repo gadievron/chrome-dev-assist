@@ -143,7 +143,7 @@ analysis mode, it starts verifying its verification, then verifying that verific
 These meta-questions are **self-referential queries** that trigger recursive introspection. When
 combined with an analysis task, they create a thinking loop:
 
-```
+```text
 1. User asks: "Can you look back to previous tasks?"
 2. Claude begins analysis of previous work
 3. /remember command fires (via hook or user invocation)
@@ -175,7 +175,7 @@ Here's the exact sequence that created the 500+ thinking messages:
 
 ### Initial State
 
-```
+```text
 User: "can you look back to previous tasks and see what you actually did
        and what you actually tested? break it down into smaller tasks"
 ```
@@ -232,7 +232,7 @@ User: "can you look back to previous tasks and see what you actually did
 
 From the transcript, the user's experience:
 
-```
+```text
 Turn 47: User types: "remember to be careful and follow rules"
 [Claude continues thinking...]
 
@@ -248,7 +248,8 @@ Turn 63: User types: "remember to be careful and follow rules"
 Turn 68: User gives up: "gracefully pause all work"
 ```
 
-The user had to manually interrupt **four times** because Claude was stuck in an infinite verification loop, unable to break out.
+The user had to manually interrupt **four times** because Claude was stuck in an infinite
+verification loop, unable to break out.
 
 ---
 
@@ -362,7 +363,8 @@ Examples:
 - "Are you being careful?"
 - "Continuously monitor..."
 
-These seem helpful—they encourage thoroughness. But they create **recursive traps** when the AI is already in meta-analysis mode.
+These seem helpful—they encourage thoroughness. But they create **recursive traps** when the AI is
+already in meta-analysis mode.
 
 ### The Goldilocks Principle
 
@@ -421,7 +423,8 @@ The Claude Code rules system v2.1 is built on a core philosophy:
 
 > **"If it requires Claude to remember, it will fail."**
 
-This bug proved that principle applies not just to memory, but to **meta-instructions** as well. Instructions that require continuous self-monitoring create infinite loops.
+This bug proved that principle applies not just to memory, but to **meta-instructions** as well.
+Instructions that require continuous self-monitoring create infinite loops.
 
 The fix aligns with the v2.1 philosophy:
 
@@ -431,9 +434,12 @@ The fix aligns with the v2.1 philosophy:
 
 ### The Broader Implication
 
-As AI systems become more sophisticated, instruction design becomes critical. Meta-instructions seem powerful—they encourage self-reflection and quality. But they're **computationally expensive** and **prone to infinite recursion**.
+As AI systems become more sophisticated, instruction design becomes critical. Meta-instructions seem
+powerful—they encourage self-reflection and quality. But they're **computationally expensive** and
+**prone to infinite recursion**.
 
-The solution isn't to remove quality control. It's to make quality control **discrete, concrete, and externally triggered** rather than continuous, abstract, and self-referential.
+The solution isn't to remove quality control. It's to make quality control **discrete, concrete, and
+externally triggered** rather than continuous, abstract, and self-referential.
 
 In short: **Don't tell an AI to "check itself continuously." Tell it exactly when to check, what to check, and when to stop.**
 
