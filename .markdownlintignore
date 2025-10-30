@@ -1,0 +1,20 @@
+# Markdown linting exclusions
+# Exclude non-critical documentation directories
+
+# Node modules (build artifacts)
+node_modules/
+
+# Blog posts (documentation, not project-critical)
+blogs/
+
+# Documentation (can be fixed in dedicated cleanup task)
+docs/
+
+# Archive directories
+.archive/
+
+# Backup directories
+.backups/
+
+# Validation tests
+.validation-tests/
