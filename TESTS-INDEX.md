@@ -3,8 +3,8 @@
 **Complete catalog organized by functionality with API mapping and issue tracking**
 
 **Last Updated:** 2025-10-28 (P1-P2 Complete)
-**Total Test Files:** 44 (+4 from P1-P2 implementation)
-**Total HTML Fixtures:** 37 (+7 from P1-P2: 4 metadata, 3 screenshot)
+**Total Test Files:** 70 (+4 from P1-P2 implementation)
+**Total HTML Fixtures:** 24 (+7 from P1-P2: 4 metadata, 3 screenshot)
 **Organization:** By Functionality → By Date
 
 ---

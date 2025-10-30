@@ -587,9 +587,11 @@ These apply to **both** test infrastructure and production:
 
 **Test Coverage:**
 
-- 62 new tests across 4 test files
-- P1-1/P1-2: 22 tests (integration + boundaries)
-- P2-2/P2-3: 40 tests (validation + visual + integration)
+- 50 new tests across 6 test files (4 new files + 2 updated files)
+- P1-1: 2 tests (page-metadata.test.js size limit boundaries)
+- P1-2: 4 tests (p1-2-metadata-edge-cases.test.js)
+- P2-2: 3 tests (screenshot-validation.test.js integer validation)
+- P2-3: 41 tests (18 edge-case + 13 integration + 10 visual)
 
 ### 2025-10-24: Initial Security Model
 

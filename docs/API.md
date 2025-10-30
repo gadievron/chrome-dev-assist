@@ -692,10 +692,10 @@ Same TOCTOU vulnerabilities as `getPageMetadata`:
 
 **Test Coverage**:
 
-- 21 validation tests including P2-2 integer validation (all passing)
+- 46 validation tests: 28 in `screenshot-validation.test.js` (including 3 P2-2 tests), 18 in `edge-case-validation.test.js` (P2-3)
 - 10 visual verification tests (Phase 3: PNG/JPEG signature, quality comparison)
 - 13 integration tests (Phase 2: concurrency, restrictions, content types)
-- See `tests/unit/screenshot-validation.test.js`, `tests/unit/edge-case-validation.test.js`
+- Unit: `tests/unit/screenshot-validation.test.js`, `tests/unit/edge-case-validation.test.js`
 - Integration: `tests/integration/p2-3-phase2-restrictions.test.js`
 - Visual: `tests/integration/p2-3-phase3-visual.test.js`
 

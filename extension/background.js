@@ -795,7 +795,7 @@ async function handleGetPageMetadataCommand(commandId, params) {
   const sizeBytes = new TextEncoder().encode(metadataStr).length;
 
   if (sizeBytes > MAX_METADATA_SIZE) {
-    const sizeKB = Math.round(sizeBytes / 1024);
+    const sizeKB = Math.ceil(sizeBytes / 1024);
     throw new Error(
       `Metadata too large: ${sizeKB}KB exceeds 1MB limit. ` +
         'Reduce page complexity or use smaller testMetadata object.'
